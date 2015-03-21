@@ -532,18 +532,9 @@ var P = (function() {
         document.body.removeChild(svg);
         svg.style.visibility = svg.style.position = svg.style.left = svg.style.top = '';
 
-        // var canvas = document.createElement('canvas');
         var request = new Request;
         var image = new Image;
         // console.log(md5, 'data:image/svg+xml;base64,' + btoa(svg.outerHTML), 'data:text/plain;base64,' + btoa(source));
-        // canvg(canvas, svg.outerHTML, {
-        //   ignoreMouse: true,
-        //   ignoreAnimation: true,
-        //   ignoreClear: true,
-        //   renderCallback: function() {
-        //     image.src = canvas.toDataURL();
-        //   }
-        // });
         image.crossOrigin = 'anonymous';
         image.src = 'data:image/svg+xml;base64,' + btoa(svg.outerHTML);
         image.onload = function() {
