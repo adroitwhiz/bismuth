@@ -532,19 +532,30 @@ var P = (function() {
         document.body.removeChild(svg);
         svg.style.visibility = svg.style.position = svg.style.left = svg.style.top = '';
 
-        var canvas = document.createElement('canvas');
+        // var canvas = document.createElement('canvas');
+        var request = new Request;
         var image = new Image;
-        callback(image);
-        // svg.style.cssText = '';
-        // console.log(md5, 'data:image/svg+xml;base64,' + btoa(div.innerHTML.trim()));
-        canvg(canvas, svg.outerHTML, {
-          ignoreMouse: true,
-          ignoreAnimation: true,
-          ignoreClear: true,
-          renderCallback: function() {
-            image.src = canvas.toDataURL();
-          }
-        });
+        // console.log(md5, 'data:image/svg+xml;base64,' + btoa(svg.outerHTML), 'data:text/plain;base64,' + btoa(source));
+        // canvg(canvas, svg.outerHTML, {
+        //   ignoreMouse: true,
+        //   ignoreAnimation: true,
+        //   ignoreClear: true,
+        //   renderCallback: function() {
+        //     image.src = canvas.toDataURL();
+        //   }
+        // });
+        image.crossOrigin = 'anonymous';
+        image.src = 'data:image/svg+xml;base64,' + btoa(svg.outerHTML);
+        image.onload = function() {
+          if (callback) callback(image);
+          request.load();
+        };
+        image.onerror = function(e) {
+          console.error(e, image);
+          console.log(image.src);
+          request.error(new Error());
+        };
+        IO.projectRequest.add(request);
       };
       if (IO.zip) {
         cb(f.asText());
