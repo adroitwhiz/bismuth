@@ -8,14 +8,14 @@
 		</title>
 		<link rel="stylesheet" href="css/player.css">
 		<link rel="stylesheet" href="css/index.css">
+		<link rel="icon" href="favicon.png" type="image/png">
 	</head>
 	<body>
 		<div class="area" id="title-area">
-			<h1 class="title">
-				Bismuth
-			</h1>
+			<h1 class="title">Bismuth</h1>
 			<p>
-				Bismuth runs your Scratch projects really fast by compiling them to JavaScript. Try it out by pasting a URL or project ID into the field below or <a class="dropdown">choosing an example<select id="examples">
+				Bismuth runs your Scratch projects really fast by compiling them to JavaScript. Try it out by pasting a URL or project ID into the field below or <a class="dropdown">choosing an example
+				<select id="examples">
 					<option value="">
 					</option>
 					<option value="11397100">
@@ -50,10 +50,11 @@
 		</div>
 		<div class="area" id="player-area">
 			<div class="controls">
-				<span class="stop"></span> <span class="pause"></span> <span class="flag" title="Shift+click to enable turbo mode."></span>
-				<div class="turbo">
-					Turbo Mode
-				</div><span class="full-screen"></span>
+				<span class="stop"></span>
+				<span class="pause"></span>
+				<span class="flag" title="Shift+click to enable turbo mode."></span>
+				<div class="turbo">Turbo Mode</div>
+				<span class="full-screen"></span>
 			</div>
 			<div class="player"></div>
 			<div class="internal-error">
@@ -63,11 +64,15 @@
 		<div class="title">
 			<div class="progress-bar"></div><input class="url" value="https://scratch.mit.edu/projects"> <a target="_blank" class="project-link" title="View project on Scratch"></a>
 		</div>
+		<div class="area">
+			<section>
+				<h1>Pick a file</h1>
+				<input id="file-chooser" type="file">
+			</section>
+		</div>
 		<div class="area" id="project-area">
 			<section class="package">
-				<h1>
-					Package this project
-				</h1>
+				<h1>Package this project</h1>
 				<p>
 					Get a link to a web page that automatically runs your project.
 				</p>
@@ -76,9 +81,7 @@
 				</p>
 			</section>
 			<section class="package">
-				<h1>
-					Embed this project
-				</h1>
+				<h1>Embed this project</h1>
 				<p>
 					Include the Bismuth player in your web site.
 				</p>
@@ -87,25 +90,19 @@
 				</p>
 			</section>
 			<section>
-				<h1>
-					Report a problem
-				</h1>
+				<h1>Report a problem</h1>
 				<p>
 					Bismuth is still in development. <a id="bug-link" target="_blank" href="https://github.com/adroitwhiz/bismuth/issues/new">Click here</a> to report a problem with this project.
 				</p>
 			</section>
 		</div>
 		<section>
-			<h1>
-				Credits
-			</h1>
+			<h1>Credits</h1>
 			<p>
 				Bismuth was created by <a href="https://github.com/nathan">Nathan</a> and modified by <a href="https://github.com/adroitwhiz">Adroitwhiz</a>. Its CPS-style compilation and overall design was inspired by <a href="https://github.com/RHY3756547">Rhys</a>'s <a href="https://code.google.com/p/sb2-js/">sb2.js</a>. It would have more bugs if not for <a href="https://github.com/trumank">Truman</a> and <a href="https://github.com/tjvr">Tim</a>. It uses the <a href="https://stuk.github.io/jszip/">JSZip</a> library, created by <a href="https://github.com/stuk">Stuart Knightley</a>, <a href="https://github.com/dduponchel">David Duponchel</a>, Franz Buchinger, and <a href="https://github.com/aadsm">António Afonso</a>, to read <code>.sb2</code> files and compressed projects, and the <a href="https://code.google.com/p/canvg/">canvg</a> library, created by <a href="https://code.google.com/u/gabelerner@gmail.com/">Gabe Lerner</a>, to render SVGs in <code>&lt;canvas&gt;</code>
 				elements.
 			</p>
-			<h1>
-				Code
-			</h1>
+			<h1>Code</h1>
 			<p>
 				The source code for Bismuth is available <a href="https://github.com/adroitwhiz/bismuth">on GitHub</a>.
 			</p>
@@ -293,6 +290,26 @@
 						}
 					}
 				});
+
+				document.getElementById("file-chooser").addEventListener("change", e => {
+					var f = e.target.files[0];
+
+					if (f) {
+						location.hash = '#zip';
+						show('zip');
+						var ext = f.name.split('.').pop();
+						if (ext === 'sb2' || ext === 'zip') {
+							var request = P.IO.loadSB2File(f);
+						} else if (ext === 'json') {
+							request = P.IO.loadJSONFile(f);
+						}
+						if (request) {
+							P.player.showProgress(request, function(stage) {
+								stage.triggerGreenFlag();
+							});
+						}
+					}
+				})
 
 			}());
 		</script>
