@@ -1734,6 +1734,7 @@ var runtime = (function(P) {
 
 	return {
 		scopedEval: function(source) {
+			console.log(source);
 			return eval(source);
 		}
 	};

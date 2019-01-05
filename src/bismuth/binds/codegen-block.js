@@ -1,25 +1,15 @@
 var LOG_PRIMITIVES = true;
 var DEBUG = false;
 
-var warnings;
-var warn = function(message) {
-	warnings[message] = (warnings[message] || 0) + 1;
-};
-
 var visual = 0;
-var compile = function(object, block, fns) {
-	console.log(block);
-
-	if (typeof block === "undefined") debugger;
-
-
+var compile = function(object, block, fns, startingPosition, inputs, types, used) {
 	var nextLabel = function() {
 		return object.fns.length + fns.length;
 	};
 	
 	var label = function() {
 		var id = nextLabel();
-		fns.push(source.length);
+		fns.push(source.length + startingPosition);
 		visual = 0;
 		return id;
 	};
@@ -42,7 +32,7 @@ var compile = function(object, block, fns) {
 	var seq = function(script) {
 		if (!script) return;
 		for (var i = 0; i < script.length; i++) {
-			source += compile(object, script[i], fns);
+			source += compile(object, script[i], fns, source.length + startingPosition);
 		}
 	};
 	
@@ -146,7 +136,7 @@ var compile = function(object, block, fns) {
 	
 		} else {
 	
-			warn('Undefined val: ' + e[0]);
+			console.warn('Undefined val: ' + e[0]);
 	
 		}
 	};
@@ -1064,7 +1054,7 @@ var compile = function(object, block, fns) {
 
 	} else {
 
-		warn('Undefined command: ' + block[0]);
+		console.warn('Undefined command: ' + block[0]);
 
 	}
 
