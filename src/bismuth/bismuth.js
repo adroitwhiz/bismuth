@@ -1,6 +1,4 @@
 const canvg = require("canvg");
-const stackBlur = require("./lib/StackBlur");
-const RGBColor = require("./lib/rgbcolor");
 const JSZip = require("jszip");
 
 const P = (() => {
