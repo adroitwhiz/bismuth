@@ -1,0 +1,27 @@
+{
+  "name": "bismuth",
+  "version": "1.0.0-1",
+  "description": "JavaScript compiler for Scratch projects. Like Phosphorus, but better.",
+  "main": "./dist/index.js",
+  "private": true,
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adroitwhiz/phosphorus.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/adroitwhiz/phosphorus/issues"
+  },
+  "homepage": "https://github.com/adroitwhiz/phosphorus#readme",
+  "devDependencies": {
+    "webpack": "^4.28.3"
+  }
+}
