@@ -1,1 +1,3 @@
-[phosphorus.github.io](https://phosphorus.github.io)
+It's like Phosphorus, but better\*
+
+\*eventually
