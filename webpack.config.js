@@ -3,7 +3,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
 module.exports = {
-	entry: './src/phosphorus/phosphorus.js',
+	entry: './src/bismuth/bismuth.js',
 	output: {
 		filename: 'bundle.js',
 		path: path.resolve(__dirname, 'dist')

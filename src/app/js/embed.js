@@ -21,7 +21,7 @@
   iframe.width = hasUI ? 482 : 480;
   iframe.height = hasUI ? 393 : 360;
   iframe.style.border = '0';
-  iframe.className = 'phosphorus';
+  iframe.className = 'Bismuth';
 
   script.parentNode.replaceChild(iframe, script);
 

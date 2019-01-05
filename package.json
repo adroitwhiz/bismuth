@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/adroitwhiz/phosphorus.git"
+    "url": "git+https://github.com/adroitwhiz/bismuth.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/adroitwhiz/phosphorus/issues"
+    "url": "https://github.com/adroitwhiz/bismuth/issues"
   },
-  "homepage": "https://github.com/adroitwhiz/phosphorus#readme",
+  "homepage": "https://github.com/adroitwhiz/bismuth#readme",
   "devDependencies": {
     "copy-webpack-plugin": "^4.6.0",
     "webpack": "^4.28.3",
