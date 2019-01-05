@@ -86,59 +86,23 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		if (usebool) return 'bool(' + v + ')';
 		return v;
 	};
+
+	const val2Table = {
+		'costumeName': e => 'S.getCostumeName()',
+		'sceneName': e => 'self.getCostumeName()',
+		'readVariable': e => varRef(e[1]),
+		'contentsOfList:': e => `contentsOfList(${listRef(e[1])})`,
+		'getLine:ofList:': e => `getLineOfList(${listRef(e[2])}, ${val(e[1])})`,
+		'concatenate:with:':e => `("" + ${val(e[1])} + ${val(e[2])})`,
+		'letter:of:': e => `(("" + ${val(e[2])})[(${num(e[1])} | 0) - 1] || "")`,
+		'answer': e => 'self.answer',
+		'getAttribute:of:': e => `attribute(${val(e[1])}, ${val(e[2])})`,
+		'getUserId': e => '0',
+		'getUserName': e => '""'
+	}
 	
 	var val2 = function(e) {
-		var v;
-		if (e[0] === 'costumeName') {
-	
-			return 'S.getCostumeName()';
-	
-		} else if (e[0] === 'sceneName') {
-	
-			return 'self.getCostumeName()';
-	
-		} else if (e[0] === 'readVariable') {
-	
-			return varRef(e[1]);
-	
-		} else if (e[0] === 'contentsOfList:') {
-	
-			return 'contentsOfList(' + listRef(e[1]) + ')';
-	
-		} else if (e[0] === 'getLine:ofList:') {
-	
-			return 'getLineOfList(' + listRef(e[2]) + ', ' + val(e[1]) + ')';
-	
-		} else if (e[0] === 'concatenate:with:') {
-	
-			return '("" + ' + val(e[1]) + ' + ' + val(e[2]) + ')';
-	
-		} else if (e[0] === 'letter:of:') {
-	
-			return '(("" + ' + val(e[2]) + ')[(' + num(e[1]) + ' | 0) - 1] || "")';
-	
-		} else if (e[0] === 'answer') {
-			/* Sensing */
-	
-			return 'self.answer';
-	
-		} else if (e[0] === 'getAttribute:of:') {
-	
-			return 'attribute(' + val(e[1]) + ', ' + val(e[2]) + ')';
-	
-		} else if (e[0] === 'getUserId') {
-	
-			return '0';
-	
-		} else if (e[0] === 'getUserName') {
-	
-			return '""';
-	
-		} else {
-	
-			console.warn('Undefined val: ' + e[0]);
-	
-		}
+		return val2Table[e[0]](e);
 	};
 	
 	var val = function(e, usenum, usebool) {
