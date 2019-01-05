@@ -27,6 +27,7 @@
     "webpack-cli": "^3.2.0"
   },
   "dependencies": {
-    "canvg": "^1.5.3"
+    "canvg": "^1.5.3",
+    "jszip": "^2.4.0"
   }
 }

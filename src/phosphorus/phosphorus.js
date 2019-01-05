@@ -1,3 +1,8 @@
+const canvg = require("canvg");
+const stackBlur = require("./lib/StackBlur");
+const RGBColor = require("./lib/rgbcolor");
+const JSZip = require("jszip");
+
 var P = (function() {
   'use strict';
 
@@ -2218,10 +2223,6 @@ var P = (function() {
   };
 
 }());
-
-const canvg = require("canvg");
-const stackBlur = require("lib/StackBlur");
-const RGBColor = require("lib/rgbcolor");
 
 P.compile = (function() {
   'use strict';
