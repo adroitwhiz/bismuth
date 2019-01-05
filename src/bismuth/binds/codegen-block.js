@@ -1,6 +1,20 @@
 var LOG_PRIMITIVES = true;
 var DEBUG = false;
 
+const val2Table = {
+	'costumeName': e => 'S.getCostumeName()',
+	'sceneName': e => 'self.getCostumeName()',
+	'readVariable': e => varRef(e[1]),
+	'contentsOfList:': e => `contentsOfList(${listRef(e[1])})`,
+	'getLine:ofList:': e => `getLineOfList(${listRef(e[2])}, ${val(e[1])})`,
+	'concatenate:with:':e => `("" + ${val(e[1])} + ${val(e[2])})`,
+	'letter:of:': e => `(("" + ${val(e[2])})[(${num(e[1])} | 0) - 1] || "")`,
+	'answer': e => 'self.answer',
+	'getAttribute:of:': e => `attribute(${val(e[1])}, ${val(e[2])})`,
+	'getUserId': e => '0',
+	'getUserName': e => '""'
+}
+
 var visual = 0;
 var compile = function(object, block, fns, startingPosition, inputs, types, used) {
 	var nextLabel = function() {
@@ -86,20 +100,6 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		if (usebool) return 'bool(' + v + ')';
 		return v;
 	};
-
-	const val2Table = {
-		'costumeName': e => 'S.getCostumeName()',
-		'sceneName': e => 'self.getCostumeName()',
-		'readVariable': e => varRef(e[1]),
-		'contentsOfList:': e => `contentsOfList(${listRef(e[1])})`,
-		'getLine:ofList:': e => `getLineOfList(${listRef(e[2])}, ${val(e[1])})`,
-		'concatenate:with:':e => `("" + ${val(e[1])} + ${val(e[2])})`,
-		'letter:of:': e => `(("" + ${val(e[2])})[(${num(e[1])} | 0) - 1] || "")`,
-		'answer': e => 'self.answer',
-		'getAttribute:of:': e => `attribute(${val(e[1])}, ${val(e[2])})`,
-		'getUserId': e => '0',
-		'getUserName': e => '""'
-	}
 	
 	var val2 = function(e) {
 		return val2Table[e[0]](e);
