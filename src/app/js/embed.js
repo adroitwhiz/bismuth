@@ -1,28 +1,28 @@
 (function(global) {
-  'use strict';
+	'use strict';
 
-  var script = document.currentScript || (function(scripts) {
-    return scripts[scripts.length - 1];
-  })(document.getElementsByTagName('script'));
+	var script = document.currentScript || (function(scripts) {
+		return scripts[scripts.length - 1];
+	})(document.getElementsByTagName('script'));
 
-  var hasUI = true;
-  var params = script.src.split('?')[1].split('&');
-  params.forEach(function(p) {
-    var parts = p.split('=');
-    if (parts.length > 1 && parts[0] === 'ui') {
-      hasUI = parts[1] !== 'false';
-    }
-  });
+	var hasUI = true;
+	var params = script.src.split('?')[1].split('&');
+	params.forEach(function(p) {
+		var parts = p.split('=');
+		if (parts.length > 1 && parts[0] === 'ui') {
+			hasUI = parts[1] !== 'false';
+		}
+	});
 
-  var iframe = document.createElement('iframe');
-  iframe.setAttribute('allowfullscreen', true);
-  iframe.setAttribute('allowtransparency', true);
-  iframe.src = script.src.replace(/^http:/, 'https:').replace(/embed\.js/, 'embed.html');
-  iframe.width = hasUI ? 482 : 480;
-  iframe.height = hasUI ? 393 : 360;
-  iframe.style.border = '0';
-  iframe.className = 'Bismuth';
+	var iframe = document.createElement('iframe');
+	iframe.setAttribute('allowfullscreen', true);
+	iframe.setAttribute('allowtransparency', true);
+	iframe.src = script.src.replace(/^http:/, 'https:').replace(/embed\.js/, 'embed.html');
+	iframe.width = hasUI ? 482 : 480;
+	iframe.height = hasUI ? 393 : 360;
+	iframe.style.border = '0';
+	iframe.className = 'Bismuth';
 
-  script.parentNode.replaceChild(iframe, script);
+	script.parentNode.replaceChild(iframe, script);
 
 }(this));

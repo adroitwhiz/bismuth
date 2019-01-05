@@ -4,67 +4,67 @@ const RGBColor = require("./lib/rgbcolor");
 const JSZip = require("jszip");
 
 var P = (function() {
-  'use strict';
+	'use strict';
 
-  var SCALE = window.devicePixelRatio || 1;
+	var SCALE = window.devicePixelRatio || 1;
 
-  var hasTouchEvents = 'ontouchstart' in document;
+	var hasTouchEvents = 'ontouchstart' in document;
 
-  var AudioContext = window.AudioContext || window.webkitAudioContext;
-  var audioContext = AudioContext && new AudioContext;
-  window.audioContext = audioContext;
+	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	var audioContext = AudioContext && new AudioContext;
+	window.audioContext = audioContext;
 
-  var inherits = function(cla, sup) {
-    cla.prototype = Object.create(sup.prototype);
-    cla.parent = sup;
-    cla.base = function(self, method /*, args... */) {
-      return sup.prototype[method].call(self, [].slice.call(arguments, 2));
-    };
-  };
+	var inherits = function(cla, sup) {
+		cla.prototype = Object.create(sup.prototype);
+		cla.parent = sup;
+		cla.base = function(self, method /*, args... */) {
+			return sup.prototype[method].call(self, [].slice.call(arguments, 2));
+		};
+	};
 
-  var Events = require("./events");
+	var Events = require("./events");
 
-  var addEvents = Events.addEvents;
+	var addEvents = Events.addEvents;
 
-  var addEvent = Events.addEvent;
+	var addEvent = Events.addEvent;
 
-  var IO = require('./io');
+	var IO = require('./io');
 
-  var Base = require("./spritebase");
+	var Base = require("./spritebase");
 
-  var Stage = require("./stage");
+	var Stage = require("./stage");
 
-  var KEY_CODES = {
-    space: 32,
-    'left arrow': 37,
-    'up arrow': 38,
-    'right arrow': 39,
-    'down arrow': 40,
-    any: 'any'
-  };
+	var KEY_CODES = {
+		space: 32,
+		'left arrow': 37,
+		'up arrow': 38,
+		'right arrow': 39,
+		'down arrow': 40,
+		any: 'any'
+	};
 
-  var getKeyCode = function(keyName) {
-    return KEY_CODES[keyName.toLowerCase()] || keyName.toUpperCase().charCodeAt(0);
-  };
+	var getKeyCode = function(keyName) {
+		return KEY_CODES[keyName.toLowerCase()] || keyName.toUpperCase().charCodeAt(0);
+	};
 
-  var Sprite = require("./sprite");
+	var Sprite = require("./sprite");
 
-  var Costume = require("./costume");
+	var Costume = require("./costume");
 
-  var Sound = require("./sound");
+	var Sound = require("./sound");
 
-  var Watcher = require("./watcher");
+	var Watcher = require("./watcher");
 
-  return {
-    hasTouchEvents: hasTouchEvents,
-    getKeyCode: getKeyCode,
-    audioContext: audioContext,
-    IO: IO,
-    Base: Base,
-    Stage: Stage,
-    Sprite: Sprite,
-    Watcher: Watcher
-  };
+	return {
+		hasTouchEvents: hasTouchEvents,
+		getKeyCode: getKeyCode,
+		audioContext: audioContext,
+		IO: IO,
+		Base: Base,
+		Stage: Stage,
+		Sprite: Sprite,
+		Watcher: Watcher
+	};
 
 }());
 
