@@ -1,4 +1,4 @@
-var LOG_PRIMITIVES = true;
+var LOG_PRIMITIVES = false;
 var DEBUG = false;
 
 var visual = 0;
