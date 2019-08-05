@@ -1,3 +1,6 @@
+const CodeGenerator = require("../codegen/code-generator");
+const Parser = require("../codegen/parser.js");
+
 var compile = (function(P) {
 	'use strict';
 
@@ -18,8 +21,18 @@ var compile = (function(P) {
 	];
 
 	var compileScripts = function(object) {
-		for (var i = 0; i < object.scripts.length; i++) {
-			compileListener(object, object.scripts[i][2]);
+		const parser = new Parser();
+		const generator = new CodeGenerator(object);
+
+		const parsedScripts = [];
+		for (let i = 0; i < object.scripts.length; i++) {
+			parsedScripts.push(parser.parseScript(object.scripts[i][2]));
+			//compileListener(object, object.scripts[i][2]);
+		}
+
+		const compiledScripts = [];
+		for (let i = 0; i < parsedScripts.length; i++) {
+			compiledScripts.push(generator.compileScript(parsedScripts[i]));
 		}
 	};
 
@@ -29,28 +42,38 @@ var compile = (function(P) {
 	};
 
 	var compileListener = function(object, script) {
-		console.log(script);
+		const generator = new CodeGenerator();
 
+		// Skip compilation if the script is empty or not connected to a hat block
 		if (!script[0] || EVENT_SELECTORS.indexOf(script[0][0]) === -1) return;
 
-		var visual = 0;
-		var compile = require("./codegen-block");
-
 		var source = '';
-		var startfn = object.fns.length;
-		var fns = [0];
+		var nextFunctionID = object.fns.length;
+		var functions = [0];
 
-		if (script[0][0] === 'procDef') {
+		const firstBlock = script[0];
+
+		/*if (firstBlock[0] === 'procDef') {
 			var inputs = script[0][2];
 			var types = script[0][1].match(/%[snmdcb]/g) || [];
 			var used = [];
-		}
+		}*/
 
-		for (var i = 1; i < script.length; i++) {
-			source += compile(object, script[i], fns, source.length, inputs, types, used);
-		}
+		//const compiledScript = generator.compile(object, script);
+		//console.log(compiledScript);
 
-		if (script[0][0] === 'procDef') {
+		const parsedScript = new Parser().parseScript(script);
+
+		const compiledScript = new CodeGenerator().compileScript(parsedScript);
+
+		console.log(compiledScript);
+
+		/*for (var i = 1; i < script.length; i++) {
+			//source += compile(object, script[i], fns, source.length, inputs, types, used);
+			console.log(script[i]);
+		}*/
+
+		/*if (firstBlock[0] === 'procDef') {
 			var pre = '';
 			for (var i = types.length; i--;)
 				if (used[i]) {
@@ -62,15 +85,15 @@ var compile = (function(P) {
 					}
 				}
 			source = pre + source;
-			for (var i = 1, l = fns.length; i < l; ++i) {
-				fns[i] += pre.length;
+			for (var i = 1, l = functions.length; i < l; ++i) {
+				functions[i] += pre.length;
 			}
 			source += 'endCall();\n';
 			source += 'return;\n';
 
-		}
+		}*/
 
-		var createContinuation = function(source) {
+		/*var createContinuation = function(source) {
 			var result = '(function() {\n';
 			var brackets = 0;
 			var delBrackets = 0;
@@ -131,46 +154,43 @@ var compile = (function(P) {
 				}
 			}
 			result += '})';
-
-			//console.log("continuation: ", result);
-
 			return P.runtime.scopedEval(result);
 		};
 
-		for (var i = 0; i < fns.length; i++) {
-			object.fns.push(createContinuation(source.slice(fns[i])));
-		}
+		for (var i = 0; i < functions.length; i++) {
+			object.fns.push(createContinuation(source.slice(functions[i])));
+		}*/
 
-		var f = object.fns[startfn];
+		var f = object.fns[nextFunctionID];
 
-		if (script[0][0] === 'whenClicked') {
+		if (firstBlock[0] === 'whenClicked') {
 			object.listeners.whenClicked.push(f);
-		} else if (script[0][0] === 'whenGreenFlag') {
+		} else if (firstBlock[0] === 'whenGreenFlag') {
 			object.listeners.whenGreenFlag.push(f);
-		} else if (script[0][0] === 'whenCloned') {
+		} else if (firstBlock[0] === 'whenCloned') {
 			object.listeners.whenCloned.push(f);
-		} else if (script[0][0] === 'whenIReceive') {
-			var key = script[0][1].toLowerCase();
+		} else if (firstBlock[0] === 'whenIReceive') {
+			var key = firstBlock[1].toLowerCase();
 			(object.listeners.whenIReceive[key] || (object.listeners.whenIReceive[key] = [])).push(f);
-		} else if (script[0][0] === 'whenKeyPressed') {
-			if (script[0][1] === 'any') {
+		} else if (firstBlock[0] === 'whenKeyPressed') {
+			if (firstBlock[1] === 'any') {
 				for (var i = 128; i--;) {
 					object.listeners.whenKeyPressed[i].push(f);
 				}
 			} else {
-				object.listeners.whenKeyPressed[P.getKeyCode(script[0][1])].push(f);
+				object.listeners.whenKeyPressed[P.getKeyCode(firstBlock[1])].push(f);
 			}
-		} else if (script[0][0] === 'whenSceneStarts') {
-			var key = script[0][1].toLowerCase();
+		} else if (firstBlock[0] === 'whenSceneStarts') {
+			var key = firstBlock[1].toLowerCase();
 			(object.listeners.whenSceneStarts[key] || (object.listeners.whenSceneStarts[key] = [])).push(f);
-		} else if (script[0][0] === 'procDef') {
-			object.procedures[script[0][1]] = {
+		} else if (firstBlock[0] === 'procDef') {
+			object.procedures[firstBlock[1]] = {
 				inputs: inputs,
-				warp: script[0][4],
+				warp: firstBlock[4],
 				fn: f
 			};
 		} else {
-			warn('Undefined event: ' + script[0][0]);
+			warn('Undefined event: ' + firstBlock[0]);
 		}
 	};
 

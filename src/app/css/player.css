@@ -31,7 +31,7 @@
   cursor: pointer;
   text-align: center;
   opacity: .4;
-  background-image: url(icons.svg);
+  background-image: url("/icons.svg");
   text-decoration: none;
 }
 .controls .flag {

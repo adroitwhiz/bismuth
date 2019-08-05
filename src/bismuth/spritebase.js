@@ -32,16 +32,9 @@ class Base {
 		}
 		this.fns = [];
 		this.scripts = [];
+		this.continuations = [];
 
-		this.filters = {
-			color: 0,
-			fisheye: 0,
-			whirl: 0,
-			pixelate: 0,
-			mosaic: 0,
-			brightness: 0,
-			ghost: 0
-		};
+		this.resetFilters();
 	}
 
 	fromJSON(data) {

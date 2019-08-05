@@ -1,5 +1,5 @@
 var LOG_PRIMITIVES = false;
-var DEBUG = false;
+var DEBUG = true;
 
 var visual = 0;
 var compile = function(object, block, fns, startingPosition, inputs, types, used) {
@@ -21,11 +21,13 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 	
 	var queue = function(id) {
 		source += 'queue(' + id + ');\n';
+		source += 'console.log("Returning");\n';
 		source += 'return;\n';
 	};
 	
 	var forceQueue = function(id) {
 		source += 'forceQueue(' + id + ');\n';
+		source += 'console.log("Returning");\n';
 		source += 'return;\n';
 	};
 	
@@ -38,7 +40,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 	
 	var varRef = function(name) {
 		if (typeof name !== 'string') {
-			return 'getVars(' + val(name) + ')[' + val(name) + ']';
+			return 'getVar(' + val(name) + ')';
 		}
 		var o = object.stage.vars[name] !== undefined ? 'self' : 'S';
 		return o + '.vars[' + val(name) + ']';
@@ -46,7 +48,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 	
 	var listRef = function(name) {
 		if (typeof name !== 'string') {
-			return 'getLists(' + val(name) + ')[' + val(name) + ']';
+			return 'getList(' + val(name) + ')';
 		}
 		var o = object.stage.lists[name] !== undefined ? 'self' : 'S';
 		if (o === 'S' && !object.lists[name]) {
@@ -398,13 +400,13 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 	var beatHead = function(dur) {
 		source += 'save();\n';
 		source += 'R.start = self.now;\n';
-		source += 'R.duration = ' + num(dur) + ' * 60 / self.tempoBPM;\n';
+		source += 'R.duration = ' + num(dur) + ' * 60000 / self.tempoBPM;\n';
 		source += 'var first = true;\n';
 	};
 	
 	var beatTail = function(dur) {
 		var id = label();
-		source += 'if (self.now - R.start < R.duration * 1000 || first) {\n';
+		source += 'if (self.now - R.start < R.duration || first) {\n';
 		source += '  var first;\n';
 		forceQueue(id);
 		source += '}\n';
@@ -415,16 +417,17 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 	var wait = function(dur) {
 		source += 'save();\n';
 		source += 'R.start = self.now;\n';
-		source += 'R.duration = ' + dur + ';\n';
+		source += 'R.duration = ' + dur + ' * 1000;\n';
 		source += 'var first = true;\n';
 	
 		var id = label();
-		source += 'if (self.now - R.start < R.duration * 1000 || first) {\n';
+		source += 'if (self.now - R.start < R.duration || first) {\n';
 		source += '  var first;\n';
 		forceQueue(id);
 		source += '}\n';
 	
 		source += 'restore();\n';
+		source += `console.log("when does this happen?, ${id}")\n`;
 	};
 	
 	var noRGB = '';

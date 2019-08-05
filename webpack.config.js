@@ -3,6 +3,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
 module.exports = {
+	mode: 'development',
 	entry: './src/bismuth/bismuth.js',
 	output: {
 		filename: 'bundle.js',
@@ -15,7 +16,13 @@ module.exports = {
 			}
 		])
 	],
-	optimization: {
-		minimize: false
+
+	devtool: 'cheap-module-source-map',	
+	devServer: {
+		contentBase: path.resolve(__dirname, 'dist'),
+		port: 9001,
+		watchOptions: {
+			poll: true
+		}
 	}
 };

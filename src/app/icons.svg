@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg version="1.1" viewBox="0 0 320 96" xmlns="http://www.w3.org/2000/svg">
+<svg version="1.1" viewBox="0 0 320 96" width="320" height="96" xmlns="http://www.w3.org/2000/svg">
 	<g transform="translate(0,64)">
 		<g>
 			<path d="m10-41v-14h2v14z"/>
@@ -30,9 +30,9 @@
 		</g>
 		<path transform="translate(166,-26)" d="M 20,10 A 10,10 0 0 1 10,20 10,10 0 0 1 0,10 10,10 0 0 1 10,0 10,10 0 0 1 20,10 Z" fill="#2eaedf"/>
 		<path d="m170-14.5 4 4 7-7v-4l-7 7-2-2z" fill="#fff"/>
-		<path d="m204-60s-5.0562 12.797-6.2491 15.623c-1.1929 2.8256 0.18937 3.6101 2.7716 2.5892s38.477-15.212 38.477-15.212v-3l-38 15 6-15z" color="#000000" fill="#a0a0a0" style="block-progression:tb;text-indent:0;text-transform:none"/>
+		<path d="m204-60s-5.0562 12.797-6.2491 15.623c-1.1929 2.8256 0.18937 3.6101 2.7716 2.5892s38.477-15.212 38.477-15.212v-3l-38 15 6-15z" color="#000000" fill="#a0a0a0"/>
 		<path d="m201-45 6-15h32z" fill="#fff"/>
-		<path d="m231-28s5.0562 12.797 6.2491 15.623c1.1929 2.8256-0.18937 3.6101-2.7716 2.5892s-38.477-15.212-38.477-15.212v-3l38 15-6-15z" color="#000000" fill="#a0a0a0" style="block-progression:tb;text-indent:0;text-transform:none"/>
+		<path d="m231-28s5.0562 12.797 6.2491 15.623c1.1929 2.8256-0.18937 3.6101-2.7716 2.5892s-38.477-15.212-38.477-15.212v-3l38 15-6-15z" color="#000000" fill="#a0a0a0"/>
 		<g fill="#fff">
 			<path d="m234-13-6-15h-32z"/>
 			<g stroke="#a0a0a0">

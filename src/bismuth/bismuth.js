@@ -39,7 +39,7 @@ const P = (() => {
 	};
 })();
 
-P.compile = require("./binds/compile")(P);
+P.compile = require("./binds/compile2")(P);
 P.runtime = require("./binds/runtime")(P);
 P.player = require("./binds/player")(P);
 
