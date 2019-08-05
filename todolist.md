@@ -1,10 +1,12 @@
 # To do
 - **Refactor the code**
 	- Annotate/comment the code
-	- Higher-level classes (Costume, Sprite, Stage, etc)
 		- Switch to a proper request library
-	- Deobfuscate compiler
-- Abstract away the code generation (maybe with [astring](https://github.com/davidbonnet/astring)?)
-	- If rewriting the code generator, implement it to work with .sb3s
-- Switch to scratch-svg-renderer
+	- Rewrite compiler
+- New code generator
+	1. Parse sb2/sb3 to block format
+	2. Compile blocks into IR (handle control flow, etc. for continuations)
+	3. Interpret IR and/or transpile to JS
+- Switch to scratch-render
 - Redo frontend/HTML
+	- Vue?

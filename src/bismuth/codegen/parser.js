@@ -1,8 +1,8 @@
-const IRPrims = require("./ir-prims");
-const Block = IRPrims.Block;
-const Script = IRPrims.Script;
-const Literal = IRPrims.Literal; //i could order these in order of increasing scope... or i could keep them arranged by length
-const FieldAccessor = IRPrims.FieldAccessor;
+const ScriptPrims = require("./script-prims");
+const Block = ScriptPrims.Block;
+const Script = ScriptPrims.Script;
+const Literal = ScriptPrims.Literal; //i could order these in order of increasing scope... or i could keep them arranged by length
+const FieldAccessor = ScriptPrims.FieldAccessor;
 
 const specMap = require("./specmap");
 

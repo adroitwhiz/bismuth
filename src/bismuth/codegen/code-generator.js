@@ -1,7 +1,7 @@
 const astring = require("astring");
 const e = require("estree-builder");
 
-const IRPrims = require("./ir-prims");
+const ScriptPrims = require("./script-prims");
 const CompiledScript = require("./listener-script");
 const BlockTranslators = require("./block-translators");
 const VisibilityState = require("./visibility-state");
@@ -50,9 +50,9 @@ class CodeGenerator {
 
 	getInput(input) {
 		let inputNode;
-		if (input.value instanceof IRPrims.Literal) {
+		if (input.value instanceof ScriptPrims.Literal) {
 			inputNode = {type: "Literal", value: input.value.value};
-		} else if (input.value instanceof IRPrims.Script) {
+		} else if (input.value instanceof ScriptPrims.Script) {
 			inputNode = e["block"](this.compileSubstack(input.value));
 		} else {
 			inputNode = this.compileBlock(input.value);
