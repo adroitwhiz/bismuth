@@ -44,6 +44,58 @@ const BlockTranslators = gen => {return{
 		);
 	},
 
+	"motion_gotoxy": block => {
+		return e["statement"]( // S.moveTo(block x input, block y input)
+			Builders.callSpriteMethod("moveTo", [
+				gen.getInput(block.args["X"]),
+				gen.getInput(block.args["Y"])
+			])
+		)
+	},
+
+	"motion_changexby": block => {
+		return e["statement"]( // S.moveTo(S.scratchX + block x input, S.scratchY)
+			Builders.callSpriteMethod("moveTo", [
+				e["+"](
+					Builders.spriteProperty("scratchX"),
+					gen.getInput(block.args["DX"])
+				),
+				Builders.spriteProperty("scratchY")
+			])
+		)
+	},
+
+	"motion_setx": block => {
+		return e["statement"]( // S.moveTo(block x input, S.scratchY)
+			Builders.callSpriteMethod("moveTo", [
+				gen.getInput(block.args["X"]),
+				Builders.spriteProperty("scratchY")
+			])
+		)
+	},
+
+	"motion_changeyby": block => {
+		return e["statement"]( // S.moveTo(S.scratchX, S.scratchY + block y input)
+			Builders.callSpriteMethod("moveTo", [
+				Builders.spriteProperty("scratchX"),
+				e["+"](
+					Builders.spriteProperty("scratchY"),
+					gen.getInput(block.args["DY"])
+				),
+				
+			])
+		)
+	},
+
+	"motion_sety": block => {
+		return e["statement"]( // S.moveTo(S.scratchX, block y inp)
+			Builders.callSpriteMethod("moveTo", [
+				Builders.spriteProperty("scratchX"),
+				gen.getInput(block.args["Y"])
+			])
+		)
+	},
+
 	// Control
 	"control_wait": (block, index, script) => {
 		// Since this block causes the script's execution to "yield",
@@ -53,7 +105,6 @@ const BlockTranslators = gen => {return{
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.continue(script.splice(index + 1));
 
-		console.log(continuationID);
 		// Get the continuation ID to use for the timer check.
 		// We need this because the timer check works by yielding
 		// and telling the runtime to continue to *itself* the next tick,
@@ -163,6 +214,15 @@ const BlockTranslators = gen => {return{
 
 			Builders.immediateCall(loopID),
 		]);
+	},
+
+	// Sensing
+	"sensing_mousex": block => {
+		return Builders.stageProperty("mouseX");
+	},
+
+	"sensing_mousey": block => {
+		return Builders.stageProperty("mouseY");
 	},
 	
 	// Data
