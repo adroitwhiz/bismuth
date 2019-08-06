@@ -267,11 +267,6 @@ const BlockTranslators = gen => {return{
 		return Builders.stageProperty("mouseY");
 	},
 
-	// Operators
-	"operator_equals": block => {
-		return e["true"]()
-	},
-	
 	// Data
 	"data_variable": block => {
 		return e["call"](e["id"]("getVar"), [gen.getInput(block.args["VARIABLE"])]);
