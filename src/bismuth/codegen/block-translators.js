@@ -53,6 +53,7 @@ const BlockTranslators = gen => {return{
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.continue(script.splice(index + 1));
 
+		console.log(continuationID);
 		// Get the continuation ID to use for the timer check.
 		// We need this because the timer check works by yielding
 		// and telling the runtime to continue to *itself* the next tick,
@@ -75,6 +76,7 @@ const BlockTranslators = gen => {return{
 			
 			// if we escaped the forceQueue, that must mean the timer's over
 			// so, continue with the rest of the script
+			Builders.restore(),
 			Builders.forceQueue(continuationID)
 		]);
 
@@ -102,15 +104,22 @@ const BlockTranslators = gen => {return{
 	"control_forever": (block, index, script) => {
 		// For each iteration of the loop body,
 		// run the loop contents, then queue up the loop body again.
+		const returnAddress = gen.getBackpatchID();
+		gen.returnStack.push(Builders.forceQueue(Builders.backpatchID(returnAddress)));
+		const loopBody = gen.getInput(block.args["SUBSTACK"]);
+		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
 		return e["block"]([
-			gen.getInput(block.args["SUBSTACK"]),
-			Builders.forceQueue(gen.getNextContinuationID())
+			loopBody,
+			Builders.forceQueue(Builders.backpatchID(returnAddress))
 		])
 	},
 
 	"control_repeat": (block, index, script) => {
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.continue(script.splice(index + 1)); 
+
+		const returnAddress = gen.getBackpatchID();
+		gen.returnStack.push(Builders.forceQueue(Builders.backpatchID(returnAddress)));
 
 		// Get the continuation ID to use for the loop body.
 		let loopID;
@@ -140,6 +149,7 @@ const BlockTranslators = gen => {return{
 			Builders.immediateCall(continuationID)
 		]);
 
+		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
 		gen.pushContinuation(gen.makeFunction(loopBody));
 
 		// Initialize the loop counter to its proper value,

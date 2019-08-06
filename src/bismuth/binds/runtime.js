@@ -1,7 +1,7 @@
 var runtime = (function(P) {
 	'use strict';
 
-	var self, S, REGISTER, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
+	var self, S, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
 
 	var bool = function(v) {
 		return +v !== 0 && v !== '' && v !== 'false' && v !== false;
@@ -368,12 +368,12 @@ var runtime = (function(P) {
 	}
 
 	var save = function() {
-		STACK.push(REGISTER);
-		REGISTER = {};
+		STACK.push(STACK_FRAME);
+		STACK_FRAME = {};
 	};
 
 	var restore = function() {
-		REGISTER = STACK.pop();
+		STACK_FRAME = STACK.pop();
 	};
 
 	// var lastCalls = [];
@@ -381,7 +381,7 @@ var runtime = (function(P) {
 		// lastCalls.push(spec);
 		// if (lastCalls.length > 10000) lastCalls.shift();
 		if (procedure) {
-			STACK.push(REGISTER);
+			STACK.push(STACK_FRAME);
 			CALLS.push(C);
 			C = {
 				base: procedure.fn,
@@ -392,7 +392,7 @@ var runtime = (function(P) {
 				stack: STACK = [],
 				warp: procedure.warp
 			};
-			REGISTER = {};
+			STACK_FRAME = {};
 			if (C.warp || WARP) {
 				WARP++;
 				IMMEDIATE = procedure.fn;
@@ -425,7 +425,7 @@ var runtime = (function(P) {
 			IMMEDIATE = C.fn;
 			C = CALLS.pop();
 			STACK = C.stack;
-			REGISTER = STACK.pop();
+			STACK_FRAME = STACK.pop();
 		}
 	};
 
@@ -589,7 +589,7 @@ var runtime = (function(P) {
 						CALLS = queue[THREAD].calls;
 						C = CALLS.pop();
 						STACK = C.stack;
-						REGISTER = STACK.pop();
+						STACK_FRAME = STACK.pop();
 						queue[THREAD] = undefined;
 						WARP = 0;
 						while (IMMEDIATE) {
@@ -597,7 +597,7 @@ var runtime = (function(P) {
 							IMMEDIATE = null;
 							fn();
 						}
-						STACK.push(REGISTER);
+						STACK.push(STACK_FRAME);
 						CALLS.push(C);
 					}
 				}

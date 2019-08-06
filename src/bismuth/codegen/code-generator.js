@@ -14,7 +14,11 @@ class CodeGenerator {
 	constructor(object) {
 		this.object = object;
 
+		this.returnStack = [];
+
 		this.translators = BlockTranslators(this);
+
+		this.backpatchMap = {};
 	}
 
 	castValue(value, type) { //TODO: make this work more
@@ -69,6 +73,14 @@ class CodeGenerator {
 		return this.object.continuations.length;
 	}
 
+	getBackpatchID() {
+		return Math.floor(Math.random() * 0xffffffff).toString(16);
+	}
+
+	setBackpatchDestination(backpatchID, continuationID) {
+		this.backpatchMap[backpatchID] = continuationID;
+	}
+
 	pushContinuation(continuation) {
 		let continuationID = this.getNextContinuationID();
 		this.object.continuations.push(continuation);
@@ -109,6 +121,10 @@ class CodeGenerator {
 			}
 
 			compiledInstructions.push(this.compileBlock(currentBlock, instructionIndex, substack));
+		}
+
+		if (this.returnStack.length > 0) {
+			compiledInstructions.push(this.returnStack.pop());
 		}
 
 		return compiledInstructions;

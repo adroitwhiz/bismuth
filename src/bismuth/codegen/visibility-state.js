@@ -57,7 +57,7 @@ visibilityBlockScopeCategories[VisibilityScope.AFFECTS_VISUAL_FOR_VISIBLE_OR_PEN
 	"motion_ifonedgebounce"
 ];
 
-visibilityBlockScopeCategories[VisibilityScope.AFFECTS_VISUAL_FOR_VISIBLE_OR_PEN_DOWN] = [
+visibilityBlockScopeCategories[VisibilityScope.AFFECTS_VISUAL_ALWAYS] = [
 	"looks_show",
 	"looks_hide",
 	"looks_switchbackdropto",

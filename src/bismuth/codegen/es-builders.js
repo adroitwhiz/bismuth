@@ -9,12 +9,15 @@ const VisibilityState = require("./visibility-state");
 // Define identifiers so I can easily rename them later
 const SPRITE_IDENTIFIER = e["id"]("S");
 const STAGE_IDENTIFIER = e["id"]("self");
-const R_IDENTIFIER = e["id"]("REGISTER");
+const R_IDENTIFIER = e["id"]("STACK_FRAME");
 const VISUAL_IDENTIFIER = e["id"]("VISUAL");
 
 const Builders = {
+	backpatchID: backpatchID => {
+		return {type: 'BackpatchedContinuationID', value: backpatchID};
+	},
 	continuationIdentifier: continuationID => {
-		return e["number"](continuationID);
+		return continuationID.type && continuationID.type === 'BackpatchedContinuationID' ? continuationID : e["number"](continuationID);
 	},
 
 	consoleLog: args => {
@@ -41,20 +44,24 @@ const Builders = {
 	queue: continuationID => {
 		return e["block"]([
 			e["statement"](e["call"](e["id"]("queue"), [Builders.continuationIdentifier(continuationID)])),
-			//e["return"]()
+			e["return"]()
 		]);
 	},
 
 	forceQueue: continuationID => {
 		return e["block"]([
 			e["statement"](e["call"](e["id"]("forceQueue"), [Builders.continuationIdentifier(continuationID)])),
-			//e["return"]()
+			e["return"]()
 		]);
 	},
 
 	immediateCall: continuationID => {
-		//return e["statement"](e["="](e["id"]("IMMEDIATE"), e["get"](Builders.spriteProperty("fns"), Builders.continuationIdentifier(continuationID))));
-		return e["call"](e["get"](Builders.spriteProperty("fns"), Builders.continuationIdentifier(continuationID)), []);
+		return e["block"]([
+			e["statement"](e["="](e["id"]("IMMEDIATE"), e["get"](Builders.spriteProperty("fns"), Builders.continuationIdentifier(continuationID)))),
+			e["return"]()
+		])
+		return e["statement"](e["="](e["id"]("IMMEDIATE"), e["get"](Builders.spriteProperty("fns"), Builders.continuationIdentifier(continuationID))));
+		//return e["call"](e["get"](Builders.spriteProperty("fns"), Builders.continuationIdentifier(continuationID)), []);
 	},
 
 	save: () => {

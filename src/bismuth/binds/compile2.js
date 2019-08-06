@@ -3,6 +3,12 @@ const astring = require("astring");
 const CodeGenerator = require("../codegen/code-generator");
 const Parser = require("../codegen/parser");
 
+const backpatchGenerator = backpatchMap => Object.assign({}, astring.baseGenerator, {
+	BackpatchedContinuationID: function(node, state) {
+		state.write(backpatchMap[node.value]);
+	}
+})
+
 const compile = (P => {
 	const EVENT_SELECTOR_MAP = {
 		"event_whenflagclicked":"whenGreenFlag",
@@ -35,7 +41,7 @@ const compile = (P => {
 		// Part 3: For every continuation function AST in the object,
 		// stringify it into JS code, then eval() it, compiling it into *actual* JS.
 		for (let i = 0; i < object.continuations.length; i++) {
-			object.fns.push(P.runtime.scopedEval(astring.generate(object.continuations[i])));
+			object.fns.push(P.runtime.scopedEval(astring.generate(object.continuations[i], {generator: backpatchGenerator(generator.backpatchMap)})));
 		}
 
 		console.log(compiledScripts);
