@@ -5,30 +5,14 @@ const JSZip = require("jszip");
 
 const wavFiles = require("./instrument-wavs");
 
+const decodeADPCMAudio = require("./io/decode-adpcm-audio.js");
+const fixSVG = require("./io/fix-svg.js");
+
 const IO = {};
 
 IO.PROJECT_URL = 'https://projects.scratch.mit.edu/internalapi/project/';
 IO.ASSET_URL = 'https://cdn.assets.scratch.mit.edu/internalapi/asset/';
 IO.SOUNDBANK_URL = 'https://cdn.rawgit.com/LLK/scratch-flash/v429/src/soundbank/';
-
-IO.FONTS = {
-	'': 'Helvetica',
-	Donegal: 'Donegal One',
-	Gloria: 'Gloria Hallelujah',
-	Marker: 'Permanent Marker',
-	Mystery: 'Mystery Quest'
-};
-
-IO.LINE_HEIGHTS = {
-	'Helvetica': 1.13,
-	'Donegal One': 1.25,
-	'Gloria Hallelujah': 1.97,
-	'Permanent Marker': 1.43,
-	'Mystery Quest': 1.37
-};
-
-IO.ADPCM_STEPS = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767];
-IO.ADPCM_INDEX = [-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8];
 
 IO.init = request => {
 	IO.projectRequest = request;
@@ -245,7 +229,7 @@ IO.loadWavBuffer = name => {
 
 IO.decodeAudio = (ab, cb) => {
 	if (audioContext) {
-		IO.decodeADPCMAudio(ab, (err, buffer) => {
+		decodeADPCMAudio(ab, (err, buffer) => {
 			if (buffer) return setTimeout(() => {cb(buffer)});
 			const p = audioContext.decodeAudioData(ab, buffer => {
 				cb(buffer);
@@ -258,84 +242,6 @@ IO.decodeAudio = (ab, cb) => {
 	} else {
 		setTimeout(cb);
 	}
-};
-
-IO.decodeADPCMAudio = (ab, cb) => {
-	const dv = new DataView(ab);
-	if (dv.getUint32(0) !== 0x52494646 || dv.getUint32(8) !== 0x57415645) {
-		return cb(new Error('Unrecognized audio format'));
-	}
-
-	const blocks = {};
-	let i = 12;
-	const l = dv.byteLength - 8;
-	while (i < l) {
-		blocks[String.fromCharCode(
-			dv.getUint8(i),
-			dv.getUint8(i + 1),
-			dv.getUint8(i + 2),
-			dv.getUint8(i + 3))] = i;
-		i += 8 + dv.getUint32(i + 4, true);
-	}
-
-	const format        = dv.getUint16(20, true);
-	const channels      = dv.getUint16(22, true);
-	const sampleRate    = dv.getUint32(24, true);
-	const byteRate      = dv.getUint32(28, true);
-	const blockAlign    = dv.getUint16(32, true);
-	const bitsPerSample = dv.getUint16(34, true);
-
-	if (format === 17) {
-		const samplesPerBlock = dv.getUint16(38, true);
-		const blockSize = ((samplesPerBlock - 1) / 2) + 4;
-
-		const frameCount = dv.getUint32(blocks.fact + 8, true);
-
-		const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
-		const channel = buffer.getChannelData(0);
-
-		let sample, index = 0;
-		let step, code, delta;
-		let lastByte = -1;
-
-		const offset = blocks.data + 8;
-		i = offset;
-		let j = 0;
-		while (true) {
-			if ((((i - offset) % blockSize) == 0) && (lastByte < 0)) {
-				if (i >= dv.byteLength) break;
-				sample = dv.getInt16(i, true); i += 2;
-				index = dv.getUint8(i); i += 1;
-				i++;
-				if (index > 88) index = 88;
-				channel[j++] = sample / 32767;
-			} else {
-				if (lastByte < 0) {
-					if (i >= dv.byteLength) break;
-					lastByte = dv.getUint8(i); i += 1;
-					code = lastByte & 0xf;
-				} else {
-					code = (lastByte >> 4) & 0xf;
-					lastByte = -1;
-				}
-				step = IO.ADPCM_STEPS[index];
-				delta = 0;
-				if (code & 4) delta += step;
-				if (code & 2) delta += step >> 1;
-				if (code & 1) delta += step >> 2;
-				delta += step >> 3;
-				index += IO.ADPCM_INDEX[code];
-				if (index > 88) index = 88;
-				if (index < 0) index = 0;
-				sample += (code & 8) ? -delta : delta;
-				if (sample > 32767) sample = 32767;
-				if (sample < -32768) sample = -32768;
-				channel[j++] = sample / 32768;
-			}
-		}
-		return cb(null, buffer);
-	}
-	cb(new Error('Unrecognized WAV format ' + format));
 };
 
 IO.loadBase = data => {
@@ -377,52 +283,14 @@ IO.loadSound = data => {
 	}, true);
 };
 
-IO.fixSVG = (svg, element) => {
-	if (element.nodeType !== 1) return;
-	if (element.nodeName === 'text') {
-		let font = element.getAttribute('font-family') || '';
-		font = IO.FONTS[font] || font;
-		if (font) {
-			element.setAttribute('font-family', font);
-			if (font === 'Helvetica') element.style.fontWeight = 'bold';
-		}
-		let size = +element.getAttribute('font-size');
-		if (!size) {
-			element.setAttribute('font-size', size = 18);
-		}
-		const bb = element.getBBox();
-		const x = 4 - .6 * element.transform.baseVal.consolidate().matrix.a;
-		const y = (element.getAttribute('y') - bb.y) * 1.1;
-		element.setAttribute('x', x);
-		element.setAttribute('y', y);
-		const lines = element.textContent.split('\n');
-		if (lines.length > 1) {
-			element.textContent = lines[0];
-			const lineHeight = IO.LINE_HEIGHTS[font] || 1;
-			for (let i = 1, l = lines.length; i < l; i++) {
-				const tspan = document.createElementNS(null, 'tspan');
-				tspan.textContent = lines[i];
-				tspan.setAttribute('x', x);
-				tspan.setAttribute('y', y + size * i * lineHeight);
-				element.appendChild(tspan);
-			}
-		}
-		// svg.style.cssText = '';
-		// console.log(element.textContent, 'data:image/svg+xml;base64,' + btoa(svg.outerHTML));
-	} else if ((element.hasAttribute('x') || element.hasAttribute('y')) && element.hasAttribute('transform')) {
-		element.setAttribute('x', 0);
-		element.setAttribute('y', 0);
-	}
-	[].forEach.call(element.childNodes, IO.fixSVG.bind(null, svg));
-};
-
 IO.loadMD5 = (md5, id, callback, isAudio) => {
+	let file;
+	const fileExtension = md5.split(".").pop();
 	if (IO.zip) {
-		var f = isAudio ? IO.zip.file(id + '.wav') : IO.zip.file(id + '.gif') || IO.zip.file(id + '.png') || IO.zip.file(id + '.jpg') || IO.zip.file(id + '.svg');
-		md5 = f.name;
+		file = IO.zip.file(`${id}.${fileExtension}`);
+		md5 = file.name;
 	}
-	const ext = md5.split('.').pop();
-	if (ext === 'svg') {
+	if (fileExtension === 'svg') {
 		var cb = source => {
 			const parser = new DOMParser();
 			let doc = parser.parseFromString(source, 'image/svg+xml');
@@ -445,7 +313,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 				viewBox.width = 0;
 				viewBox.height = 0;
 			}
-			IO.fixSVG(svg, svg);
+			fixSVG(svg, svg);
 			document.body.removeChild(svg);
 			svg.style.visibility = svg.style.position = svg.style.left = svg.style.top = '';
 
@@ -464,11 +332,11 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			});
 		};
 		if (IO.zip) {
-			cb(f.asText());
+			cb(file.asText());
 		} else {
 			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', cb));
 		}
-	} else if (ext === 'wav') {
+	} else if (fileExtension === 'wav') {
 		var request = new Request.Request;
 		var cb = ab => {
 			IO.decodeAudio(ab, buffer => {
@@ -479,7 +347,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 		IO.projectRequest.add(request);
 		if (IO.zip) {
 			const audio = new Audio;
-			const ab = f.asArrayBuffer();
+			const ab = file.asArrayBuffer();
 			cb(ab);
 		} else {
 			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', cb, null, 'arraybuffer'));
@@ -492,7 +360,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 				if (callback) callback(image);
 				request.load();
 			};
-			image.src = 'data:image/' + (ext === 'jpg' ? 'jpeg' : ext) + ';base64,' + btoa(f.asBinary());
+			image.src = 'data:image/' + (fileExtension === 'jpg' ? 'jpeg' : fileExtension) + ';base64,' + btoa(file.asBinary());
 			IO.projectRequest.add(request);
 		} else {
 			IO.projectRequest.add(
