@@ -234,7 +234,31 @@ const BlockTranslators = gen => {return{
 		)
 	},
 
+	"control_if_else": (block, index, script) => {
+		const returnAddress = gen.getBackpatchID();
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.slice(index + 1));
+		
+		gen.setBackpatchDestination(returnAddress, continuationID);
+
+		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
+		const bodyTrue = gen.getInput(block.args["SUBSTACK"]);
+
+
+		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
+		const bodyFalse = gen.getInput(block.args["SUBSTACK2"]);
+
+		return e["if"](
+			gen.getInput(block.args["CONDITION"]),
+			bodyTrue,
+			bodyFalse,
+		)
+	},
+
 	// Sensing
+	"sensing_mousedown": block => {
+		return Builders.stageProperty("mousePressed");
+	},
 	"sensing_mousex": block => {
 		return Builders.stageProperty("mouseX");
 	},

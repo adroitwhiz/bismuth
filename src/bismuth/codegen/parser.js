@@ -74,7 +74,11 @@ class Parser {
 		let parsedArgument;
 
 		if (mappedBlockArg.type === "input" && mappedBlockArg.inputOp === "substack") {
-			parsedArgument = this.parseScript(arg);
+			if (arg === null) {
+				parsedArgument = new Script();
+			} else {
+				parsedArgument = this.parseScript(arg);
+			}
 		} else if (Array.isArray(arg)) {
 			parsedArgument = this.parseBlock(arg);
 		} else {
