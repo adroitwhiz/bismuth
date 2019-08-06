@@ -152,19 +152,6 @@ const BlockTranslators = gen => {return{
 		]);
 	},
 
-	"control_forever": (block, index, script) => {
-		// For each iteration of the loop body,
-		// run the loop contents, then queue up the loop body again.
-		const returnAddress = gen.getBackpatchID();
-		gen.returnStack.push(Builders.forceQueue(Builders.backpatchID(returnAddress)));
-		const loopBody = gen.getInput(block.args["SUBSTACK"]);
-		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
-		return e["block"]([
-			loopBody,
-			Builders.forceQueue(Builders.backpatchID(returnAddress))
-		])
-	},
-
 	"control_repeat": (block, index, script) => {
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.continue(script.splice(index + 1)); 
@@ -216,6 +203,37 @@ const BlockTranslators = gen => {return{
 		]);
 	},
 
+	"control_forever": (block, index, script) => {
+		// For each iteration of the loop body,
+		// run the loop contents, then queue up the loop body again.
+		// At the end of every "forever" loop, there's an implicit "go back to the start".
+		// This will get lost if we call other blocks that chop up the script, so push it onto the return stack.
+		const returnAddress = gen.getBackpatchID();
+		gen.returnStack.push(Builders.forceQueue(Builders.backpatchID(returnAddress)));
+		const loopBody = gen.getInput(block.args["SUBSTACK"]);
+		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
+		return e["block"]([
+			loopBody,
+			Builders.forceQueue(Builders.backpatchID(returnAddress))
+		])
+	},
+
+	"control_if": (block, index, script) => {
+		const returnAddress = gen.getBackpatchID();
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.slice(index + 1));
+		
+		gen.setBackpatchDestination(returnAddress, continuationID);
+		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
+
+		const body = gen.getInput(block.args["SUBSTACK"]);
+
+		return e["if"](
+			gen.getInput(block.args["CONDITION"]),
+			body,
+		)
+	},
+
 	// Sensing
 	"sensing_mousex": block => {
 		return Builders.stageProperty("mouseX");
@@ -223,6 +241,11 @@ const BlockTranslators = gen => {return{
 
 	"sensing_mousey": block => {
 		return Builders.stageProperty("mouseY");
+	},
+
+	// Operators
+	"operator_equals": block => {
+		return e["true"]()
 	},
 	
 	// Data

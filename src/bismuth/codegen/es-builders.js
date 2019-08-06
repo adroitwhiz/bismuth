@@ -56,7 +56,12 @@ const Builders = {
 	},
 
 	immediateCall: continuationID => {
-		return e["statement"](e["="](e["id"]("IMMEDIATE"), e["get"](Builders.spriteProperty("fns"), Builders.continuationIdentifier(continuationID))));
+		return e["block"](
+			[
+				e["statement"](e["="](e["id"]("IMMEDIATE"), e["get"](Builders.spriteProperty("fns"), Builders.continuationIdentifier(continuationID)))),
+				e["return"]()
+			]
+		);
 	},
 
 	save: () => {
