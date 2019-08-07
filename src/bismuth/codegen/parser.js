@@ -66,6 +66,53 @@ class Parser {
 			}
 		}
 
+		// Handle blocks that have been given menus in 3.0
+		// Adapted from https://github.com/LLK/scratch-vm/blob/develop/src/serialization/sb2.js#L1179
+		switch (blockOpcode) {
+			case 'comeToFront':
+				parsedArgs.FRONT_BACK = {
+					name: 'FRONT_BACK',
+					value: new Literal('field', 'front'),
+					type: 'field'
+				};
+				break;
+			case 'goBackByLayers:':
+				parsedArgs.FORWARD_BACKWARD = {
+					name: 'FORWARD_BACKWARD',
+					value: new Literal('field', 'backward'),
+					type: 'field'
+				};
+				break;
+			case 'backgroundIndex':
+				parsedArgs.NUMBER_NAME = {
+					name: 'NUMBER_NAME',
+					value: new Literal('field', 'number'),
+					type: 'field'
+				};
+				break;
+			case 'sceneName':
+				parsedArgs.NUMBER_NAME = {
+					name: 'NUMBER_NAME',
+					value: new Literal('field', 'name'),
+					type: 'field'
+				};
+				break;
+			case 'costumeIndex':
+				parsedArgs.NUMBER_NAME = {
+					name: 'NUMBER_NAME',
+					value: new Literal('field', 'number'),
+					type: 'field'
+				};
+				break;
+			case 'costumeName':
+				parsedArgs.NUMBER_NAME = {
+					name: 'NUMBER_NAME',
+					value: new Literal('field', 'name'),
+					type: 'field'
+				};
+				break;
+		}
+
 		return new Block(parsedOpcode, parsedArgs);
 	}
 
@@ -94,6 +141,8 @@ class Parser {
 		return {
 			name: mappedBlockArg[`${mappedBlockArg.type}Name`],
 			value: parsedArgument,
+			// "type" is duplicated here if the argument is a literal
+			// should all arguments be literals? e.g. make a substack a literal too
 			type: mappedBlockArg.inputOp || 'field'
 		};
 	}

@@ -88,6 +88,25 @@ const runtime = (function (P) {
 		return (Math.random() * (y - x)) + x;
 	};
 
+	let moveByLayers = function (numLayers) {
+		let i = self.children.indexOf(SPRITE);
+		if (i !== -1) {
+			self.children.splice(i, 1);
+			self.children.splice(Math.max(0, i + numLayers), 0, SPRITE);
+		}
+	};
+
+	// TODO: find a more descriptive name
+	let moveToFrontBack = function (destination) {
+		let i = self.children.indexOf(SPRITE);
+		if (i !== -1) self.children.splice(i, 1);
+		if (destination === 'front') {
+			self.children.push(SPRITE);
+		} else {
+			self.children.unshift(SPRITE);
+		}
+	};
+
 	var rgb2hsl = function (rgb) {
 		let r = ((rgb >> 16) & 0xff) / 0xff;
 		let g = ((rgb >> 8) & 0xff) / 0xff;

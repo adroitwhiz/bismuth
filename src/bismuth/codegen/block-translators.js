@@ -163,6 +163,30 @@ const BlockTranslators = gen => { return {
 		);
 	},
 
+	'looks_gotofrontback': block => {
+		return Builders.callRuntimeMethod('moveToFrontBack', [
+			e['string'](gen.getField(block.args['FRONT_BACK']))
+		]);
+	},
+
+	'looks_goforwardbackwardlayers': block => {
+		const numLayers = gen.getInput(block.args['NUM']);
+		return Builders.callRuntimeMethod('moveByLayers', [
+			gen.getField(block.args['FORWARD_BACKWARD']) === 'forward' ?
+				numLayers :
+				e['-'](numLayers)
+		]);
+	},
+
+	'looks_costumenumbername': block => {
+		return gen.getField(block.args['NUMBER_NAME']) === 'number' ?
+			e['+'](
+				Builders.spriteProperty('currentCostumeIndex'),
+				e['num'](1)
+			) :
+			Builders.callSpriteMethod('getCostumeName', []);
+	},
+
 	// Control
 	'control_wait': (block, index, script) => {
 		// Since this block causes the script's execution to "yield",
@@ -492,7 +516,7 @@ const BlockTranslators = gen => { return {
 
 	// Data
 	'data_variable': block => {
-		return e['call'](e['id']('getVar'), [gen.getInput(block.args['VARIABLE'])]);
+		return Builders.callRuntimeMethod('getVar', [gen.getInput(block.args['VARIABLE'])]);
 	}
 }; };
 

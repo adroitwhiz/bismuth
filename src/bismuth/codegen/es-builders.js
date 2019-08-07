@@ -73,6 +73,11 @@ const Builders = {
 		return e['call'](e['id'](method), args);
 	},
 
+	// Currently calls a method with completely implicit scope, but set up so this can be changed
+	callRuntimeMethod: (method, args) => {
+		return e['call'](e['id'](method), args);
+	},
+
 	callMathFunction: (method, args) => {
 		return e['call'](
 			e['.'](e['id']('Math'), e['id'](method)),
@@ -82,14 +87,14 @@ const Builders = {
 
 	queue: continuationID => {
 		return e['block']([
-			e['statement'](e['call'](e['id']('queue'), [Builders.continuationIdentifier(continuationID)])),
+			e['statement'](Builders.callRuntimeMethod('queue', [Builders.continuationIdentifier(continuationID)])),
 			e['return']()
 		]);
 	},
 
 	forceQueue: continuationID => {
 		return e['block']([
-			e['statement'](e['call'](e['id']('forceQueue'), [Builders.continuationIdentifier(continuationID)])),
+			e['statement'](Builders.callRuntimeMethod('forceQueue', [Builders.continuationIdentifier(continuationID)])),
 			e['return']()
 		]);
 	},
@@ -107,11 +112,11 @@ const Builders = {
 	},
 
 	save: () => {
-		return e['statement'](e['call'](e['id']('save'), []));
+		return e['statement'](Builders.callRuntimeMethod('save', []));
 	},
 
 	restore: () => {
-		return e['statement'](e['call'](e['id']('restore'), []));
+		return e['statement'](Builders.callRuntimeMethod('restore', []));
 	},
 
 	setVisualForScope: scope => {
