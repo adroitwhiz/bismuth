@@ -1,4 +1,4 @@
-const Base = require("./spritebase");
+const Base = require('./spritebase');
 
 const SCALE = window.devicePixelRatio || 1;
 
@@ -58,16 +58,20 @@ class Sprite extends Base {
 		c.soundRefs = this.soundRefs;
 		c.sounds = this.sounds;
 
-		var keys = Object.keys(this.vars);
-		for (var i = keys.length; i--;) {
-			var k = keys[i];
-			c.vars[k] = this.vars[k];
+		{
+			let keys = Object.keys(this.vars);
+			for (let i = keys.length; i--;) {
+				let k = keys[i];
+				c.vars[k] = this.vars[k];
+			}
 		}
 
-		var keys = Object.keys(this.lists);
-		for (var i = keys.length; i--;) {
-			var k = keys[i];
-			c.lists[k] = this.lists[k].slice(0);
+		{
+			let keys = Object.keys(this.lists);
+			for (let i = keys.length; i--;) {
+				let k = keys[i];
+				c.lists[k] = this.lists[k].slice(0);
+			}
 		}
 
 		c.procedures = this.procedures;
@@ -203,7 +207,7 @@ class Sprite extends Base {
 		const costume = this.costumes[this.currentCostumeIndex];
 
 		if (thing === '_mouse_') {
-			var bounds = this.rotatedBounds();
+			let bounds = this.rotatedBounds();
 			const x = this.stage.rawMouseX;
 			const y = this.stage.rawMouseY;
 			if (x < bounds.left || y < bounds.bottom || x > bounds.right || y > bounds.top) {
@@ -212,18 +216,18 @@ class Sprite extends Base {
 			let cx = (x - this.scratchX) / this.scale;
 			let cy = (this.scratchY - y) / this.scale;
 			if (this.rotationStyle === 'normal' && this.direction !== 90) {
-				var d = (90 - this.direction) * Math.PI / 180
+				let directionRadians = (90 - this.direction) * Math.PI / 180
 				const ox = cx;
-				const s = Math.sin(d), c = Math.cos(d);
+				const s = Math.sin(directionRadians), c = Math.cos(directionRadians);
 				cx = c * ox - s * cy
 				cy = s * ox + c * cy
 			} else if (this.rotationStyle === 'leftRight' && this.direction < 0) {
 				cx = -cx
 			}
-			var d = costume.context.getImageData(cx * costume.bitmapResolution + costume.rotationCenterX, cy * costume.bitmapResolution + costume.rotationCenterY, 1, 1).data;
-			return d[3] !== 0;
+			const costumeImageData = costume.context.getImageData(cx * costume.bitmapResolution + costume.rotationCenterX, cy * costume.bitmapResolution + costume.rotationCenterY, 1, 1).data;
+			return costumeImageData[3] !== 0;
 		} else if (thing === '_edge_') {
-			var bounds = this.rotatedBounds();
+			let bounds = this.rotatedBounds();
 			return bounds.left <= -240 || bounds.right >= 240 || bounds.top >= 180 || bounds.bottom <= -180;
 		} else {
 			if (!this.visible) return false;

@@ -1,4 +1,4 @@
-const Events = require("./events");
+const Events = require('./events');
 
 class Request {
 	constructor() {
@@ -65,14 +65,15 @@ class CompositeRequest extends Request {
 		let lengthComputable = true;
 		let uncomputable = 0;
 		let done = 0;
+		let currentRequest;
 		while (i--) {
-			var r = requests[i];
-			loaded += r.loaded;
-			if (r.isDone) {
-				total += r.loaded;
+			currentRequest = requests[i];
+			loaded += currentRequest.loaded;
+			if (currentRequest.isDone) {
+				total += currentRequest.loaded;
 				done += 1;
-			} else if (r.lengthComputable) {
-				total += r.total;
+			} else if (currentRequest.lengthComputable) {
+				total += currentRequest.total;
 			} else {
 				lengthComputable = false;
 				uncomputable += 1;
@@ -85,13 +86,13 @@ class CompositeRequest extends Request {
 			loaded = 0;
 			lengthComputable = true;
 			while (i--) {
-				var r = requests[i];
-				if (r.lengthComputable) {
-					loaded += r.loaded;
-					total += r.total;
+				currentRequest = requests[i];
+				if (currentRequest.lengthComputable) {
+					loaded += currentRequest.loaded;
+					total += currentRequest.total;
 				} else {
 					total += each;
-					if (r.isDone) loaded += each;
+					if (currentRequest.isDone) loaded += each;
 				}
 			}
 		}

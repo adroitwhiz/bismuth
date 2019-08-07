@@ -1,5 +1,5 @@
-const Costume = require("./costume");
-const Sound = require("./sound");
+const Costume = require('./costume');
+const Sound = require('./sound');
 
 class Base {
 	constructor() {
@@ -119,7 +119,7 @@ class Base {
 	setCostume(costume) {
 		if (typeof costume !== 'number') {
 			costume = '' + costume;
-			for (var i = 0; i < this.costumes.length; i++) {
+			for (let i = 0; i < this.costumes.length; i++) {
 				if (this.costumes[i].costumeName === costume) {
 					this.currentCostumeIndex = i;
 					if (this.isStage) this.updateBackdrop();
@@ -136,7 +136,7 @@ class Base {
 				return;
 			}
 		}
-		var i = (Math.floor(costume) - 1 || 0) % this.costumes.length;
+		let i = (Math.floor(costume) - 1 || 0) % this.costumes.length;
 		if (i < 0) i += this.costumes.length;
 		this.currentCostumeIndex = i;
 		if (this.isStage) this.updateBackdrop();

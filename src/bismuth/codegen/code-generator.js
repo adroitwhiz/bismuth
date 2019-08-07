@@ -1,11 +1,11 @@
-const astring = require("astring");
-const e = require("estree-builder");
+const astring = require('astring');
+const e = require('estree-builder');
 
-const ScriptPrims = require("./script-prims");
-const CompiledScript = require("./listener-script");
-const BlockTranslators = require("./block-translators");
-const VisibilityState = require("./visibility-state");
-const Builders = require("./es-builders");
+const ScriptPrims = require('./script-prims');
+const CompiledScript = require('./listener-script');
+const BlockTranslators = require('./block-translators');
+const VisibilityState = require('./visibility-state');
+const Builders = require('./es-builders');
 
 class CodeGenerator {
 	/**
@@ -26,41 +26,41 @@ class CodeGenerator {
 	// Probably lots of speedups to be had here. Requires tagging types probably.
 	castValue(value, outputType, inputType) {
 		if (outputType === (
-			"math_number" ||
-			"math_integer" ||
-			"math_whole_number" ||
-			"math_positive_number" ||
-			"math_angle")) { // numeric types
+			'math_number' ||
+			'math_integer' ||
+			'math_whole_number' ||
+			'math_positive_number' ||
+			'math_angle')) { // numeric types
 			
 			// cast to number with unary plus, OR with zero if that fails / input is NaN
-			let castedValue = e["||"](e["+"](value), e["number"](0));
+			let castedValue = e['||'](e['+'](value), e['number'](0));
 
 			if (outputType === (
-				"math_integer" ||
-				"math_whole_number")) { 
+				'math_integer' ||
+				'math_whole_number')) { 
 				
 				// ROUND number types
 				// call Math.round. Bitwise optimization trickery will cause numbers greater than 2^31 - 1 to do strange things
-				castedValue = e["call"](e["."](e["id"]("Math"), e["id"]("round")), [castedValue]);
+				castedValue = e['call'](e['.'](e['id']('Math'), e['id']('round')), [castedValue]);
 			}
 
-			if (outputType === "math_positive_number") {
+			if (outputType === 'math_positive_number') {
 				// POSITIVE number types
 				// call Math.max(this number, 0)
-				castedValue = e["call"](e["."](e["id"]("Math"), e["id"]("max")), [castedValue, e["num"](0)]);
+				castedValue = e['call'](e['.'](e['id']('Math'), e['id']('max')), [castedValue, e['num'](0)]);
 			}
 
 			return castedValue;
 		}
 
-		if (outputType === "boolean") {
+		if (outputType === 'boolean') {
 			// Runtime boolean cast. Not necessary if input type is boolean, but we don't check that yet.
-			return Builders.callUtilMethod("bool", value);
+			return Builders.callUtilMethod('bool', value);
 		}
 
-		if (outputType = "string") {
+		if (outputType === 'string') {
 			// casts to string with `value + ""`, may be slower than String(value)
-			return e["+"](value, e["string"](""));
+			return e['+'](value, e['string'](''));
 		}
 
 		return value;
@@ -69,9 +69,9 @@ class CodeGenerator {
 	getInput(input, shouldCast = true) {
 		let inputNode;
 		if (input.value instanceof ScriptPrims.Literal) {
-			inputNode = {type: "Literal", value: input.value.value};
+			inputNode = {type: 'Literal', value: input.value.value};
 		} else if (input.value instanceof ScriptPrims.Script) {
-			inputNode = e["block"](this.compileSubstack(input.value));
+			inputNode = e['block'](this.compileSubstack(input.value));
 		} else {
 			inputNode = this.compileBlock(input.value);
 		}
@@ -85,7 +85,7 @@ class CodeGenerator {
 	}
 
 	makeFunction(expr) {
-		return {type:"ExpressionStatement", expression:e["function"]([], expr, null)};
+		return {type:'ExpressionStatement', expression:e['function']([], expr, null)};
 	}
 
 	getNextContinuationID() {

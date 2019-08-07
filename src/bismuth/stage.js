@@ -1,7 +1,7 @@
-const Base = require("./spritebase");
-const Sprite = require("./sprite");
-const Costume = require("./costume");
-const Watcher = require("./watcher");
+const Base = require('./spritebase');
+const Sprite = require('./sprite');
+const Costume = require('./costume');
+const Watcher = require('./watcher');
 
 const SCALE = window.devicePixelRatio || 1;
 const hasTouchEvents = 'ontouchstart' in document;

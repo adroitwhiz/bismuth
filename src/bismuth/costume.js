@@ -1,4 +1,4 @@
-const Events = require("./events");
+const Events = require('./events');
 
 class Costume {
 	constructor(data, index, base) {

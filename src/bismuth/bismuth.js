@@ -1,12 +1,12 @@
-const canvg = require("canvg");
-const JSZip = require("jszip");
+const canvg = require('canvg');
+const JSZip = require('jszip');
 
 const P = (() => {
 	const IO = require('./io');
-	const Base = require("./spritebase");
-	const Stage = require("./stage");
-	const Sprite = require("./sprite");
-	const Watcher = require("./watcher");
+	const Base = require('./spritebase');
+	const Stage = require('./stage');
+	const Sprite = require('./sprite');
+	const Watcher = require('./watcher');
 
 	const SCALE = window.devicePixelRatio || 1;
 
@@ -39,9 +39,9 @@ const P = (() => {
 	};
 })();
 
-P.compile = require("./binds/compile2")(P);
-P.runtime = require("./binds/runtime")(P);
-P.player = require("./binds/player")(P);
+P.compile = require('./binds/compile2')(P);
+P.runtime = require('./binds/runtime')(P);
+P.player = require('./binds/player')(P);
 
 window.P = P;
-export default P;
+module.exports = P;

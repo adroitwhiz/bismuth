@@ -34,7 +34,7 @@ var compile = (function(P) {
 		if (!script[0] || EVENT_SELECTORS.indexOf(script[0][0]) === -1) return;
 
 		var visual = 0;
-		var compile = require("./codegen-block");
+		var compile = require('./codegen-block');
 
 		var source = '';
 		var startfn = object.fns.length;

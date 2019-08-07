@@ -316,7 +316,8 @@ var runtime = (function(P) {
 			if (!buffer) return;
 
 			source.buffer = buffer;
-			if (source.loop = span.loop) {
+			source.loop = span.loop;
+			if (span.loop) {
 				source.loopStart = span.loopStart;
 				source.loopEnd = span.loopEnd;
 			}
@@ -337,7 +338,7 @@ var runtime = (function(P) {
 					if (span.decayEnd < duration) {
 						gain.linearRampToValueAtTime(0, time + span.decayEnd);
 					} else {
-						gain.linearRampToValueAtTime(1 - (duration - holdEnd) / span.decayTime, time + duration);
+						gain.linearRampToValueAtTime(1 - (duration - span.holdEnd) / span.decayTime, time + duration);
 					}
 				} else {
 					gain.linearRampToValueAtTime(1, time + duration);
@@ -625,7 +626,7 @@ var runtime = (function(P) {
 
 	}());
 
-	const instrumentConstants = require("../instrument-constants");
+	const instrumentConstants = require('../instrument-constants');
 
 	const INSTRUMENTS = instrumentConstants.INSTRUMENTS;
 	const DRUMS = instrumentConstants.DRUMS;

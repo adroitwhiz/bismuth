@@ -1,5 +1,5 @@
-const CodeGenerator = require("../codegen/code-generator");
-const Parser = require("../codegen/parser.js");
+const CodeGenerator = require('../codegen/code-generator');
+const Parser = require('../codegen/parser.js');
 
 var compile = (function(P) {
 	'use strict';
@@ -163,6 +163,7 @@ var compile = (function(P) {
 
 		var f = object.fns[nextFunctionID];
 
+		var key;
 		if (firstBlock[0] === 'whenClicked') {
 			object.listeners.whenClicked.push(f);
 		} else if (firstBlock[0] === 'whenGreenFlag') {
@@ -170,7 +171,7 @@ var compile = (function(P) {
 		} else if (firstBlock[0] === 'whenCloned') {
 			object.listeners.whenCloned.push(f);
 		} else if (firstBlock[0] === 'whenIReceive') {
-			var key = firstBlock[1].toLowerCase();
+			key = firstBlock[1].toLowerCase();
 			(object.listeners.whenIReceive[key] || (object.listeners.whenIReceive[key] = [])).push(f);
 		} else if (firstBlock[0] === 'whenKeyPressed') {
 			if (firstBlock[1] === 'any') {
@@ -181,7 +182,7 @@ var compile = (function(P) {
 				object.listeners.whenKeyPressed[P.getKeyCode(firstBlock[1])].push(f);
 			}
 		} else if (firstBlock[0] === 'whenSceneStarts') {
-			var key = firstBlock[1].toLowerCase();
+			key = firstBlock[1].toLowerCase();
 			(object.listeners.whenSceneStarts[key] || (object.listeners.whenSceneStarts[key] = [])).push(f);
 		} else if (firstBlock[0] === 'procDef') {
 			object.procedures[firstBlock[1]] = {

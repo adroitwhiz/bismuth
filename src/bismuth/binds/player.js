@@ -164,13 +164,13 @@ var player = (function(P) {
 		fullScreen.addEventListener('click', fullScreenClick);
 	}
 
-	document.addEventListener("fullscreenchange", function() {
+	document.addEventListener('fullscreenchange', function() {
 		if (isFullScreen !== document.fullscreen) fullScreenClick();
 	});
-	document.addEventListener("mozfullscreenchange", function() {
+	document.addEventListener('mozfullscreenchange', function() {
 		if (isFullScreen !== document.mozFullScreen) fullScreenClick();
 	});
-	document.addEventListener("webkitfullscreenchange", function() {
+	document.addEventListener('webkitfullscreenchange', function() {
 		if (isFullScreen !== document.webkitIsFullScreen) fullScreenClick();
 	});
 

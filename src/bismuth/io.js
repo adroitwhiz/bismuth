@@ -1,12 +1,12 @@
-const Stage = require("./stage");
-const canvg = require("canvg");
-const Request = require("./request");
-const JSZip = require("jszip");
+const Stage = require('./stage');
+const canvg = require('canvg');
+const Request = require('./request');
+const JSZip = require('jszip');
 
-const wavFiles = require("./io/instrument-wavs.js");
+const wavFiles = require('./io/instrument-wavs.js');
 
-const decodeADPCMAudio = require("./io/decode-adpcm-audio.js");
-const fixSVG = require("./io/fix-svg.js");
+const decodeADPCMAudio = require('./io/decode-adpcm-audio.js');
+const fixSVG = require('./io/fix-svg.js');
 
 const IO = {};
 
@@ -19,17 +19,20 @@ IO.init = request => {
 	IO.zip = null;
 };
 
+// Some Scratch 2.0 project.json files aren't actually JSON and must be eval'd as JavaScript.
 IO.parseJSONish = json => {
 	if (!/^\s*\{/.test(json)) throw new SyntaxError('Bad JSON');
 	try {
 		return JSON.parse(json);
-	} catch (e) {}
-	if (/[^,:{}\[\]0-9\.\-+EINaefilnr-uy \n\r\t]/.test(json.replace(/"(\\.|[^"\\])*"/g, ''))) {
-		throw new SyntaxError('Bad JSON');
+	} catch (e) {
+		// let's play guess the regex
+		if (/[^,:{}\[\]0-9\.\-+EINaefilnr-uy \n\r\t]/.test(json.replace(/"(\\.|[^"\\])*"/g, ''))) {
+			throw new SyntaxError('Bad JSON');
+		}
+		return (1, eval)('(' + json + ')');
 	}
-	return (1, eval)('(' + json + ')'); //yes thank you nathan. wtf??
+	
 };
-
 
 IO.load = (url, callback, self, type) => {
 	const request = new Request.Request;
@@ -201,7 +204,7 @@ IO.loadProject = data => {
 
 IO.wavBuffers = Object.create(null);
 IO.loadWavs = () => {
-	if (!audioContext) return;
+	if (P.audioContext) return;
 
 	for (const name in wavFiles) {
 		if (IO.wavBuffers[name]) {
@@ -228,10 +231,10 @@ IO.loadWavBuffer = name => {
 };
 
 IO.decodeAudio = (ab, cb) => {
-	if (audioContext) {
+	if (P.audioContext) {
 		decodeADPCMAudio(ab, (err, buffer) => {
 			if (buffer) return setTimeout(() => {cb(buffer)});
-			const p = audioContext.decodeAudioData(ab, buffer => {
+			const p = P.audioContext.decodeAudioData(ab, buffer => {
 				cb(buffer);
 			}, err2 => {
 				console.warn(err, err2);
@@ -285,13 +288,14 @@ IO.loadSound = data => {
 
 IO.loadMD5 = (md5, id, callback, isAudio) => {
 	let file;
-	const fileExtension = md5.split(".").pop();
+	let onloadCallback;
+	const fileExtension = md5.split('.').pop();
 	if (IO.zip) {
 		file = IO.zip.file(`${id}.${fileExtension}`);
 		md5 = file.name;
 	}
 	if (fileExtension === 'svg') {
-		var cb = source => {
+		onloadCallback = source => {
 			const parser = new DOMParser();
 			let doc = parser.parseFromString(source, 'image/svg+xml');
 			let svg = doc.documentElement;
@@ -332,13 +336,13 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			});
 		};
 		if (IO.zip) {
-			cb(file.asText());
+			onloadCallback(file.asText());
 		} else {
-			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', cb));
+			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback));
 		}
 	} else if (fileExtension === 'wav') {
-		var request = new Request.Request;
-		var cb = ab => {
+		let request = new Request.Request;
+		onloadCallback = ab => {
 			IO.decodeAudio(ab, buffer => {
 				callback(buffer);
 				request.load(buffer);
@@ -348,13 +352,13 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 		if (IO.zip) {
 			const audio = new Audio;
 			const ab = file.asArrayBuffer();
-			cb(ab);
+			onloadCallback(ab);
 		} else {
-			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', cb, null, 'arraybuffer'));
+			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback, null, 'arraybuffer'));
 		}
 	} else {
 		if (IO.zip) {
-			var request = new Request.Request;
+			let request = new Request.Request;
 			const image = new Image;
 			image.onload = () => {
 				if (callback) callback(image);

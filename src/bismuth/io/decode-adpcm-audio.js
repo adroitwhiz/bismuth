@@ -32,7 +32,7 @@ const decodeADPCMAudio = (ab, callback) => {
 
 		const frameCount = dv.getUint32(blocks.fact + 8, true);
 
-		const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
+		const buffer = P.audioContext.createBuffer(1, frameCount, sampleRate);
 		const channel = buffer.getChannelData(0);
 
 		let sample, index = 0;
