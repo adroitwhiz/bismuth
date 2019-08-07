@@ -1,7 +1,7 @@
-var runtime = (function (P) {
+const runtime = (function (P) {
 	'use strict';
 
-	var self, S, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
+	var self, SPRITE, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
 
 	// Cast to boolean.
 	var bool = function (v) {
@@ -9,65 +9,65 @@ var runtime = (function (P) {
 	};
 
 	// Compare two values using Scratch rules.
-	// TODO: Redo this using Scratch 3 techniques and possible make it faster (e.g. by removing regex).
+	// TODO: Redo this using Scratch 3 techniques and possibly make it faster (e.g. by removing regex).
 	var DIGIT = /\d/;
 	var compare = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
-			var nx = Number(x);
-			var ny = Number(y);
+			let nx = Number(x);
+			let ny = Number(y);
 			// This is equivalent to "are neither nx nor ny NaN?" because NaN never equals itself
 			if (nx === nx && ny === ny) {
 				return nx < ny ? -1 : nx === ny ? 0 : 1;
 			}
 		}
-		var xs = ('' + x).toLowerCase();
-		var ys = ('' + y).toLowerCase();
+		let xs = ('' + x).toLowerCase();
+		let ys = ('' + y).toLowerCase();
 		return xs < ys ? -1 : xs === ys ? 0 : 1;
 	};
 	var numLess = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
-			var ny = +y;
+			let ny = +y;
 			if (ny === ny) {
 				return nx < ny;
 			}
 		}
-		var ys = ('' + y).toLowerCase();
+		let ys = ('' + y).toLowerCase();
 		return '' + nx < ys;
 	};
 	var numGreater = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
-			var ny = +y;
+			let ny = +y;
 			if (ny === ny) {
 				return nx > ny;
 			}
 		}
-		var ys = ('' + y).toLowerCase();
+		let ys = ('' + y).toLowerCase();
 		return '' + nx > ys;
 	};
 
 	// Optimized version of "compare" that only checks equality.
 	var equal = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
-			var nx = +x;
-			var ny = +y;
+			let nx = +x;
+			let ny = +y;
 			if (nx === nx && ny === ny) {
 				return nx === ny;
 			}
 		}
-		var xs = ('' + x).toLowerCase();
-		var ys = ('' + y).toLowerCase();
+		let xs = ('' + x).toLowerCase();
+		let ys = ('' + y).toLowerCase();
 		return xs === ys;
 	};
 	var numEqual = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
-			var ny = +y;
+			let ny = +y;
 			return ny === ny && nx === ny;
 		}
 		return false;
 	};
 
 	var mod = function (x, y) {
-		var r = x % y;
+		let r = x % y;
 		if (r / y < 0) {
 			r += y;
 		}
@@ -78,7 +78,7 @@ var runtime = (function (P) {
 		x = +x || 0;
 		y = +y || 0;
 		if (x > y) {
-			var tmp = y;
+			let tmp = y;
 			y = x;
 			x = tmp;
 		}
@@ -89,22 +89,22 @@ var runtime = (function (P) {
 	};
 
 	var rgb2hsl = function (rgb) {
-		var r = ((rgb >> 16) & 0xff) / 0xff;
-		var g = ((rgb >> 8) & 0xff) / 0xff;
-		var b = (rgb & 0xff) / 0xff;
+		let r = ((rgb >> 16) & 0xff) / 0xff;
+		let g = ((rgb >> 8) & 0xff) / 0xff;
+		let b = (rgb & 0xff) / 0xff;
 
-		var min = Math.min(r, g, b);
-		var max = Math.max(r, g, b);
+		let min = Math.min(r, g, b);
+		let max = Math.max(r, g, b);
 
 		if (min === max) {
 			return [0, 0, r * 100];
 		}
 
-		var c = max - min;
-		var l = (min + max) / 2;
-		var s = c / (1 - Math.abs((2 * l) - 1));
+		let c = max - min;
+		let l = (min + max) / 2;
+		let s = c / (1 - Math.abs((2 * l) - 1));
 
-		var h;
+		let h;
 		switch (max) {
 			case r:
 				h = (((g - b) / c) + 6) % 6;
@@ -122,8 +122,8 @@ var runtime = (function (P) {
 	};
 
 	var clone = function (name) {
-		var parent = name === '_myself_' ? S : self.getObject(name);
-		var c = parent.clone();
+		let parent = name === '_myself_' ? SPRITE : self.getObject(name);
+		let c = parent.clone();
 		self.children.splice(self.children.indexOf(parent), 0, c);
 		self.triggerFor(c, 'whenCloned');
 	};
@@ -133,19 +133,19 @@ var runtime = (function (P) {
 	var timeAndDate = P.Watcher.timeAndDate;
 
 	var getVar = function (name) {
-		return self.vars[name] === undefined ? S.vars[name] : self.vars[name];
+		return self.vars[name] === undefined ? SPRITE.vars[name] : self.vars[name];
 	};
 
 	var getList = function (name) {
 		if (self.lists[name] !== undefined) return self.lists;
-		if (S.lists[name] === undefined) {
-			S.lists[name] = [];
+		if (SPRITE.lists[name] === undefined) {
+			SPRITE.lists[name] = [];
 		}
-		return S.lists[name];
+		return SPRITE.lists[name];
 	};
 
 	var listIndex = function (list, index, length) {
-		var i = index | 0;
+		let i = index | 0;
 		if (i === index) return i > 0 && i <= length ? i - 1 : -1;
 		if (index === 'random' || index === 'any') {
 			return Math.random() * length | 0;
@@ -157,8 +157,8 @@ var runtime = (function (P) {
 	};
 
 	var contentsOfList = function (list) {
-		var isSingle = true;
-		for (var i = list.length; i--;) {
+		let isSingle = true;
+		for (let i = list.length; i--;) {
 			if (list[i].length !== 1) {
 				isSingle = false;
 				break;
@@ -168,12 +168,12 @@ var runtime = (function (P) {
 	};
 
 	var getLineOfList = function (list, index) {
-		var i = listIndex(list, index, list.length);
+		let i = listIndex(list, index, list.length);
 		return i === -1 ? '' : list[i];
 	};
 
 	var listContains = function (list, value) {
-		for (var i = list.length; i--;) {
+		for (let i = list.length; i--;) {
 			if (equal(list[i], value)) return true;
 		}
 		return false;
@@ -187,7 +187,7 @@ var runtime = (function (P) {
 		if (index === 'all') {
 			list.length = 0;
 		} else {
-			var i = listIndex(list, index, list.length);
+			let i = listIndex(list, index, list.length);
 			if (i === list.length - 1) {
 				list.pop();
 			} else if (i !== -1) {
@@ -197,7 +197,7 @@ var runtime = (function (P) {
 	};
 
 	var insertInList = function (list, index, value) {
-		var i = listIndex(list, index, list.length + 1);
+		let i = listIndex(list, index, list.length + 1);
 		if (i === list.length) {
 			list.push(value);
 		} else if (i !== -1) {
@@ -206,12 +206,14 @@ var runtime = (function (P) {
 	};
 
 	var setLineOfList = function (list, index, value) {
-		var i = listIndex(list, index, list.length);
+		let i = listIndex(list, index, list.length);
 		if (i !== -1) {
 			list[i] = value;
 		}
 	};
 
+	// TODO: figure out whether to attempt to emit code that will call this
+	// Scratch 3.0 disallows dynamic mathop
 	var mathFunc = function (f, x) {
 		switch (f) {
 			case 'abs':
@@ -247,7 +249,7 @@ var runtime = (function (P) {
 	};
 
 	var attribute = function (attr, objName) {
-		var o = self.getObject(objName);
+		let o = self.getObject(objName);
 		if (!o) return 0;
 		if (o.isSprite) {
 			switch (attr) {
@@ -277,7 +279,7 @@ var runtime = (function (P) {
 					return 0; // TODO
 			}
 		}
-		var value = o.vars[attr];
+		let value = o.vars[attr];
 		if (value !== undefined) {
 			return value;
 		}
@@ -295,7 +297,7 @@ var runtime = (function (P) {
 		volumeNode.connect(audioContext.destination);
 
 		var playNote = function (id, duration) {
-			var spans = INSTRUMENTS[S.instrument];
+			var spans = INSTRUMENTS[SPRITE.instrument];
 			for (var i = 0, l = spans.length; i < l; i++) {
 				var span = spans[i];
 				if (span.top >= id || span.top === 128) break;
@@ -304,10 +306,10 @@ var runtime = (function (P) {
 		};
 
 		var playSpan = function (span, id, duration) {
-			if (!S.node) {
-				S.node = audioContext.createGain();
-				S.node.gain.value = S.volume;
-				S.node.connect(volumeNode);
+			if (!SPRITE.node) {
+				SPRITE.node = audioContext.createGain();
+				SPRITE.node.gain.value = SPRITE.volume;
+				SPRITE.node.connect(volumeNode);
 			}
 
 			var source = audioContext.createBufferSource();
@@ -323,7 +325,7 @@ var runtime = (function (P) {
 			}
 
 			source.connect(note);
-			note.connect(S.node);
+			note.connect(SPRITE.node);
 
 			var time = audioContext.currentTime;
 			source.playbackRate.value = Math.pow(2, (id - 69) / 12) / span.baseRatio;
@@ -356,11 +358,11 @@ var runtime = (function (P) {
 			if (!sound.buffer) return;
 			if (!sound.node) {
 				sound.node = audioContext.createGain();
-				sound.node.gain.value = S.volume;
+				sound.node.gain.value = SPRITE.volume;
 				sound.node.connect(volumeNode);
 			}
-			sound.target = S;
-			sound.node.gain.setValueAtTime(S.volume, audioContext.currentTime);
+			sound.target = SPRITE;
+			sound.node.gain.setValueAtTime(SPRITE.volume, audioContext.currentTime);
 
 			if (sound.source) {
 				sound.source.disconnect();
@@ -393,7 +395,7 @@ var runtime = (function (P) {
 			CALLS.push(C);
 			C = {
 				base: procedure.fn,
-				fn: S.fns[id],
+				fn: SPRITE.fns[id],
 				args: values,
 				numargs: [],
 				boolargs: [],
@@ -413,7 +415,7 @@ var runtime = (function (P) {
 				}
 				if (recursive) {
 					self.queue[THREAD] = {
-						sprite: S,
+						sprite: SPRITE,
 						base: BASE,
 						fn: procedure.fn,
 						calls: CALLS
@@ -423,7 +425,7 @@ var runtime = (function (P) {
 				}
 			}
 		} else {
-			IMMEDIATE = S.fns[id];
+			IMMEDIATE = SPRITE.fns[id];
 		}
 	};
 
@@ -446,7 +448,7 @@ var runtime = (function (P) {
 	};
 
 	var running = function (bases) {
-		for (var j = 0; j < self.queue.length; j++) {
+		for (let j = 0; j < self.queue.length; j++) {
 			if (self.queue[j] && bases.indexOf(self.queue[j].base) !== -1) return true;
 		}
 		return false;
@@ -454,7 +456,7 @@ var runtime = (function (P) {
 
 	var queue = function (id) {
 		if (WARP) {
-			IMMEDIATE = S.fns[id];
+			IMMEDIATE = SPRITE.fns[id];
 		} else {
 			forceQueue(id);
 		}
@@ -462,9 +464,9 @@ var runtime = (function (P) {
 
 	var forceQueue = function (id) {
 		self.queue[THREAD] = {
-			sprite: S,
+			sprite: SPRITE,
 			base: BASE,
-			fn: S.fns[id],
+			fn: SPRITE.fns[id],
 			calls: CALLS
 		};
 	};
@@ -591,7 +593,7 @@ var runtime = (function (P) {
 				this.now = this.rightNow();
 				for (THREAD = 0; THREAD < queue.length; THREAD++) {
 					if (queue[THREAD]) {
-						S = queue[THREAD].sprite;
+						SPRITE = queue[THREAD].sprite;
 						IMMEDIATE = queue[THREAD].fn;
 						BASE = queue[THREAD].base;
 						CALLS = queue[THREAD].calls;
@@ -612,9 +614,13 @@ var runtime = (function (P) {
 				for (var i = queue.length; i--;) {
 					if (!queue[i]) queue.splice(i, 1);
 				}
-			} while ((self.isTurbo || !VISUAL) && Date.now() - start < this.frametime && queue.length !== 0);
+			} while (
+				(self.isTurbo || !VISUAL) &&
+				Date.now() - start < this.frametime &&
+				queue.length !== 0
+			);
 			this.draw();
-			S = null;
+			SPRITE = null;
 		};
 
 		P.Stage.prototype.onError = function (e) {

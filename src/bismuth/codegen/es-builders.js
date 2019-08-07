@@ -7,7 +7,7 @@ window.astring = require('astring');
 const VisibilityState = require('./visibility-state');
 
 // Define identifiers so I can easily rename them later
-const SPRITE_IDENTIFIER = e['id']('S');
+const SPRITE_IDENTIFIER = e['id']('SPRITE');
 const STAGE_IDENTIFIER = e['id']('self');
 const R_IDENTIFIER = e['id']('STACK_FRAME');
 const VISUAL_IDENTIFIER = e['id']('VISUAL');
@@ -95,17 +95,15 @@ const Builders = {
 	},
 
 	immediateCall: continuationID => {
-		return e['block'](
-			[
-				e['statement'](
-					e['='](
-						e['id']('IMMEDIATE'),
-						e['get'](Builders.spriteProperty('fns'), Builders.continuationIdentifier(continuationID))
-					)
-				),
-				e['return']()
-			]
-		);
+		return e['block']([
+			e['statement'](
+				e['='](
+					e['id']('IMMEDIATE'),
+					e['get'](Builders.spriteProperty('fns'), Builders.continuationIdentifier(continuationID))
+				)
+			),
+			e['return']()
+		]);
 	},
 
 	save: () => {
