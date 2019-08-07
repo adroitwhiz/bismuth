@@ -95,60 +95,89 @@ const BlockTranslators = gen => { return {
 		);
 	},
 
+	// Looks
+	'looks_sayforsecs': (block, index, script) => {
+		return gen.commonGenerators.sayOrThinkForSecs(block, index, script, false);
+	},
+
+	'looks_say': block => {
+		return gen.commonGenerators.sayOrThink(block, false);
+	},
+	
+	'looks_thinkforsecs': (block, index, script) => {
+		return gen.commonGenerators.sayOrThinkForSecs(block, index, script, true);
+	},
+
+	'looks_think': block => {
+		return gen.commonGenerators.sayOrThink(block, true);
+	},
+
+	'looks_show': () => {
+		return gen.commonGenerators.setVisible(true);
+	},
+
+	'looks_hide': () => {
+		return gen.commonGenerators.setVisible(false);
+	},
+
+	'looks_switchcostumeto': block => {
+		return Builders.callSpriteMethod('setCostume', [gen.getInput(block.args['COSTUME'])]);
+	},
+
+	'looks_nextcostume': () => {
+		return Builders.callSpriteMethod('showNextCostume', []);
+	},
+
+	'looks_changesizeby': block => {
+		// S.scale += Math.max(0, CHANGE * 0.01)
+		// TODO: change this when sprite size is changed to be a percentage
+		return e['+='](
+			Builders.spriteProperty('scale'),
+			Builders.callMathFunction('max', [
+				e['num'](0),
+				e['*'](
+					gen.getInput(block.args['CHANGE']),
+					e['num'](0.01)
+				)
+			])
+		);
+	},
+
+	'looks_size': () => {
+		// TODO: change this when sprite size is changed to be a percentage
+		return e['*'](Builders.spriteProperty('scale'), e['num'](100));
+	},
+
+	'looks_setsizeto': block => {
+		// S.scale = Math.max(0, CHANGE * 0.01)
+		// TODO: change this when sprite size is changed to be a percentage
+		return e['='](
+			Builders.spriteProperty('scale'),
+			Builders.callMathFunction('max', [
+				e['num'](0),
+				e['*'](
+					gen.getInput(block.args['SIZE']),
+					e['num'](0.01)
+				)
+			])
+		);
+	},
+
 	// Control
 	'control_wait': (block, index, script) => {
 		// Since this block causes the script's execution to "yield",
 		// we stop generating here and create two *continuations*,
 		// one for the timer check and one for the rest of the script.
+		// Well, we did until I moved the first one to createTimer.
 
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.continue(script.splice(index + 1));
 
-		// Get the continuation ID to use for the timer check.
-		// We need this because the timer check works by yielding
-		// and telling the runtime to continue to *itself* the next tick,
-		// until the timer's run out, at which point it'll
-		// immediately call the rest of the script.
-		const timerID = gen.getNextContinuationID();
-
-		const timer = e['block']([ // if (self.now - R.start < R.duration), then...
-			e['if'](
-				e['<'](
-					e['-'](
-						Builders.stageProperty('now'),
-						Builders.RProperty('start')
-					),
-					Builders.RProperty('duration')
-				),
-
-				Builders.forceQueue(timerID) // forceQueue this whole thing all over again
-			),
-			
-			// if we escaped the forceQueue, that must mean the timer's over
-			// so, continue with the rest of the script
-			Builders.restore(),
-			Builders.forceQueue(continuationID)
-		]);
-
-		gen.pushContinuation(gen.makeFunction(timer));
-
-		// Initialize the timer
-		return e['block']([
-			Builders.save(),
-			e['statement']( // R.start = self.now
-				e['='](
-					Builders.RProperty('start'),
-					Builders.stageProperty('now'))
-			),
-			e['statement']( // R.duration = block duration input * 1000 (convert to millis.)
-				e['='](
-					Builders.RProperty('duration'),
-					e['*'](gen.getInput(block.args['DURATION']), e['num'](1000)))
-			),
-			
-			// initial forceQueue of the timer check
-			Builders.forceQueue(timerID)
-		]);
+		return gen.commonGenerators.createTimer(
+			e['*'](gen.getInput(block.args['DURATION']), e['num'](1000)),
+			Builders.forceQueue(continuationID),
+			Builders.save()
+		);
 	},
 
 	'control_repeat': (block, index, script) => {
@@ -267,34 +296,22 @@ const BlockTranslators = gen => { return {
 	// Operators
 	'operator_add': block => {
 		// NUM1 + NUM2
-		return e['+'](
-			gen.getInput(block.args['NUM1']),
-			gen.getInput(block.args['NUM2'])
-		);
+		return gen.commonGenerators.simpleMathOperator(block, '+');
 	},
 
 	'operator_subtract': block => {
 		// NUM1 - NUM2
-		return e['-'](
-			gen.getInput(block.args['NUM1']),
-			gen.getInput(block.args['NUM2'])
-		);
+		return gen.commonGenerators.simpleMathOperator(block, '-');
 	},
 
 	'operator_multiply': block => {
 		// NUM1 * NUM2
-		return e['*'](
-			gen.getInput(block.args['NUM1']),
-			gen.getInput(block.args['NUM2'])
-		);
+		return gen.commonGenerators.simpleMathOperator(block, '*');
 	},
 
 	'operator_divide': block => {
 		// NUM1 / NUM2
-		return e['/'](
-			gen.getInput(block.args['NUM1']),
-			gen.getInput(block.args['NUM2'])
-		);
+		return gen.commonGenerators.simpleMathOperator(block, '/');
 	},
 
 	'operator_random': block => {

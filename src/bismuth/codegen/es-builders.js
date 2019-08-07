@@ -12,7 +12,28 @@ const STAGE_IDENTIFIER = e['id']('self');
 const R_IDENTIFIER = e['id']('STACK_FRAME');
 const VISUAL_IDENTIFIER = e['id']('VISUAL');
 
+// Similar to estree-builder, this is a collection of "AST builder" functions, but for Bismuth-specific stuff.
 const Builders = {
+	// estree-builder does not have this for some reason
+	literal: value => {
+		return {type: 'Literal', value: value};
+	},
+
+	// Prevent unnecessary block scoping that makes the code harder to read by combining block statements.
+	// Returns a new block statement.
+	concatBlockStatements: statements => {
+		const newStatementBody = [];
+		for (const statement of statements) {
+			for (const node of statement.body) {
+				newStatementBody.push(node);
+			}
+		}
+		return {
+			type: 'BlockStatement',
+			body: newStatementBody
+		};
+	},
+
 	backpatchID: backpatchID => {
 		return {type: 'BackpatchedContinuationID', value: backpatchID};
 	},
@@ -117,6 +138,30 @@ const Builders = {
 		}
 
 		return setVisualTrue;
+	},
+
+	say: (message, isThink) => {
+		return Builders.callSpriteMethod('say', [message, Builders.literal(isThink)]);
+	},
+
+	sayForDurationStart: (message, isThink) => {
+		return e['block']([
+			Builders.save(),
+			e['='](
+				// The 'say' runtime function gives back an ID, which we add to the stack frame.
+				// This is so that when we go back to un-say the bubble,
+				// we can make sure it's the same one we originally said.
+				Builders.RProperty('id'),
+				Builders.say(message, isThink)
+			)
+		]);
+	},
+
+	updateBubbleIfSaying: () => {
+		return e['if'](
+			Builders.spriteProperty('saying'),
+			Builders.callSpriteMethod('updateBubble', [])
+		);
 	}
 };
 

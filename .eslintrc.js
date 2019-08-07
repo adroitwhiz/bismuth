@@ -9,7 +9,6 @@ module.exports = {
 		'P': 'writable'
 	},
 	rules: {
-		'quotes': ['error', 'single'],
 		'no-prototype-builtins': 'off',
 		'no-unused-vars': 'warn',
 		'no-useless-escape': 'off',
@@ -45,7 +44,7 @@ module.exports = {
 		'newline-per-chained-call': ['error'],
 		'no-mixed-operators': ['error'],
 		'no-multiple-empty-lines': ['error', {
-			max: 'error',
+			max: 2,
 			maxBOF: 0,
 			maxEOF: 0
 		}],

@@ -3,6 +3,7 @@ const e = require('estree-builder');
 const ScriptPrims = require('./script-prims');
 const CompiledScript = require('./listener-script');
 const BlockTranslators = require('./block-translators');
+const GeneratorCommon = require('./generator-common');
 const VisibilityState = require('./visibility-state');
 const Builders = require('./es-builders');
 
@@ -15,7 +16,11 @@ class CodeGenerator {
 
 		this.returnStack = [];
 
+		// Bind the two actual code generator objects to this generator.
+		// "translators" is a collection of functions that takes blocks and returns AST code.
+		// "commonGenerators" is a collection of functions that returns AST code for common operations.
 		this.translators = BlockTranslators(this);
+		this.commonGenerators = GeneratorCommon(this);
 
 		this._backpatchIDCounter = 0;
 		this.backpatchMap = {};

@@ -373,7 +373,7 @@ var runtime = (function (P) {
 		};
 	}
 
-	// Save the current stack frame to the stack.
+	// Save the current stack frame to the stack, and create a new stack frame.
 	var save = function () {
 		STACK.push(STACK_FRAME);
 		STACK_FRAME = {};

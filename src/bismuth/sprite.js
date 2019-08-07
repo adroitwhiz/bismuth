@@ -435,13 +435,13 @@ class Sprite extends Base {
 	}
 
 	say (text, thinking) {
-		text = '' + text;
-		if (!text) {
+		if (text === '' || text === null) {
 			this.saying = false;
 			if (!this.bubble) return;
 			this.bubble.style.display = 'none';
 			return ++this.sayId;
 		}
+		text = '' + text;
 		this.saying = true;
 		this.thinking = thinking;
 		if (!this.bubble) {
