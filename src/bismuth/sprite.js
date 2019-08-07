@@ -3,7 +3,7 @@ const Base = require('./spritebase');
 const SCALE = window.devicePixelRatio || 1;
 
 class Sprite extends Base {
-	constructor(stage) {
+	constructor (stage) {
 		super();
 		
 		this.stage = stage;
@@ -32,7 +32,7 @@ class Sprite extends Base {
 		this.sayId = 0;
 	}
 
-	fromJSON(data) {
+	fromJSON (data) {
 		super.fromJSON.call(this, data);
 
 		this.direction = data.direction;
@@ -48,7 +48,7 @@ class Sprite extends Base {
 		return this;
 	}
 
-	clone() {
+	clone () {
 		const c = new Sprite(this.stage);
 
 		c.isClone = true;
@@ -110,7 +110,7 @@ class Sprite extends Base {
 		return c;
 	}
 
-	mouseDown() {
+	mouseDown () {
 		this.dragStartX = this.scratchX;
 		this.dragStartY = this.scratchY;
 		this.dragOffsetX = this.scratchX - this.stage.mouseX;
@@ -118,19 +118,19 @@ class Sprite extends Base {
 		this.isDragging = true;
 	}
 
-	mouseUp() {
+	mouseUp () {
 		if (this.isDragging && this.scratchX === this.dragStartX && this.scratchY === this.dragStartY) {
 			this.stage.triggerFor(this, 'whenClicked');
 		}
 		this.isDragging = false;
 	}
 
-	forward(steps) {
+	forward (steps) {
 		const d = (90 - this.direction) * Math.PI / 180;
-		this.moveTo(this.scratchX + steps * Math.cos(d), this.scratchY + steps * Math.sin(d));
+		this.moveTo(this.scratchX + (steps * Math.cos(d)), this.scratchY + (steps * Math.sin(d)));
 	}
 
-	moveTo(x, y) {
+	moveTo (x, y) {
 		let ox = this.scratchX;
 		let oy = this.scratchY;
 		if (ox === x && oy === y && !this.isPenDown) return;
@@ -156,7 +156,7 @@ class Sprite extends Base {
 		}
 	}
 
-	dotPen() {
+	dotPen () {
 		const context = this.stage.penContext;
 		const x = this.scratchX;
 		const y = this.scratchY;
@@ -166,7 +166,7 @@ class Sprite extends Base {
 		context.fill();
 	}
 
-	draw(context, noEffects) {
+	draw (context, noEffects) {
 		const costume = this.costumes[this.currentCostumeIndex];
 
 		if (this.isDragging) {
@@ -187,7 +187,7 @@ class Sprite extends Base {
 			context.scale(costume.scale, costume.scale);
 			context.translate(-costume.rotationCenterX, -costume.rotationCenterY);
 
-			if (!noEffects) context.globalAlpha = Math.max(0, Math.min(1, 1 - this.filters.ghost / 100));
+			if (!noEffects) context.globalAlpha = Math.max(0, Math.min(1, 1 - (this.filters.ghost / 100)));
 
 			context.drawImage(costume.image, 0, 0);
 
@@ -195,7 +195,7 @@ class Sprite extends Base {
 		}
 	}
 
-	setDirection(degrees) {
+	setDirection (degrees) {
 		let d = degrees % 360;
 		if (d > 180) d -= 360;
 		if (d <= -180) d += 360;
@@ -203,7 +203,7 @@ class Sprite extends Base {
 		if (this.saying) this.updateBubble();
 	}
 
-	touching(thing) {
+	touching (thing) {
 		const costume = this.costumes[this.currentCostumeIndex];
 
 		if (thing === '_mouse_') {
@@ -216,15 +216,16 @@ class Sprite extends Base {
 			let cx = (x - this.scratchX) / this.scale;
 			let cy = (this.scratchY - y) / this.scale;
 			if (this.rotationStyle === 'normal' && this.direction !== 90) {
-				let directionRadians = (90 - this.direction) * Math.PI / 180
+				let directionRadians = (90 - this.direction) * Math.PI / 180;
 				const ox = cx;
-				const s = Math.sin(directionRadians), c = Math.cos(directionRadians);
-				cx = c * ox - s * cy
-				cy = s * ox + c * cy
+				const s = Math.sin(directionRadians);
+				const c = Math.cos(directionRadians);
+				cx = (c * ox) - (s * cy);
+				cy = (s * ox) + (c * cy);
 			} else if (this.rotationStyle === 'leftRight' && this.direction < 0) {
-				cx = -cx
+				cx = -cx;
 			}
-			const costumeImageData = costume.context.getImageData(cx * costume.bitmapResolution + costume.rotationCenterX, cy * costume.bitmapResolution + costume.rotationCenterY, 1, 1).data;
+			const costumeImageData = costume.context.getImageData((cx * costume.bitmapResolution) + costume.rotationCenterX, (cy * costume.bitmapResolution) + costume.rotationCenterY, 1, 1).data;
 			return costumeImageData[3] !== 0;
 		} else if (thing === '_edge_') {
 			let bounds = this.rotatedBounds();
@@ -273,7 +274,7 @@ class Sprite extends Base {
 		}
 	}
 
-	touchingColor(rgb) {
+	touchingColor (rgb) {
 		const b = this.rotatedBounds();
 		collisionCanvas.width = b.right - b.left;
 		collisionCanvas.height = b.top - b.bottom;
@@ -292,7 +293,7 @@ class Sprite extends Base {
 		rgb = rgb & 0xffffff;
 		const length = (b.right - b.left) * (b.top - b.bottom) * 4;
 		for (let i = 0; i < length; i += 4) {
-			if ((data[i] << 16 | data[i + 1] << 8 | data[i + 2]) === rgb && data[i + 3]) {
+			if (((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]) === rgb && data[i + 3]) {
 				return true;
 			}
 		}
@@ -300,7 +301,7 @@ class Sprite extends Base {
 		return false;
 	}
 
-	bounceOffEdge() {
+	bounceOffEdge () {
 		let b = this.rotatedBounds();
 		const dl = 240 + b.left;
 		const dt = 180 - b.top;
@@ -321,7 +322,7 @@ class Sprite extends Base {
 			case db: dy = -Math.max(0.2, Math.abs(dy)); break;
 		}
 
-		this.direction = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+		this.direction = (Math.atan2(dy, dx) * 180 / Math.PI) + 90;
 		if (this.saying) this.updateBubble();
 
 		b = this.rotatedBounds();
@@ -333,19 +334,19 @@ class Sprite extends Base {
 		if (b.bottom < -180) y += -180 - b.top;
 	}
 
-	rotatedBounds() {
+	rotatedBounds () {
 		const costume = this.costumes[this.currentCostumeIndex];
 
 		const s = costume.scale * this.scale;
 		let left = -costume.rotationCenterX * s;
 		const top = costume.rotationCenterY * s;
-		let right = left + costume.image.width * s;
-		const bottom = top - costume.image.height * s;
+		let right = left + (costume.image.width * s);
+		const bottom = top - (costume.image.height * s);
 
 		if (this.rotationStyle !== 'normal') {
 			if (this.rotationStyle === 'leftRight' && this.direction < 0) {
 				right = -left;
-				left = right - costume.image.width * costume.scale * this.scale;
+				left = right - (costume.image.width * costume.scale * this.scale);
 			}
 			return {
 				left: this.scratchX + left,
@@ -358,17 +359,17 @@ class Sprite extends Base {
 		const mSin = Math.sin(this.direction * Math.PI / 180);
 		const mCos = Math.cos(this.direction * Math.PI / 180);
 
-		const tlX = mSin * left - mCos * top;
-		const tlY = mCos * left + mSin * top;
+		const tlX = (mSin * left) - (mCos * top);
+		const tlY = (mCos * left) + (mSin * top);
 
-		const trX = mSin * right - mCos * top;
-		const trY = mCos * right + mSin * top;
+		const trX = (mSin * right) - (mCos * top);
+		const trY = (mCos * right) + (mSin * top);
 
-		const blX = mSin * left - mCos * bottom;
-		const blY = mCos * left + mSin * bottom;
+		const blX = (mSin * left) - (mCos * bottom);
+		const blY = (mCos * left) + (mSin * bottom);
 
-		const brX = mSin * right - mCos * bottom;
-		const brY = mCos * right + mSin * bottom;
+		const brX = (mSin * right) - (mCos * bottom);
+		const brY = (mCos * right) + (mSin * bottom);
 
 		return {
 			left: this.scratchX + Math.min(tlX, trX, blX, brX),
@@ -378,7 +379,7 @@ class Sprite extends Base {
 		};
 	}
 
-	showRotatedBounds() {
+	showRotatedBounds () {
 		const bounds = this.rotatedBounds();
 		const div = document.createElement('div');
 		div.style.outline = '1px solid red';
@@ -390,7 +391,7 @@ class Sprite extends Base {
 		this.stage.canvas.parentNode.appendChild(div);
 	}
 
-	distanceTo(thing) {
+	distanceTo (thing) {
 		if (thing === '_mouse_') {
 			var x = this.stage.mouseX;
 			var y = this.stage.mouseY;
@@ -400,15 +401,15 @@ class Sprite extends Base {
 			x = sprite.scratchX;
 			y = sprite.scratchY;
 		}
-		return Math.sqrt((this.scratchX - x) * (this.scratchX - x) + (this.scratchY - y) * (this.scratchY - y));
+		return Math.sqrt(((this.scratchX - x) * (this.scratchX - x)) + ((this.scratchY - y) * (this.scratchY - y)));
 	}
 
-	gotoObject(thing) {
+	gotoObject (thing) {
 		if (thing === '_mouse_') {
 			this.moveTo(this.stage.mouseX, this.stage.mouseY);
 		} else if (thing === '_random_') {
-			const x = Math.round(480 * Math.random() - 240);
-			const y = Math.round(360 * Math.random() - 180);
+			const x = Math.round((480 * Math.random()) - 240);
+			const y = Math.round((360 * Math.random()) - 180);
 			this.moveTo(x, y);
 		} else {
 			const sprite = this.stage.getObject(thing);
@@ -417,7 +418,7 @@ class Sprite extends Base {
 		}
 	}
 
-	pointTowards(thing) {
+	pointTowards (thing) {
 		if (thing === '_mouse_') {
 			var x = this.stage.mouseX;
 			var y = this.stage.mouseY;
@@ -433,7 +434,7 @@ class Sprite extends Base {
 		if (this.saying) this.updateBubble();
 	}
 
-	say(text, thinking) {
+	say (text, thinking) {
 		text = '' + text;
 		if (!text) {
 			this.saying = false;
@@ -445,11 +446,11 @@ class Sprite extends Base {
 		this.thinking = thinking;
 		if (!this.bubble) {
 			this.bubble = document.createElement('div');
-			this.bubble.style.maxWidth = ''+(127/14)+'em';
-			this.bubble.style.minWidth = ''+(48/14)+'em';
-			this.bubble.style.padding = ''+(8/14)+'em '+(10/14)+'em';
-			this.bubble.style.border = ''+(3/14)+'em solid rgb(160, 160, 160)';
-			this.bubble.style.borderRadius = ''+(10/14)+'em';
+			this.bubble.style.maxWidth = '' + (127 / 14) + 'em';
+			this.bubble.style.minWidth = '' + (48 / 14) + 'em';
+			this.bubble.style.padding = '' + (8 / 14) + 'em ' + (10 / 14) + 'em';
+			this.bubble.style.border = '' + (3 / 14) + 'em solid rgb(160, 160, 160)';
+			this.bubble.style.borderRadius = '' + (10 / 14) + 'em';
 			this.bubble.style.background = '#fff';
 			this.bubble.style.position = 'absolute';
 			this.bubble.style.font = 'bold 1.4em sans-serif';
@@ -461,20 +462,20 @@ class Sprite extends Base {
 			this.bubble.appendChild(this.bubbleText = document.createTextNode(''));
 			this.bubble.appendChild(this.bubblePointer = document.createElement('div'));
 			this.bubblePointer.style.position = 'absolute';
-			this.bubblePointer.style.height = ''+(21/14)+'em';
-			this.bubblePointer.style.width = ''+(44/14)+'em';
-			this.bubblePointer.style.background = 'url(icons.svg) '+(-195/14)+'em '+(-4/14)+'em';
-			this.bubblePointer.style.backgroundSize = ''+(320/14)+'em '+(96/14)+'em';
+			this.bubblePointer.style.height = '' + (21 / 14) + 'em';
+			this.bubblePointer.style.width = '' + (44 / 14) + 'em';
+			this.bubblePointer.style.background = 'url(icons.svg) ' + (-195 / 14) + 'em ' + (-4 / 14) + 'em';
+			this.bubblePointer.style.backgroundSize = '' + (320 / 14) + 'em ' + (96 / 14) + 'em';
 			this.stage.ui.appendChild(this.bubble);
 		}
-		this.bubblePointer.style.backgroundPositionX = ((thinking ? -259 : -195)/14)+'em';
+		this.bubblePointer.style.backgroundPositionX = ((thinking ? -259 : -195) / 14) + 'em';
 		this.bubble.style.display = 'block';
 		this.bubbleText.nodeValue = text;
 		this.updateBubble();
 		return ++this.sayId;
 	}
 
-	updateBubble() {
+	updateBubble () {
 		if (!this.visible || !this.saying) {
 			this.bubble.style.display = 'none';
 			return;
@@ -488,15 +489,15 @@ class Sprite extends Base {
 		if (left + width + 2 > 480) {
 			this.bubble.style.right = ((240 - b.left) / 14) + 'em';
 			this.bubble.style.left = 'auto';
-			this.bubblePointer.style.right = (3/14)+'em';
+			this.bubblePointer.style.right = (3 / 14) + 'em';
 			this.bubblePointer.style.left = 'auto';
-			this.bubblePointer.style.backgroundPositionY = (-36/14)+'em';
+			this.bubblePointer.style.backgroundPositionY = (-36 / 14) + 'em';
 		} else {
 			this.bubble.style.left = (left / 14) + 'em';
 			this.bubble.style.right = 'auto';
-			this.bubblePointer.style.left = (3/14)+'em';
+			this.bubblePointer.style.left = (3 / 14) + 'em';
 			this.bubblePointer.style.right = 'auto';
-			this.bubblePointer.style.backgroundPositionY = (-4/14)+'em';
+			this.bubblePointer.style.backgroundPositionY = (-4 / 14) + 'em';
 		}
 		if (bottom + height + 2 > 360) {
 			bottom = 360 - height - 2;
@@ -507,7 +508,7 @@ class Sprite extends Base {
 		this.bubble.style.bottom = (bottom / 14) + 'em';
 	}
 
-	remove() {
+	remove () {
 		if (this.bubble) {
 			this.stage.ui.removeChild(this.bubble);
 			this.bubble = null;

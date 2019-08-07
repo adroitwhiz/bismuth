@@ -7,7 +7,7 @@ const SCALE = window.devicePixelRatio || 1;
 const hasTouchEvents = 'ontouchstart' in document;
 
 class Stage extends Base {
-	constructor() {
+	constructor () {
 		super();
 
 		this.stage = this;
@@ -209,7 +209,7 @@ class Stage extends Base {
 		this.promptTitle.textContent = '';
 		this.promptTitle.style.cursor = 'default';
 		this.promptTitle.style.font = 'bold 1.3em sans-serif';
-		this.promptTitle.style.margin = '0 '+(-25/13)+'em '+(5/13)+'em 0';
+		this.promptTitle.style.margin = '0 ' + (-25 / 13) + 'em ' + (5 / 13) + 'em 0';
 		this.promptTitle.style.whiteSpace = 'pre';
 		this.promptTitle.style.overflow = 'hidden';
 		this.promptTitle.style.textOverflow = 'ellipsis';
@@ -221,16 +221,16 @@ class Stage extends Base {
 		this.prompt.style.MozBoxSizing =
 		this.prompt.style.boxSizing = 'border-box';
 		this.prompt.style.font = '1.3em sans-serif';
-		this.prompt.style.padding = '0 '+(3/13)+'em';
+		this.prompt.style.padding = '0 ' + (3 / 13) + 'em';
 		this.prompt.style.outline = '0';
 		this.prompt.style.margin = '0';
 		this.prompt.style.width = '100%';
-		this.prompt.style.height = ''+(20/13)+'em';
+		this.prompt.style.height = '' + (20 / 13) + 'em';
 		this.prompt.style.display = 'block';
 		this.prompt.style.WebkitBorderRadius =
 		this.prompt.style.borderRadius = '0';
 		this.prompt.style.WebkitBoxShadow =
-		this.prompt.style.boxShadow = 'inset '+(1/13)+'em '+(1/13)+'em '+(2/13)+'em rgba(0, 0, 0, .2), inset '+(-1/13)+'em '+(-1/13)+'em '+(1/13)+'em rgba(255, 255, 255, .2)';
+		this.prompt.style.boxShadow = 'inset ' + (1 / 13) + 'em ' + (1 / 13) + 'em ' + (2 / 13) + 'em rgba(0, 0, 0, .2), inset ' + (-1 / 13) + 'em ' + (-1 / 13) + 'em ' + (1 / 13) + 'em rgba(255, 255, 255, .2)';
 		this.prompt.style.WebkitAppearance = 'none';
 
 		this.promptButton = document.createElement('div');
@@ -254,7 +254,7 @@ class Stage extends Base {
 		this.initRuntime();
 	}
 
-	watcherStart(id, t, e) {
+	watcherStart (id, t, e) {
 		let p = e.target;
 		while (p && p.dataset.watcher == null) p = p.parentElement;
 		if (!p) return;
@@ -265,24 +265,24 @@ class Stage extends Base {
 		};
 	}
 
-	watcherMove(id, t, e) {
+	watcherMove (id, t, e) {
 		const d = this.dragging[id];
 		if (!d) return;
 		const w = d.watcher;
 		const sw = w.slider.offsetWidth;
 		const bw = w.button.offsetWidth;
-		const value = w.sliderMin + Math.max(0, Math.min(1, (t.clientX + d.offset) / (sw - bw))) * (w.sliderMax - w.sliderMin);
+		const value = w.sliderMin + (Math.max(0, Math.min(1, (t.clientX + d.offset) / (sw - bw))) * (w.sliderMax - w.sliderMin));
 		w.target.vars[w.param] = w.isDiscrete ? Math.round(value) : Math.round(value * 100) / 100;
 		w.update();
 		e.preventDefault();
 	}
 
-	watcherEnd(id, t, e) {
+	watcherEnd (id, t, e) {
 		this.watcherMove(id, t, e);
 		delete this.dragging[id];
 	}
 
-	destroy() {
+	destroy () {
 		this.stopAll();
 		this.pause();
 		if (this.onTouchStart) document.removeEventListener('touchstart', this.onTouchStart);
@@ -293,10 +293,10 @@ class Stage extends Base {
 		if (this.onMouseUp) document.removeEventListener('mouseup', this.onMouseUp);
 	}
 
-	fromJSON(data) {
+	fromJSON (data) {
 		super.fromJSON.call(this, data);
 
-		data.children.forEach(function(d) {
+		data.children.forEach(function (d) {
 			if (d.listName) return;
 			if (d.cmd) this.allWatchers.push(new Watcher(this).fromJSON(d));
 			else this.children.push(new Sprite(this).fromJSON(d));
@@ -311,7 +311,7 @@ class Stage extends Base {
 		return this;
 	}
 
-	focus() {
+	focus () {
 		if (this.promptId < this.nextPromptId) {
 			this.prompt.focus();
 		} else {
@@ -319,10 +319,10 @@ class Stage extends Base {
 		}
 	}
 
-	updateMouse(e) {
+	updateMouse (e) {
 		const bb = this.canvas.getBoundingClientRect();
-		let x = (e.clientX - bb.left) / this.zoom - 240;
-		let y = 180 - (e.clientY - bb.top) / this.zoom;
+		let x = ((e.clientX - bb.left) / this.zoom) - 240;
+		let y = 180 - ((e.clientY - bb.top) / this.zoom);
 		this.rawMouseX = x;
 		this.rawMouseY = y;
 		if (x < -240) x = -240;
@@ -333,7 +333,7 @@ class Stage extends Base {
 		this.mouseY = y;
 	}
 
-	updateBackdrop() {
+	updateBackdrop () {
 		this.backdropCanvas.width = this.zoom * SCALE * 480;
 		this.backdropCanvas.height = this.zoom * SCALE * 360;
 		const costume = this.costumes[this.currentCostumeIndex];
@@ -344,11 +344,11 @@ class Stage extends Base {
 		this.backdropContext.restore();
 	}
 
-	updateFilters() {
-		this.backdropCanvas.style.opacity = Math.max(0, Math.min(1, 1 - this.filters.ghost / 100));
+	updateFilters () {
+		this.backdropCanvas.style.opacity = Math.max(0, Math.min(1, 1 - (this.filters.ghost / 100)));
 	}
 
-	setZoom(zoom) {
+	setZoom (zoom) {
 		if (this.zoom === zoom) return;
 		if (this.maxZoom < zoom * SCALE) {
 			this.maxZoom = zoom * SCALE;
@@ -372,12 +372,12 @@ class Stage extends Base {
 		this.backdropCanvas.style.height =
 		this.penCanvas.style.height =
 		this.ui.style.height = (360 * zoom | 0) + 'px';
-		this.root.style.fontSize = (zoom*10) + 'px';
+		this.root.style.fontSize = (zoom * 10) + 'px';
 		this.zoom = zoom;
 		this.updateBackdrop();
 	}
 
-	clickMouse() {
+	clickMouse () {
 		this.mouseSprite = undefined;
 		for (let i = this.children.length; i--;) {
 			const c = this.children[i];
@@ -394,7 +394,7 @@ class Stage extends Base {
 		this.triggerFor(this, 'whenClicked');
 	}
 
-	releaseMouse() {
+	releaseMouse () {
 		this.mousePressed = false;
 		if (this.mouseSprite) {
 			this.mouseSprite.mouseUp();
@@ -402,14 +402,14 @@ class Stage extends Base {
 		}
 	}
 
-	stopAllSounds() {
+	stopAllSounds () {
 		for (let children = this.children, i = children.length; i--;) {
 			children[i].stopSounds();
 		}
 		this.stopSounds();
 	}
 
-	removeAllClones() {
+	removeAllClones () {
 		let i = this.children.length;
 		while (i--) {
 			if (this.children[i].isClone) {
@@ -419,7 +419,7 @@ class Stage extends Base {
 		}
 	}
 
-	getObject(name) {
+	getObject (name) {
 		for (let i = 0; i < this.children.length; i++) {
 			const c = this.children[i];
 			if (c.objName === name && !c.isClone) {
@@ -431,7 +431,7 @@ class Stage extends Base {
 		}
 	}
 
-	getObjects(name) {
+	getObjects (name) {
 		const result = [];
 		for (let i = 0; i < this.children.length; i++) {
 			if (this.children[i].objName === name) {
@@ -441,7 +441,7 @@ class Stage extends Base {
 		return result;
 	}
 
-	draw() {
+	draw () {
 		const context = this.context;
 
 		this.canvas.width = 480 * this.zoom * SCALE; // clear
@@ -461,7 +461,7 @@ class Stage extends Base {
 		}
 	}
 
-	drawOn(context, except) {
+	drawOn (context, except) {
 		for (let i = 0; i < this.children.length; i++) {
 			const c = this.children[i];
 			if (c.visible && c !== except) {
@@ -470,11 +470,11 @@ class Stage extends Base {
 		}
 	}
 
-	drawAllOn(context, except) {
+	drawAllOn (context, except) {
 		const costume = this.costumes[this.currentCostumeIndex];
 		context.save();
 		context.scale(costume.scale, costume.scale);
-		context.globalAlpha = Math.max(0, Math.min(1, 1 - this.filters.ghost / 100));
+		context.globalAlpha = Math.max(0, Math.min(1, 1 - (this.filters.ghost / 100)));
 		context.drawImage(costume.image, 0, 0);
 		context.restore();
 
@@ -486,9 +486,9 @@ class Stage extends Base {
 		this.drawOn(context, except);
 	}
 
-	moveTo() {}
+	moveTo () {}
 
-	submitPrompt() {
+	submitPrompt () {
 		if (this.promptId < this.nextPromptId) {
 			this.answer = this.prompt.value;
 			this.promptId += 1;

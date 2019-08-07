@@ -35,8 +35,8 @@ IO.parseJSONish = json => {
 };
 
 IO.load = (url, callback, self, type) => {
-	const request = new Request.Request;
-	const xhr = new XMLHttpRequest;
+	const request = new Request.Request();
+	const xhr = new XMLHttpRequest();
 	xhr.open('GET', url, true);
 	xhr.onprogress = e => {
 		request.progress(e.loaded, e.total, e.lengthComputable);
@@ -59,8 +59,8 @@ IO.load = (url, callback, self, type) => {
 };
 
 IO.loadImage = (url, callback, self) => {
-	const request = new Request.Request;
-	const image = new Image;
+	const request = new Request.Request();
+	const image = new Image();
 	image.crossOrigin = 'anonymous';
 	image.src = url;
 	image.onload = () => {
@@ -74,7 +74,7 @@ IO.loadImage = (url, callback, self) => {
 };
 
 IO.loadScratchr2Project = (id, callback, self) => {
-	const request = new Request.CompositeRequest;
+	const request = new Request.CompositeRequest();
 	IO.init(request);
 
 	request.defer = true;
@@ -84,7 +84,7 @@ IO.loadScratchr2Project = (id, callback, self) => {
 			var json = IO.parseJSONish(contents);
 		} catch (e) {
 			request.add(IO.load(url, null, null, 'arraybuffer').onLoad(ab => {
-				const request2 = new Request.Request;
+				const request2 = new Request.Request();
 				request.add(request2);
 				request.add(IO.loadSB2Project(ab, stage => {
 					request.getResult = () => stage;
@@ -112,7 +112,7 @@ IO.loadScratchr2Project = (id, callback, self) => {
 };
 
 IO.loadScratchr2ProjectTitle = (id, callback, self) => {
-	const request = new Request.CompositeRequest;
+	const request = new Request.CompositeRequest();
 
 	request.defer = true;
 	request.add(P.IO.load('https://scratch.mit.edu/projects/' + id + '/').onLoad(data => {
@@ -131,7 +131,7 @@ IO.loadScratchr2ProjectTitle = (id, callback, self) => {
 };
 
 IO.loadJSONProject = (json, callback, self) => {
-	const request = new Request.CompositeRequest;
+	const request = new Request.CompositeRequest();
 	IO.init(request);
 
 	try {
@@ -151,7 +151,7 @@ IO.loadJSONProject = (json, callback, self) => {
 };
 
 IO.loadSB2Project = (ab, callback, self) => {
-	const request = new Request.CompositeRequest;
+	const request = new Request.CompositeRequest();
 	IO.init(request);
 
 	try {
@@ -174,11 +174,11 @@ IO.loadSB2Project = (ab, callback, self) => {
 };
 
 IO.loadSB2File = (f, callback, self) => {
-	const cr = new Request.CompositeRequest;
+	const cr = new Request.CompositeRequest();
 	cr.defer = true;
-	const request = new Request.Request;
+	const request = new Request.Request();
 	cr.add(request);
-	const reader = new FileReader;
+	const reader = new FileReader();
 	reader.onloadend = () => {
 		cr.defer = true;
 		cr.add(IO.loadSB2Project(reader.result, result => {
@@ -218,7 +218,7 @@ IO.loadWavs = () => {
 };
 
 IO.loadWavBuffer = name => {
-	const request = new Request.Request;
+	const request = new Request.Request();
 	IO.load(IO.SOUNDBANK_URL + wavFiles[name], ab => {
 		IO.decodeAudio(ab, buffer => {
 			IO.wavBuffers[name] = buffer;
@@ -233,7 +233,7 @@ IO.loadWavBuffer = name => {
 IO.decodeAudio = (ab, cb) => {
 	if (P.audioContext) {
 		decodeADPCMAudio(ab, (err, buffer) => {
-			if (buffer) return setTimeout(() => {cb(buffer)});
+			if (buffer) return setTimeout(() => { cb(buffer); });
 			const p = P.audioContext.decodeAudioData(ab, buffer => {
 				cb(buffer);
 			}, err2 => {
@@ -300,7 +300,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			let doc = parser.parseFromString(source, 'image/svg+xml');
 			let svg = doc.documentElement;
 			if (!svg.style) {
-				doc = parser.parseFromString('<body>'+source, 'text/html');
+				doc = parser.parseFromString('<body>' + source, 'text/html');
 				svg = doc.querySelector('svg');
 			}
 			svg.style.visibility = 'hidden';
@@ -322,7 +322,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			svg.style.visibility = svg.style.position = svg.style.left = svg.style.top = '';
 
 			const canvas = document.createElement('canvas');
-			const image = new Image;
+			const image = new Image();
 			callback(image);
 			// svg.style.cssText = '';
 			// console.log(md5, 'data:image/svg+xml;base64,' + btoa(div.innerHTML.trim()));
@@ -330,7 +330,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 				ignoreMouse: true,
 				ignoreAnimation: true,
 				ignoreClear: true,
-				renderCallback() {
+				renderCallback () {
 					image.src = canvas.toDataURL();
 				}
 			});
@@ -341,37 +341,35 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback));
 		}
 	} else if (fileExtension === 'wav') {
-		let request = new Request.Request;
+		let request = new Request.Request();
 		onloadCallback = ab => {
 			IO.decodeAudio(ab, buffer => {
 				callback(buffer);
 				request.load(buffer);
 			});
-		}
+		};
 		IO.projectRequest.add(request);
 		if (IO.zip) {
-			const audio = new Audio;
+			const audio = new Audio();
 			const ab = file.asArrayBuffer();
 			onloadCallback(ab);
 		} else {
 			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback, null, 'arraybuffer'));
 		}
+	} else if (IO.zip) {
+		let request = new Request.Request();
+		const image = new Image();
+		image.onload = () => {
+			if (callback) callback(image);
+			request.load();
+		};
+		image.src = 'data:image/' + (fileExtension === 'jpg' ? 'jpeg' : fileExtension) + ';base64,' + btoa(file.asBinary());
+		IO.projectRequest.add(request);
 	} else {
-		if (IO.zip) {
-			let request = new Request.Request;
-			const image = new Image;
-			image.onload = () => {
-				if (callback) callback(image);
-				request.load();
-			};
-			image.src = 'data:image/' + (fileExtension === 'jpg' ? 'jpeg' : fileExtension) + ';base64,' + btoa(file.asBinary());
-			IO.projectRequest.add(request);
-		} else {
-			IO.projectRequest.add(
-				IO.loadImage(IO.ASSET_URL + md5 + '/get/', result => {
-					callback(result);
-				}));
-		}
+		IO.projectRequest.add(
+			IO.loadImage(IO.ASSET_URL + md5 + '/get/', result => {
+				callback(result);
+			}));
 	}
 };
 

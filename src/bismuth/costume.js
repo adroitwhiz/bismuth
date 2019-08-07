@@ -1,7 +1,7 @@
 const Events = require('./events');
 
 class Costume {
-	constructor(data, index, base) {
+	constructor (data, index, base) {
 		this.index = index;
 		this.base = base;
 		this.baseLayerID = data.baseLayerID;
@@ -26,8 +26,8 @@ class Costume {
 		}
 	}
 
-	render() {
-		if (!this.baseLayer.width || this.textLayer && !this.textLayer.width) {
+	render () {
+		if (!this.baseLayer.width || (this.textLayer && !this.textLayer.width)) {
 			return;
 		}
 		this.image.width = this.baseLayer.width;

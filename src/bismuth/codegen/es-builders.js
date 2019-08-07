@@ -18,11 +18,16 @@ const Builders = {
 	},
 
 	continuationIdentifier: continuationID => {
-		return continuationID.type && continuationID.type === 'BackpatchedContinuationID' ? continuationID : e['number'](continuationID);
+		return continuationID.type && (continuationID.type === 'BackpatchedContinuationID') ?
+			continuationID :
+			e['number'](continuationID);
 	},
 
 	consoleLog: args => {
-		return e['call'](e['.'](e['id']('console'), e['id']('log')), args);
+		return e['call'](
+			e['.'](e['id']('console'), e['id']('log')),
+			typeof args === 'string' ? e['string'](args) : args
+		);
 	},
 
 	spriteProperty: property => {
@@ -51,7 +56,7 @@ const Builders = {
 		return e['call'](
 			e['.'](e['id']('Math'), e['id'](method)),
 			args
-		)
+		);
 	},
 
 	queue: continuationID => {
@@ -71,7 +76,12 @@ const Builders = {
 	immediateCall: continuationID => {
 		return e['block'](
 			[
-				e['statement'](e['='](e['id']('IMMEDIATE'), e['get'](Builders.spriteProperty('fns'), Builders.continuationIdentifier(continuationID)))),
+				e['statement'](
+					e['='](
+						e['id']('IMMEDIATE'),
+						e['get'](Builders.spriteProperty('fns'), Builders.continuationIdentifier(continuationID))
+					)
+				),
 				e['return']()
 			]
 		);
@@ -99,15 +109,15 @@ const Builders = {
 					e ['||'](
 						Builders.spriteProperty('visible'),
 						Builders.spriteProperty('isPenDown')
-					):
+					) :
 					Builders.spriteProperty('visible'),
 				
 				setVisualTrue
-			)
+			);
 		}
 
 		return setVisualTrue;
 	}
-}
+};
 
 module.exports = Builders;

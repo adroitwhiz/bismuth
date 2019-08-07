@@ -1,5 +1,5 @@
 class CompiledScript {
-	constructor(listenerBlock, continuationID) {
+	constructor (listenerBlock, continuationID) {
 		this.listenerBlock = listenerBlock;
 		this.continuationID = continuationID;
 	}

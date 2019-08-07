@@ -1,22 +1,15 @@
-const astring = require('astring');
-
 const CodeGenerator = require('../codegen/code-generator');
 const Parser = require('../codegen/parser');
-
-const backpatchGenerator = backpatchMap => Object.assign({}, astring.baseGenerator, {
-	BackpatchedContinuationID: function(node, state) {
-		state.write(backpatchMap[node.value]);
-	}
-})
+const generateJavascriptCode = require('../codegen/emit-javascript');
 
 const compile = (P => {
 	const EVENT_SELECTOR_MAP = {
-		'event_whenflagclicked':'whenGreenFlag',
-		'event_whenthisspriteclicked':'whenClicked',
-		'control_start_as_clone':'whenCloned',
-		'event_whenkeypressed':'whenKeyPressed',
-		'event_whenbackdropswitchesto':'whenSceneStarts',
-		'event_whenbroadcastreceived':'whenIReceive'
+		'event_whenflagclicked': 'whenGreenFlag',
+		'event_whenthisspriteclicked': 'whenClicked',
+		'control_start_as_clone': 'whenCloned',
+		'event_whenkeypressed': 'whenKeyPressed',
+		'event_whenbackdropswitchesto': 'whenSceneStarts',
+		'event_whenbroadcastreceived': 'whenIReceive'
 	};
 
 	const compileScripts = object => {
@@ -41,7 +34,7 @@ const compile = (P => {
 		// Part 3: For every continuation function AST in the object,
 		// stringify it into JS code, then eval() it, compiling it into *actual* JS.
 		for (let i = 0; i < object.continuations.length; i++) {
-			object.fns.push(P.runtime.scopedEval(astring.generate(object.continuations[i], {generator: backpatchGenerator(generator.backpatchMap)})));
+			object.fns.push(P.runtime.scopedEval(generateJavascriptCode(generator, object.continuations[i])));
 		}
 
 		console.log(compiledScripts);
@@ -94,8 +87,7 @@ const compile = (P => {
 			default:
 				console.warn(`Unknown hat block ${script.listenerBlock.opcode}`);
 		}
-		
-	}
+	};
 
 	return stage => {
 		compileScripts(stage);

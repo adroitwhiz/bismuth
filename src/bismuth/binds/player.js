@@ -1,4 +1,4 @@
-var player = (function(P) {
+var player = (function (P) {
 	'use strict';
 
 	var stage;
@@ -22,20 +22,20 @@ var player = (function(P) {
 
 	var flagTouchTimeout;
 
-	function flagTouchStart() {
-		flagTouchTimeout = setTimeout(function() {
+	function flagTouchStart () {
+		flagTouchTimeout = setTimeout(function () {
 			turboClick();
 			flagTouchTimeout = true;
 		}, 500);
 	}
 
-	function turboClick() {
+	function turboClick () {
 		stage.isTurbo = !stage.isTurbo;
 		flag.title = stage.isTurbo ? 'Turbo mode enabled. Shift+click to disable.' : 'Shift+click to enable turbo mode.';
 		turbo.style.display = stage.isTurbo ? 'block' : 'none';
 	}
 
-	function flagClick(e) {
+	function flagClick (e) {
 		if (!stage) return;
 		if (flagTouchTimeout === true) return;
 		if (flagTouchTimeout) {
@@ -53,7 +53,7 @@ var player = (function(P) {
 		e.preventDefault();
 	}
 
-	function pauseClick(e) {
+	function pauseClick (e) {
 		if (!stage) return;
 		if (stage.isRunning) {
 			stage.pause();
@@ -66,7 +66,7 @@ var player = (function(P) {
 		e.preventDefault();
 	}
 
-	function stopClick(e) {
+	function stopClick (e) {
 		if (!stage) return;
 		stage.start();
 		pause.className = 'pause';
@@ -75,7 +75,7 @@ var player = (function(P) {
 		e.preventDefault();
 	}
 
-	function fullScreenClick(e) {
+	function fullScreenClick (e) {
 		if (e) e.preventDefault();
 		if (!stage) return;
 		document.documentElement.classList.toggle('fs');
@@ -111,32 +111,32 @@ var player = (function(P) {
 		stage.focus();
 	}
 
-	function exitFullScreen(e) {
+	function exitFullScreen (e) {
 		if (isFullScreen && e.keyCode === 27) {
 			fullScreenClick(e);
 		}
 	}
 
-	function updateFullScreen() {
+	function updateFullScreen () {
 		if (!stage) return;
 		if (isFullScreen) {
 			window.scrollTo(0, 0);
 			var padding = 8;
-			var w = window.innerWidth - padding * 2;
+			var w = window.innerWidth - (padding * 2);
 			var h = window.innerHeight - padding - controls.offsetHeight;
 			w = Math.min(w, h / .75);
-			h = w * .75 + controls.offsetHeight;
+			h = (w * .75) + controls.offsetHeight;
 			document.body.style.width = w + 'px';
 			document.body.style.height = h + 'px';
-			document.body.style.marginLeft = (window.innerWidth - w) / 2 + 'px';
-			document.body.style.marginTop = (window.innerHeight - h - padding) / 2 + 'px';
+			document.body.style.marginLeft = ((window.innerWidth - w) / 2) + 'px';
+			document.body.style.marginTop = ((window.innerHeight - h - padding) / 2) + 'px';
 			stage.setZoom(w / 480);
 		} else {
 			stage.setZoom(1);
 		}
 	}
 
-	function preventDefault(e) {
+	function preventDefault (e) {
 		e.preventDefault();
 	}
 
@@ -154,7 +154,7 @@ var player = (function(P) {
 		stop.addEventListener('touchstart', preventDefault);
 		fullScreen.addEventListener('touchstart', preventDefault);
 
-		document.addEventListener('touchmove', function(e) {
+		document.addEventListener('touchmove', function (e) {
 			if (isFullScreen) e.preventDefault();
 		});
 	} else {
@@ -164,17 +164,17 @@ var player = (function(P) {
 		fullScreen.addEventListener('click', fullScreenClick);
 	}
 
-	document.addEventListener('fullscreenchange', function() {
+	document.addEventListener('fullscreenchange', function () {
 		if (isFullScreen !== document.fullscreen) fullScreenClick();
 	});
-	document.addEventListener('mozfullscreenchange', function() {
+	document.addEventListener('mozfullscreenchange', function () {
 		if (isFullScreen !== document.mozFullScreen) fullScreenClick();
 	});
-	document.addEventListener('webkitfullscreenchange', function() {
+	document.addEventListener('webkitfullscreenchange', function () {
 		if (isFullScreen !== document.webkitIsFullScreen) fullScreenClick();
 	});
 
-	function load(id, cb, titleCallback) {
+	function load (id, cb, titleCallback) {
 		P.player.projectId = id;
 		P.player.projectURL = id ? 'https://scratch.mit.edu/projects/' + id + '/' : '';
 
@@ -187,35 +187,35 @@ var player = (function(P) {
 
 		if (id) {
 			showProgress(P.IO.loadScratchr2Project(id), cb);
-			P.IO.loadScratchr2ProjectTitle(id, function(title) {
+			P.IO.loadScratchr2ProjectTitle(id, function (title) {
 				if (titleCallback) titleCallback(P.player.projectTitle = title);
 			});
 		} else {
-			if (titleCallback) setTimeout(function() {
+			if (titleCallback) setTimeout(function () {
 				titleCallback('');
 			});
 		}
 	}
 
-	function showError(e) {
+	function showError (e) {
 		error.style.display = 'block';
 		errorBugLink.href = 'https://github.com/adroitwhiz/bismuth/issues/new?title=' + encodeURIComponent(P.player.projectTitle || P.player.projectURL) + '&body=' + encodeURIComponent('\n\n\n' + P.player.projectURL + '\nhttp://phosphorus.github.io/#' + P.player.projectId + '\n' + navigator.userAgent + (e.stack ? '\n\n```\n' + e.stack + '\n```' : ''));
 		console.error(e.stack);
 	}
 
-	function showProgress(request, loadCallback) {
+	function showProgress (request, loadCallback) {
 		progressBar.style.display = 'none';
-		setTimeout(function() {
+		setTimeout(function () {
 			progressBar.style.width = '10%';
 			progressBar.className = 'progress-bar';
 			progressBar.style.opacity = 1;
 			progressBar.style.display = 'block';
 		});
-		request.onload = function(s) {
+		request.onload = function (s) {
 			progressBar.style.width = '100%';
-			setTimeout(function() {
+			setTimeout(function () {
 				progressBar.style.opacity = 0;
-				setTimeout(function() {
+				setTimeout(function () {
 					progressBar.style.display = 'none';
 				}, 300);
 			}, 100);
@@ -235,13 +235,13 @@ var player = (function(P) {
 				loadCallback = null;
 			}
 		};
-		request.onerror = function(e) {
+		request.onerror = function (e) {
 			progressBar.style.width = '100%';
 			progressBar.className = 'progress-bar error';
 			console.error(e, e.stack);
 		};
-		request.onprogress = function(e) {
-			progressBar.style.width = (10 + e.loaded / e.total * 90) + '%';
+		request.onprogress = function (e) {
+			progressBar.style.width = (10 + (e.loaded / e.total * 90)) + '%';
 		};
 	}
 

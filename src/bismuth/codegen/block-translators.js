@@ -2,7 +2,7 @@ const e = require('estree-builder');
 
 const Builders = require('./es-builders');
 
-const BlockTranslators = gen => {return{
+const BlockTranslators = gen => { return {
 	// Motion
 	'motion_movesteps': block => {
 		return e['statement']( // S.forward(block steps input)
@@ -50,7 +50,7 @@ const BlockTranslators = gen => {return{
 				gen.getInput(block.args['X']),
 				gen.getInput(block.args['Y'])
 			])
-		)
+		);
 	},
 
 	'motion_changexby': block => {
@@ -62,7 +62,7 @@ const BlockTranslators = gen => {return{
 				),
 				Builders.spriteProperty('scratchY')
 			])
-		)
+		);
 	},
 
 	'motion_setx': block => {
@@ -71,7 +71,7 @@ const BlockTranslators = gen => {return{
 				gen.getInput(block.args['X']),
 				Builders.spriteProperty('scratchY')
 			])
-		)
+		);
 	},
 
 	'motion_changeyby': block => {
@@ -81,10 +81,9 @@ const BlockTranslators = gen => {return{
 				e['+'](
 					Builders.spriteProperty('scratchY'),
 					gen.getInput(block.args['DY'])
-				),
-				
+				)
 			])
-		)
+		);
 	},
 
 	'motion_sety': block => {
@@ -93,7 +92,7 @@ const BlockTranslators = gen => {return{
 				Builders.spriteProperty('scratchX'),
 				gen.getInput(block.args['Y'])
 			])
-		)
+		);
 	},
 
 	// Control
@@ -138,13 +137,13 @@ const BlockTranslators = gen => {return{
 			Builders.save(),
 			e['statement']( // R.start = self.now
 				e['='](
-				Builders.RProperty('start'),
-				Builders.stageProperty('now'))
+					Builders.RProperty('start'),
+					Builders.stageProperty('now'))
 			),
 			e['statement']( // R.duration = block duration input * 1000 (convert to millis.)
 				e['='](
-				Builders.RProperty('duration'),
-				e['*'](gen.getInput(block.args['DURATION']), e['num'](1000)))
+					Builders.RProperty('duration'),
+					e['*'](gen.getInput(block.args['DURATION']), e['num'](1000)))
 			),
 			
 			// initial forceQueue of the timer check
@@ -154,7 +153,7 @@ const BlockTranslators = gen => {return{
 
 	'control_repeat': (block, index, script) => {
 		// Create a continuation for the rest of the blocks
-		const continuationID = gen.continue(script.splice(index + 1)); 
+		const continuationID = gen.continue(script.splice(index + 1));
 
 		const returnAddress = gen.getBackpatchID();
 		gen.returnStack.push(Builders.forceQueue(Builders.backpatchID(returnAddress)));
@@ -199,11 +198,11 @@ const BlockTranslators = gen => {return{
 				e['='](Builders.RProperty('count'), gen.getInput(block.args['TIMES']))
 			),
 
-			Builders.immediateCall(loopID),
+			Builders.immediateCall(loopID)
 		]);
 	},
 
-	'control_forever': (block, index, script) => {
+	'control_forever': block => {
 		// At the end of every "forever" loop, there's an implicit "go back to the start of the loop body".
 		// This will get lost if we call other blocks that chop up the script, so push it onto the return stack.
 		// We don't know yet where the start of the loop body is, because compiling the loop body
@@ -221,7 +220,7 @@ const BlockTranslators = gen => {return{
 		return e['block']([
 			loopBody,
 			Builders.forceQueue(Builders.backpatchID(returnAddress))
-		])
+		]);
 	},
 
 	'control_if': (block, index, script) => {
@@ -271,7 +270,7 @@ const BlockTranslators = gen => {return{
 		return e['+'](
 			gen.getInput(block.args['NUM1']),
 			gen.getInput(block.args['NUM2'])
-		)
+		);
 	},
 
 	'operator_subtract': block => {
@@ -279,7 +278,7 @@ const BlockTranslators = gen => {return{
 		return e['-'](
 			gen.getInput(block.args['NUM1']),
 			gen.getInput(block.args['NUM2'])
-		)
+		);
 	},
 
 	'operator_multiply': block => {
@@ -287,7 +286,7 @@ const BlockTranslators = gen => {return{
 		return e['*'](
 			gen.getInput(block.args['NUM1']),
 			gen.getInput(block.args['NUM2'])
-		)
+		);
 	},
 
 	'operator_divide': block => {
@@ -295,7 +294,7 @@ const BlockTranslators = gen => {return{
 		return e['/'](
 			gen.getInput(block.args['NUM1']),
 			gen.getInput(block.args['NUM2'])
-		)
+		);
 	},
 
 	'operator_random': block => {
@@ -304,7 +303,7 @@ const BlockTranslators = gen => {return{
 			'random',
 			gen.getInput(block.args['NUM1']),
 			gen.getInput(block.args['NUM2'])
-		)
+		);
 	},
 
 	'operator_lt': block => {
@@ -317,7 +316,7 @@ const BlockTranslators = gen => {return{
 				gen.getInput(block.args['OPERAND2'])
 			),
 			e['num'](-1)
-		)
+		);
 	},
 
 	'operator_equals': block => {
@@ -327,7 +326,7 @@ const BlockTranslators = gen => {return{
 			'equal',
 			gen.getInput(block.args['OPERAND1']),
 			gen.getInput(block.args['OPERAND2'])
-		)
+		);
 	},
 
 	'operator_gt': block => {
@@ -340,27 +339,27 @@ const BlockTranslators = gen => {return{
 				gen.getInput(block.args['OPERAND2'])
 			),
 			e['num'](1)
-		)
+		);
 	},
 
 	'operator_and': block => {
 		return e['&&'](
 			gen.getInput(block.args['OPERAND1']),
 			gen.getInput(block.args['OPERAND2'])
-		)
+		);
 	},
 
 	'operator_or': block => {
 		return e['||'](
 			gen.getInput(block.args['OPERAND1']),
 			gen.getInput(block.args['OPERAND2'])
-		)
+		);
 	},
 
 	'operator_not': block => {
 		return e['!'](
 			gen.getInput(block.args['OPERAND'])
-		)
+		);
 	},
 
 	'operator_join': block => {
@@ -368,7 +367,7 @@ const BlockTranslators = gen => {return{
 		return e['+'](
 			gen.getInput(block.args['STRING1']),
 			gen.getInput(block.args['STRING2'])
-		)
+		);
 	},
 
 	'operator_letter_of': block => {
@@ -384,7 +383,7 @@ const BlockTranslators = gen => {return{
 					e['num'](1)
 				)
 			)
-		)
+		);
 	},
 	
 	'operator_length': block => {
@@ -393,15 +392,18 @@ const BlockTranslators = gen => {return{
 		return e['.'](
 			gen.getInput(block.args['STRING']),
 			e['id']('length')
-		)
+		);
 	},
 
 	'operator_mod': block => {
-		// NUM1 % NUM2
-		return e['%'](
+		// runtime mod(num1, num2)
+		// Unfortunately we can't use the JS modulo operator.
+		// Scratch modulo preserves the sign of the divisor, JS modulo preserves the sign of the dividend
+		Builders.callUtilMethod(
+			'mod',
 			gen.getInput(block.args['NUM1']),
 			gen.getInput(block.args['NUM2'])
-		)
+		);
 	},
 
 	'operator_round': block => {
@@ -420,22 +422,22 @@ const BlockTranslators = gen => {return{
 			case 'floor': return Builders.callMathFunction('floor', [gen.getInput(block.args['NUM'])]);
 			case 'ceiling': return Builders.callMathFunction('ceil', [gen.getInput(block.args['NUM'])]);
 			case 'sqrt': return Builders.callMathFunction('sqrt', [gen.getInput(block.args['NUM'])]);
-			case 'sin': return Builders.callMathFunction('sin', 
+			case 'sin': return Builders.callMathFunction('sin',
 				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR)]
 			);
-			case 'cos': return Builders.callMathFunction('cos', 
+			case 'cos': return Builders.callMathFunction('cos',
 				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR)]
 			);
-			case 'tan': return Builders.callMathFunction('tan', 
+			case 'tan': return Builders.callMathFunction('tan',
 				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR)]
 			);
-			case 'asin': return Builders.callMathFunction('asin', 
+			case 'asin': return Builders.callMathFunction('asin',
 				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR_INVERSE)]
 			);
-			case 'acos': return Builders.callMathFunction('acos', 
+			case 'acos': return Builders.callMathFunction('acos',
 				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR_INVERSE)]
 			);
-			case 'atan': return Builders.callMathFunction('atan', 
+			case 'atan': return Builders.callMathFunction('atan',
 				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR_INVERSE)]
 			);
 			case 'ln': return Builders.callMathFunction('log', [gen.getInput(block.args['NUM'])]);
@@ -468,13 +470,13 @@ const BlockTranslators = gen => {return{
 				Builders.stageProperty('timerStart')
 			),
 			e['num'](1000)
-		)
+		);
 	},
 
 	// Data
 	'data_variable': block => {
 		return e['call'](e['id']('getVar'), [gen.getInput(block.args['VARIABLE'])]);
 	}
-}};
+}; };
 
 module.exports = BlockTranslators;

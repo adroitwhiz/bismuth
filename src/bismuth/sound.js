@@ -1,5 +1,5 @@
 class Sound {
-	constructor(data) {
+	constructor (data) {
 		this.name = data.soundName;
 		this.buffer = data.$buffer;
 		this.duration = this.buffer ? this.buffer.duration : 0;

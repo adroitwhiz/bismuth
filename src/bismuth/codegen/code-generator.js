@@ -1,4 +1,3 @@
-const astring = require('astring');
 const e = require('estree-builder');
 
 const ScriptPrims = require('./script-prims');
@@ -11,7 +10,7 @@ class CodeGenerator {
 	/**
 	 * The code generator.
 	 */
-	constructor(object) {
+	constructor (object) {
 		this.object = object;
 
 		this.returnStack = [];
@@ -24,7 +23,8 @@ class CodeGenerator {
 
 	// TODO: Do different things depending on input type to avoid costly unnecessary casts.
 	// Probably lots of speedups to be had here. Requires tagging types probably.
-	castValue(value, outputType, inputType) {
+	/* eslint-disable-next-line no-unused-vars */
+	castValue (value, outputType, inputType) {
 		if (outputType === (
 			'math_number' ||
 			'math_integer' ||
@@ -37,10 +37,10 @@ class CodeGenerator {
 
 			if (outputType === (
 				'math_integer' ||
-				'math_whole_number')) { 
+				'math_whole_number')) {
 				
 				// ROUND number types
-				// call Math.round. Bitwise optimization trickery will cause numbers greater than 2^31 - 1 to do strange things
+				// call Math.round
 				castedValue = e['call'](e['.'](e['id']('Math'), e['id']('round')), [castedValue]);
 			}
 
@@ -66,7 +66,7 @@ class CodeGenerator {
 		return value;
 	}
 
-	getInput(input, shouldCast = true) {
+	getInput (input, shouldCast = true) {
 		let inputNode;
 		if (input.value instanceof ScriptPrims.Literal) {
 			inputNode = {type: 'Literal', value: input.value.value};
@@ -80,38 +80,38 @@ class CodeGenerator {
 	}
 
 	// TODO: do more stuff here for custom proc defs and others
-	getField(field) {
+	getField (field) {
 		return field.value.value;
 	}
 
-	makeFunction(expr) {
-		return {type:'ExpressionStatement', expression:e['function']([], expr, null)};
+	makeFunction (expr) {
+		return {type: 'ExpressionStatement', expression: e['function']([], expr, null)};
 	}
 
-	getNextContinuationID() {
+	getNextContinuationID () {
 		return this.object.continuations.length;
 	}
 
-	getBackpatchID() {
+	getBackpatchID () {
 		// This makes debugging easier.
 		return `bp_${this._backpatchIDCounter++}`;
 	}
 
-	setBackpatchDestination(backpatchID, continuationID) {
+	setBackpatchDestination (backpatchID, continuationID) {
 		this.backpatchMap[backpatchID] = continuationID;
 	}
 
-	pushContinuation(continuation) {
+	pushContinuation (continuation) {
 		let continuationID = this.getNextContinuationID();
 		this.object.continuations.push(continuation);
 		return continuationID;
 	}
 
-	continue(substack) {
+	continue (substack) {
 		return this.pushContinuation(this.compileFunction(substack));
 	}
 
-	compileBlock(block, index, script) {
+	compileBlock (block, index, script) {
 		if (this.translators.hasOwnProperty(block.opcode)) {
 			return this.translators[block.opcode](block, index, script);
 		} else {
@@ -119,7 +119,7 @@ class CodeGenerator {
 		}
 	}
 
-	compileSubstack(substack) {
+	compileSubstack (substack) {
 		const compiledInstructions = [];
 
 		// As explained in visibility-state.js, the VISUAL flag is set
@@ -137,7 +137,9 @@ class CodeGenerator {
 
 			if (VisibilityState.visibilityBlockScopes[currentBlock.opcode] > currentVisibilityScope) {
 				currentVisibilityScope = VisibilityState.visibilityBlockScopes[currentBlock.opcode];
-				compiledInstructions.push(Builders.setVisualForScope(VisibilityState.visibilityBlockScopes[currentBlock.opcode]));
+				compiledInstructions.push(
+					Builders.setVisualForScope(VisibilityState.visibilityBlockScopes[currentBlock.opcode])
+				);
 			}
 
 			compiledInstructions.push(this.compileBlock(currentBlock, instructionIndex, substack));
@@ -150,11 +152,11 @@ class CodeGenerator {
 		return compiledInstructions;
 	}
 
-	compileFunction(substack) {
+	compileFunction (substack) {
 		return this.makeFunction(this.compileSubstack(substack));
 	}
 
-	compileScript(script) {
+	compileScript (script) {
 		return new CompiledScript(script.blocks[0], this.continue(script.shifted));
 	}
 }

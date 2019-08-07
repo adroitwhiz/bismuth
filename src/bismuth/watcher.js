@@ -1,5 +1,5 @@
 class Watcher {
-	constructor(stage) {
+	constructor (stage) {
 		this.stage = stage;
 
 		this.cmd = 'getVar:';
@@ -22,7 +22,7 @@ class Watcher {
 		this.button = null;
 	}
 
-	fromJSON(data) {
+	fromJSON (data) {
 		this.cmd = data.cmd || 'getVar:';
 		if (data.color) {
 			const c = (data.color < 0 ? data.color + 0x1000000 : data.color).toString(16);
@@ -42,7 +42,7 @@ class Watcher {
 		return this;
 	}
 
-	resolve() {
+	resolve () {
 		this.target = this.stage.getObject(this.targetName);
 		if (this.target && this.cmd === 'getVar:') {
 			this.target.watchers[this.param] = this;
@@ -54,7 +54,7 @@ class Watcher {
 		this.layout();
 	}
 
-	getLabel() {
+	getLabel () {
 		switch (this.cmd) {
 			case 'getVar:': return this.param;
 			case 'sensor:': return this.param + ' sensor value';
@@ -65,7 +65,7 @@ class Watcher {
 		return WATCHER_LABELS[this.cmd] || '';
 	}
 
-	update(context) {
+	update (context) {
 		let value = 0;
 		if (!this.target) return;
 		switch (this.cmd) {
@@ -120,11 +120,11 @@ class Watcher {
 		}
 		this.readout.textContent = '' + value;
 		if (this.slider) {
-			this.buttonWrap.style.transform = 'translate('+((+value || 0) - this.sliderMin) / (this.sliderMax - this.sliderMin)*100+'%,0)';
+			this.buttonWrap.style.transform = 'translate(' + (((+value || 0) - this.sliderMin) / (this.sliderMax - this.sliderMin) * 100) + '%,0)';
 		}
 	}
 
-	layout() {
+	layout () {
 		if (this.el) {
 			this.el.style.display = this.visible ? 'block' : 'none';
 			return;
@@ -136,18 +136,18 @@ class Watcher {
 		this.el.style.whiteSpace = 'pre';
 		this.el.style.position = 'absolute';
 		this.el.style.left = this.el.style.top = '0';
-		this.el.style.transform = 'translate('+(this.x|0)/10+'em,'+(this.y|0)/10+'em)';
+		this.el.style.transform = 'translate(' + ((this.x | 0) / 10) + 'em,' + ((this.y | 0) / 10) + 'em)';
 		this.el.style.cursor = 'default';
 		this.el.style.pointerEvents = 'auto';
 
 		if (this.mode === 2) {
 			this.el.appendChild(this.readout = document.createElement('div'));
-			this.readout.style.minWidth = (38/15)+'em';
-			this.readout.style.font = 'bold 1.5em/'+(19/15)+' sans-serif';
-			this.readout.style.height = (19/15)+'em';
-			this.readout.style.borderRadius = (4/15)+'em';
-			this.readout.style.margin = (3/15)+'em 0 0 0';
-			this.readout.style.padding = '0 '+(3/10)+'em';
+			this.readout.style.minWidth = (38 / 15) + 'em';
+			this.readout.style.font = 'bold 1.5em/' + (19 / 15) + ' sans-serif';
+			this.readout.style.height = (19 / 15) + 'em';
+			this.readout.style.borderRadius = (4 / 15) + 'em';
+			this.readout.style.margin = (3 / 15) + 'em 0 0 0';
+			this.readout.style.padding = '0 ' + (3 / 10) + 'em';
 		} else {
 			this.el.appendChild(this.labelEl = document.createElement('div'), this.el.firstChild);
 			this.el.appendChild(this.readout = document.createElement('div'));
@@ -165,17 +165,17 @@ class Watcher {
 			this.labelEl.style.verticalAlign =
 			this.readout.style.verticalAlign = 'middle';
 
-			this.readout.style.minWidth = (37/10)+'em';
-			this.readout.style.padding = '0 '+(1/10)+'em';
-			this.readout.style.font = 'bold 1.0em/'+(13/10)+' sans-serif';
-			this.readout.style.height = (13/10)+'em';
-			this.readout.style.borderRadius = (4/10)+'em';
-			this.readout.style.marginLeft = (6/10)+'em';
+			this.readout.style.minWidth = (37 / 10) + 'em';
+			this.readout.style.padding = '0 ' + (1 / 10) + 'em';
+			this.readout.style.font = 'bold 1.0em/' + (13 / 10) + ' sans-serif';
+			this.readout.style.height = (13 / 10) + 'em';
+			this.readout.style.borderRadius = (4 / 10) + 'em';
+			this.readout.style.marginLeft = (6 / 10) + 'em';
 		}
 		this.readout.style.color = '#fff';
 		const f = 1 / (this.mode === 2 ? 15 : 10);
-		this.readout.style.border = f+'em solid #fff';
-		this.readout.style.boxShadow = 'inset '+f+'em '+f+'em '+f+'em rgba(0,0,0,.5), inset -'+f+'em -'+f+'em '+f+'em rgba(255,255,255,.5)';
+		this.readout.style.border = f + 'em solid #fff';
+		this.readout.style.boxShadow = 'inset ' + f + 'em ' + f + 'em ' + f + 'em rgba(0,0,0,.5), inset -' + f + 'em -' + f + 'em ' + f + 'em rgba(255,255,255,.5)';
 		this.readout.style.textAlign = 'center';
 		this.readout.style.background = this.color;
 		this.readout.style.display = 'inline-block';
@@ -208,7 +208,7 @@ class Watcher {
 		this.stage.ui.appendChild(this.el);
 	}
 
-	timeAndDate(format) {
+	timeAndDate (format) {
 		switch (format) {
 			case 'year':
 				return new Date().getFullYear();

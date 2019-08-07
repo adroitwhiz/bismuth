@@ -1,7 +1,7 @@
 const CodeGenerator = require('../codegen/code-generator');
 const Parser = require('../codegen/parser.js');
 
-var compile = (function(P) {
+var compile = (function (P) {
 	'use strict';
 
 	var LOG_PRIMITIVES;
@@ -20,7 +20,7 @@ var compile = (function(P) {
 		'whenSensorGreaterThan' // TODO
 	];
 
-	var compileScripts = function(object) {
+	var compileScripts = function (object) {
 		const parser = new Parser();
 		const generator = new CodeGenerator(object);
 
@@ -37,11 +37,11 @@ var compile = (function(P) {
 	};
 
 	var warnings;
-	var warn = function(message) {
+	var warn = function (message) {
 		warnings[message] = (warnings[message] || 0) + 1;
 	};
 
-	var compileListener = function(object, script) {
+	var compileListener = function (object, script) {
 		const generator = new CodeGenerator();
 
 		// Skip compilation if the script is empty or not connected to a hat block
@@ -195,7 +195,7 @@ var compile = (function(P) {
 		}
 	};
 
-	return function(stage) {
+	return function (stage) {
 
 		warnings = Object.create(null);
 

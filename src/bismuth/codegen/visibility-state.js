@@ -16,10 +16,10 @@
 // "looks_show":AFFECTS_VISUAL_ALWAYS)
 
 const VisibilityScope = Object.freeze({
-	DOES_NOT_AFFECT_VISUAL:0,
-	AFFECTS_VISUAL_FOR_VISIBLE_ONLY:1,
-	AFFECTS_VISUAL_FOR_VISIBLE_OR_PEN_DOWN:2,
-	AFFECTS_VISUAL_ALWAYS:3
+	DOES_NOT_AFFECT_VISUAL: 0,
+	AFFECTS_VISUAL_FOR_VISIBLE_ONLY: 1,
+	AFFECTS_VISUAL_FOR_VISIBLE_OR_PEN_DOWN: 2,
+	AFFECTS_VISUAL_ALWAYS: 3
 });
 
 const visibilityBlockScopeCategories = {};
@@ -83,7 +83,7 @@ const visibilityBlockScopes = {};
 Object.entries(visibilityBlockScopeCategories).forEach(entry => {
 	entry[1].forEach(opcode => {
 		visibilityBlockScopes[opcode] = parseInt(entry[0]);
-	})
+	});
 });
 
-module.exports = {VisibilityScope, visibilityBlockScopes}
+module.exports = {VisibilityScope, visibilityBlockScopes};

@@ -2,7 +2,7 @@ const Costume = require('./costume');
 const Sound = require('./sound');
 
 class Base {
-	constructor() {
+	constructor () {
 		this.isClone = false;
 		this.costumes = [];
 		this.currentCostumeIndex = 0;
@@ -37,11 +37,11 @@ class Base {
 		this.resetFilters();
 	}
 
-	fromJSON(data) {
+	fromJSON (data) {
 		this.objName = data.objName;
 		this.scripts = data.scripts;
 		this.currentCostumeIndex = data.currentCostumeIndex || 0;
-		this.costumes = data.costumes.map(function(d, i) {
+		this.costumes = data.costumes.map(function (d, i) {
 			return new Costume(d, i, this);
 		}, this);
 		this.addSounds(data.sounds);
@@ -51,7 +51,7 @@ class Base {
 		return this;
 	}
 
-	addSounds(sounds) {
+	addSounds (sounds) {
 		for (let i = 0; i < sounds.length; i++) {
 			const s = new Sound(sounds[i]);
 			this.sounds.push(s);
@@ -59,7 +59,7 @@ class Base {
 		}
 	}
 
-	addVariables(variables) {
+	addVariables (variables) {
 		for (let i = 0; i < variables.length; i++) {
 			if (variables[i].isPeristent) {
 				throw new Error('Cloud variables are not supported');
@@ -68,7 +68,7 @@ class Base {
 		}
 	}
 
-	addLists(lists) {
+	addLists (lists) {
 		for (let i = 0; i < lists.length; i++) {
 			if (lists[i].isPeristent) {
 				throw new Error('Cloud lists are not supported');
@@ -78,7 +78,7 @@ class Base {
 		}
 	}
 
-	showVariable(name, visible) {
+	showVariable (name, visible) {
 		let watcher = this.watchers[name];
 		const stage = this.stage;
 		if (!watcher) {
@@ -99,24 +99,24 @@ class Base {
 		watcher.layout();
 	}
 
-	showNextCostume() {
+	showNextCostume () {
 		this.currentCostumeIndex = (this.currentCostumeIndex + 1) % this.costumes.length;
 		if (this.isStage) this.updateBackdrop();
 		if (this.saying) this.updateBubble();
 	}
 
-	showPreviousCostume() {
+	showPreviousCostume () {
 		const length = this.costumes.length;
 		this.currentCostumeIndex = (this.currentCostumeIndex + length - 1) % length;
 		if (this.isStage) this.updateBackdrop();
 		if (this.saying) this.updateBubble();
 	}
 
-	getCostumeName() {
+	getCostumeName () {
 		return this.costumes[this.currentCostumeIndex] ? this.costumes[this.currentCostumeIndex].costumeName : '';
 	}
 
-	setCostume(costume) {
+	setCostume (costume) {
 		if (typeof costume !== 'number') {
 			costume = '' + costume;
 			for (let i = 0; i < this.costumes.length; i++) {
@@ -143,7 +143,7 @@ class Base {
 		if (this.saying) this.updateBubble();
 	}
 
-	setFilter(name, value) {
+	setFilter (name, value) {
 		switch (name) {
 			case 'ghost':
 				if (value < 0) value = 0;
@@ -162,11 +162,11 @@ class Base {
 		if (this.isStage) this.updateFilters();
 	}
 
-	changeFilter(name, value) {
+	changeFilter (name, value) {
 		this.setFilter(name, this.filters[name] + value);
 	}
 
-	resetFilters() {
+	resetFilters () {
 		this.filters = {
 			color: 0,
 			fisheye: 0,
@@ -178,7 +178,7 @@ class Base {
 		};
 	}
 
-	getSound(name) {
+	getSound (name) {
 		if (typeof name === 'string') {
 			const s = this.soundRefs[name];
 			if (s) return s;
@@ -192,7 +192,7 @@ class Base {
 		}
 	}
 
-	stopSounds() {
+	stopSounds () {
 		if (this.node) {
 			this.node.disconnect();
 			this.node = null;
@@ -206,7 +206,7 @@ class Base {
 		}
 	}
 
-	ask(question) {
+	ask (question) {
 		const stage = this.stage;
 		if (question) {
 			if (this.isSprite && this.visible) {

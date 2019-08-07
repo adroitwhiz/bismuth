@@ -28,7 +28,7 @@ const fixSVG = (svg, element) => {
 			element.setAttribute('font-size', size = 18);
 		}
 		const bb = element.getBBox();
-		const x = 4 - .6 * element.transform.baseVal.consolidate().matrix.a;
+		const x = 4 - (0.6 * element.transform.baseVal.consolidate().matrix.a);
 		const y = (element.getAttribute('y') - bb.y) * 1.1;
 		element.setAttribute('x', x);
 		element.setAttribute('y', y);
@@ -40,7 +40,7 @@ const fixSVG = (svg, element) => {
 				const tspan = document.createElementNS(null, 'tspan');
 				tspan.textContent = lines[i];
 				tspan.setAttribute('x', x);
-				tspan.setAttribute('y', y + size * i * lineHeight);
+				tspan.setAttribute('y', y + (size * i * lineHeight));
 				element.appendChild(tspan);
 			}
 		}

@@ -1,11 +1,11 @@
 const Events = require('./events');
 
 class Request {
-	constructor() {
+	constructor () {
 		this.loaded = 0;
 	}
 
-	progress(loaded, total, lengthComputable) {
+	progress (loaded, total, lengthComputable) {
 		this.loaded = loaded;
 		this.total = total;
 		this.lengthComputable = lengthComputable;
@@ -16,13 +16,13 @@ class Request {
 		});
 	}
 
-	load(result) {
+	load (result) {
 		this.result = result;
 		this.isDone = true;
 		this.dispatchLoad(result);
 	}
 
-	error(error) {
+	error (error) {
 		this.result = error;
 		this.isError = true;
 		this.isDone = true;
@@ -33,7 +33,7 @@ class Request {
 Events.addEvents(Request, 'load', 'progress', 'error');
 
 class CompositeRequest extends Request {
-	constructor() {
+	constructor () {
 		super();
 
 		this.requests = [];
@@ -42,7 +42,7 @@ class CompositeRequest extends Request {
 		this.error = this.error.bind(this);
 	}
 
-	add(request) {
+	add (request) {
 		if (request instanceof CompositeRequest) {
 			for (let i = 0; i < request.requests.length; i++) {
 				this.add(request.requests[i]);
@@ -56,7 +56,7 @@ class CompositeRequest extends Request {
 		}
 	}
 
-	update() {
+	update () {
 		if (this.isError) return;
 		const requests = this.requests;
 		let i = requests.length;
@@ -104,7 +104,7 @@ class CompositeRequest extends Request {
 		}
 	}
 
-	getResult() {
+	getResult () {
 		throw new Error('Users must implement getResult()');
 	}
 }

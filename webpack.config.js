@@ -12,12 +12,12 @@ module.exports = {
 	plugins: [
 		new CopyWebpackPlugin([
 			{
-				from:'src/app'
+				from: 'src/app'
 			}
 		])
 	],
 
-	devtool: 'cheap-module-source-map',	
+	devtool: 'cheap-module-source-map',
 	devServer: {
 		contentBase: path.resolve(__dirname, 'dist'),
 		port: 9001,

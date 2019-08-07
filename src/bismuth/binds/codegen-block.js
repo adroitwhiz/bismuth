@@ -2,62 +2,62 @@ var LOG_PRIMITIVES = false;
 var DEBUG = true;
 
 var visual = 0;
-var compile = function(object, block, fns, startingPosition, inputs, types, used) {
-	var nextLabel = function() {
+var compile = function (object, block, fns, startingPosition, inputs, types, used) {
+	var nextLabel = function () {
 		return object.fns.length + fns.length;
 	};
 	
-	var label = function() {
+	var label = function () {
 		var id = nextLabel();
 		fns.push(source.length + startingPosition);
 		visual = 0;
 		return id;
 	};
 	
-	var delay = function() {
+	var delay = function () {
 		source += 'return;\n';
 		label();
 	};
 	
-	var queue = function(id) {
+	var queue = function (id) {
 		source += 'queue(' + id + ');\n';
 		source += 'console.log("Returning");\n';
 		source += 'return;\n';
 	};
 	
-	var forceQueue = function(id) {
+	var forceQueue = function (id) {
 		source += 'forceQueue(' + id + ');\n';
 		source += 'console.log("Returning");\n';
 		source += 'return;\n';
 	};
 	
-	var seq = function(script) {
+	var seq = function (script) {
 		if (!script) return;
 		for (var i = 0; i < script.length; i++) {
 			source += compile(object, script[i], fns, source.length + startingPosition);
 		}
 	};
 	
-	var varRef = function(name) {
+	var varRef = function (name) {
 		if (typeof name !== 'string') {
 			return 'getVar(' + val(name) + ')';
 		}
-		var o = object.stage.vars[name] !== undefined ? 'self' : 'S';
+		var o = object.stage.vars[name] === undefined ? 'S' : 'self';
 		return o + '.vars[' + val(name) + ']';
 	};
 	
-	var listRef = function(name) {
+	var listRef = function (name) {
 		if (typeof name !== 'string') {
 			return 'getList(' + val(name) + ')';
 		}
-		var o = object.stage.lists[name] !== undefined ? 'self' : 'S';
+		var o = object.stage.lists[name] === undefined ? 'S' : 'self';
 		if (o === 'S' && !object.lists[name]) {
 			object.lists[name] = [];
 		}
 		return o + '.lists[' + val(name) + ']';
 	};
 	
-	var param = function(name, usenum, usebool) {
+	var param = function (name, usenum, usebool) {
 		if (typeof name !== 'string') {
 			throw new Error('Dynamic parameters are not supported');
 		}
@@ -72,7 +72,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		var t = types[i];
 		var kind =
 			t === '%n' || t === '%d' || t === '%c' ? 'num' :
-			t === '%b' ? 'bool' : '';
+				t === '%b' ? 'bool' : '';
 	
 		if (kind === 'num' && usenum) {
 			used[i] = true;
@@ -95,19 +95,19 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		'readVariable': e => varRef(e[1]),
 		'contentsOfList:': e => `contentsOfList(${listRef(e[1])})`,
 		'getLine:ofList:': e => `getLineOfList(${listRef(e[2])}, ${val(e[1])})`,
-		'concatenate:with:':e => `("" + ${val(e[1])} + ${val(e[2])})`,
+		'concatenate:with:': e => `("" + ${val(e[1])} + ${val(e[2])})`,
 		'letter:of:': e => `(("" + ${val(e[2])})[(${num(e[1])} | 0) - 1] || "")`,
 		'answer': e => 'self.answer',
 		'getAttribute:of:': e => `attribute(${val(e[1])}, ${val(e[2])})`,
 		'getUserId': e => '0',
 		'getUserName': e => '""'
-	}
+	};
 	
-	var val2 = function(e) {
+	var val2 = function (e) {
 		return val2Table[e[0]](e);
 	};
 	
-	var val = function(e, usenum, usebool) {
+	var val = function (e, usenum, usebool) {
 		var v;
 	
 		if (typeof e === 'number' || typeof e === 'boolean') {
@@ -142,7 +142,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		}
 	};
 	
-	var numval = function(e) {
+	var numval = function (e) {
 	
 		if (e[0] === 'xpos') {
 			/* Motion */
@@ -295,7 +295,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 	};
 	
 	var DIGIT = /\d/;
-	var boolval = function(e) {
+	var boolval = function (e) {
 	
 		if (e[0] === 'list:contains:') {
 			/* Data */
@@ -375,7 +375,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		}
 	};
 	
-	var bool = function(e) {
+	var bool = function (e) {
 		if (typeof e === 'boolean') {
 			return e;
 		}
@@ -383,10 +383,10 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 			return +e !== 0 && e !== '' && e !== 'false' && e !== false;
 		}
 		var v = boolval(e);
-		return v != null ? v : val(e, false, true);
+		return v == null ? val(e, false, true) : v;
 	};
 	
-	var num = function(e) {
+	var num = function (e) {
 		if (typeof e === 'number') {
 			return e || 0;
 		}
@@ -394,17 +394,17 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 			return +e || 0;
 		}
 		var v = numval(e);
-		return v != null ? v : val(e, true);
+		return v == null ? val(e, true) : v;
 	};
 	
-	var beatHead = function(dur) {
+	var beatHead = function (dur) {
 		source += 'save();\n';
 		source += 'R.start = self.now;\n';
 		source += 'R.duration = ' + num(dur) + ' * 60000 / self.tempoBPM;\n';
 		source += 'var first = true;\n';
 	};
 	
-	var beatTail = function(dur) {
+	var beatTail = function (dur) {
 		var id = label();
 		source += 'if (self.now - R.start < R.duration || first) {\n';
 		source += '  var first;\n';
@@ -414,7 +414,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		source += 'restore();\n';
 	};
 	
-	var wait = function(dur) {
+	var wait = function (dur) {
 		source += 'save();\n';
 		source += 'R.start = self.now;\n';
 		source += 'R.duration = ' + dur + ' * 1000;\n';
@@ -720,7 +720,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 
 		source += 'self.penCanvas.width = 480 * self.maxZoom;\n';
 		source += 'self.penContext.scale(self.maxZoom, self.maxZoom);\n';
-		source += 'self.penContext.lineCap = "round";\n'
+		source += 'self.penContext.lineCap = "round";\n';
 
 	} else if (block[0] === 'putPenDown') {
 
@@ -811,7 +811,7 @@ var compile = function(object, block, fns, startingPosition, inputs, types, used
 		if (typeof block[1] !== 'string') {
 			throw new Error('Dynamic variables are not supported');
 		}
-		var o = object.vars[block[1]] !== undefined ? 'S' : 'self';
+		var o = object.vars[block[1]] === undefined ? 'self' : 'S';
 		source += o + '.showVariable(' + val(block[1]) + ', ' + isShow + ');\n';
 
 		// } else if (block[0] === 'showList:') {

@@ -1,4 +1,4 @@
-var compile = (function(P) {
+var compile = (function (P) {
 	'use strict';
 
 	var LOG_PRIMITIVES;
@@ -17,18 +17,18 @@ var compile = (function(P) {
 		'whenSensorGreaterThan' // TODO
 	];
 
-	var compileScripts = function(object) {
+	var compileScripts = function (object) {
 		for (var i = 0; i < object.scripts.length; i++) {
 			compileListener(object, object.scripts[i][2]);
 		}
 	};
 
 	var warnings;
-	var warn = function(message) {
+	var warn = function (message) {
 		warnings[message] = (warnings[message] || 0) + 1;
 	};
 
-	var compileListener = function(object, script) {
+	var compileListener = function (object, script) {
 		console.log(script);
 
 		if (!script[0] || EVENT_SELECTORS.indexOf(script[0][0]) === -1) return;
@@ -70,7 +70,7 @@ var compile = (function(P) {
 
 		}
 
-		var createContinuation = function(source) {
+		var createContinuation = function (source) {
 			var result = '(function() {\n';
 			var brackets = 0;
 			var delBrackets = 0;
@@ -121,11 +121,9 @@ var compile = (function(P) {
 								shouldDelete = true;
 								delBrackets = 0;
 							}
-						} else {
-							if (brackets > 0) {
-								result += '}';
-								brackets--;
-							}
+						} else if (brackets > 0) {
+							result += '}';
+							brackets--;
 						}
 					}
 				}
@@ -174,7 +172,7 @@ var compile = (function(P) {
 		}
 	};
 
-	return function(stage) {
+	return function (stage) {
 
 		warnings = Object.create(null);
 

@@ -1,17 +1,17 @@
-var runtime = (function(P) {
+var runtime = (function (P) {
 	'use strict';
 
 	var self, S, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
 
 	// Cast to boolean.
-	var bool = function(v) {
+	var bool = function (v) {
 		return +v !== 0 && v !== '' && v !== 'false' && v !== false;
 	};
 
 	// Compare two values using Scratch rules.
 	// TODO: Redo this using Scratch 3 techniques and possible make it faster (e.g. by removing regex).
 	var DIGIT = /\d/;
-	var compare = function(x, y) {
+	var compare = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
 			var nx = Number(x);
 			var ny = Number(y);
@@ -24,7 +24,7 @@ var runtime = (function(P) {
 		var ys = ('' + y).toLowerCase();
 		return xs < ys ? -1 : xs === ys ? 0 : 1;
 	};
-	var numLess = function(nx, y) {
+	var numLess = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
 			var ny = +y;
 			if (ny === ny) {
@@ -34,7 +34,7 @@ var runtime = (function(P) {
 		var ys = ('' + y).toLowerCase();
 		return '' + nx < ys;
 	};
-	var numGreater = function(nx, y) {
+	var numGreater = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
 			var ny = +y;
 			if (ny === ny) {
@@ -46,7 +46,7 @@ var runtime = (function(P) {
 	};
 
 	// Optimized version of "compare" that only checks equality.
-	var equal = function(x, y) {
+	var equal = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
 			var nx = +x;
 			var ny = +y;
@@ -58,7 +58,7 @@ var runtime = (function(P) {
 		var ys = ('' + y).toLowerCase();
 		return xs === ys;
 	};
-	var numEqual = function(nx, y) {
+	var numEqual = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
 			var ny = +y;
 			return ny === ny && nx === ny;
@@ -66,7 +66,7 @@ var runtime = (function(P) {
 		return false;
 	};
 
-	var mod = function(x, y) {
+	var mod = function (x, y) {
 		var r = x % y;
 		if (r / y < 0) {
 			r += y;
@@ -74,7 +74,7 @@ var runtime = (function(P) {
 		return r;
 	};
 
-	var random = function(x, y) {
+	var random = function (x, y) {
 		x = +x || 0;
 		y = +y || 0;
 		if (x > y) {
@@ -85,12 +85,12 @@ var runtime = (function(P) {
 		if (x % 1 === 0 && y % 1 === 0) {
 			return Math.floor(Math.random() * (y - x + 1)) + x;
 		}
-		return Math.random() * (y - x) + x;
+		return (Math.random() * (y - x)) + x;
 	};
 
-	var rgb2hsl = function(rgb) {
-		var r = (rgb >> 16 & 0xff) / 0xff;
-		var g = (rgb >> 8 & 0xff) / 0xff;
+	var rgb2hsl = function (rgb) {
+		var r = ((rgb >> 16) & 0xff) / 0xff;
+		var g = ((rgb >> 8) & 0xff) / 0xff;
 		var b = (rgb & 0xff) / 0xff;
 
 		var min = Math.min(r, g, b);
@@ -102,18 +102,18 @@ var runtime = (function(P) {
 
 		var c = max - min;
 		var l = (min + max) / 2;
-		var s = c / (1 - Math.abs(2 * l - 1));
+		var s = c / (1 - Math.abs((2 * l) - 1));
 
 		var h;
 		switch (max) {
 			case r:
-				h = ((g - b) / c + 6) % 6;
+				h = (((g - b) / c) + 6) % 6;
 				break;
 			case g:
-				h = (b - r) / c + 2;
+				h = ((b - r) / c) + 2;
 				break;
 			case b:
-				h = (r - g) / c + 4;
+				h = ((r - g) / c) + 4;
 				break;
 		}
 		h *= 60;
@@ -121,7 +121,7 @@ var runtime = (function(P) {
 		return [h, s * 100, l * 100];
 	};
 
-	var clone = function(name) {
+	var clone = function (name) {
 		var parent = name === '_myself_' ? S : self.getObject(name);
 		var c = parent.clone();
 		self.children.splice(self.children.indexOf(parent), 0, c);
@@ -132,11 +132,11 @@ var runtime = (function(P) {
 
 	var timeAndDate = P.Watcher.timeAndDate;
 
-	var getVar = function(name) {
-		return self.vars[name] !== undefined ? self.vars[name] : S.vars[name];
+	var getVar = function (name) {
+		return self.vars[name] === undefined ? S.vars[name] : self.vars[name];
 	};
 
-	var getList = function(name) {
+	var getList = function (name) {
 		if (self.lists[name] !== undefined) return self.lists;
 		if (S.lists[name] === undefined) {
 			S.lists[name] = [];
@@ -144,7 +144,7 @@ var runtime = (function(P) {
 		return S.lists[name];
 	};
 
-	var listIndex = function(list, index, length) {
+	var listIndex = function (list, index, length) {
 		var i = index | 0;
 		if (i === index) return i > 0 && i <= length ? i - 1 : -1;
 		if (index === 'random' || index === 'any') {
@@ -156,7 +156,7 @@ var runtime = (function(P) {
 		return i > 0 && i <= length ? i - 1 : -1;
 	};
 
-	var contentsOfList = function(list) {
+	var contentsOfList = function (list) {
 		var isSingle = true;
 		for (var i = list.length; i--;) {
 			if (list[i].length !== 1) {
@@ -167,23 +167,23 @@ var runtime = (function(P) {
 		return list.join(isSingle ? '' : ' ');
 	};
 
-	var getLineOfList = function(list, index) {
+	var getLineOfList = function (list, index) {
 		var i = listIndex(list, index, list.length);
-		return i !== -1 ? list[i] : '';
+		return i === -1 ? '' : list[i];
 	};
 
-	var listContains = function(list, value) {
+	var listContains = function (list, value) {
 		for (var i = list.length; i--;) {
 			if (equal(list[i], value)) return true;
 		}
 		return false;
 	};
 
-	var appendToList = function(list, value) {
+	var appendToList = function (list, value) {
 		list.push(value);
 	};
 
-	var deleteLineOfList = function(list, index) {
+	var deleteLineOfList = function (list, index) {
 		if (index === 'all') {
 			list.length = 0;
 		} else {
@@ -196,7 +196,7 @@ var runtime = (function(P) {
 		}
 	};
 
-	var insertInList = function(list, index, value) {
+	var insertInList = function (list, index, value) {
 		var i = listIndex(list, index, list.length + 1);
 		if (i === list.length) {
 			list.push(value);
@@ -205,14 +205,14 @@ var runtime = (function(P) {
 		}
 	};
 
-	var setLineOfList = function(list, index, value) {
+	var setLineOfList = function (list, index, value) {
 		var i = listIndex(list, index, list.length);
 		if (i !== -1) {
 			list[i] = value;
 		}
 	};
 
-	var mathFunc = function(f, x) {
+	var mathFunc = function (f, x) {
 		switch (f) {
 			case 'abs':
 				return Math.abs(x);
@@ -246,7 +246,7 @@ var runtime = (function(P) {
 		return 0;
 	};
 
-	var attribute = function(attr, objName) {
+	var attribute = function (attr, objName) {
 		var o = self.getObject(objName);
 		if (!o) return 0;
 		if (o.isSprite) {
@@ -294,7 +294,7 @@ var runtime = (function(P) {
 		volumeNode.gain.value = VOLUME;
 		volumeNode.connect(audioContext.destination);
 
-		var playNote = function(id, duration) {
+		var playNote = function (id, duration) {
 			var spans = INSTRUMENTS[S.instrument];
 			for (var i = 0, l = spans.length; i < l; i++) {
 				var span = spans[i];
@@ -303,7 +303,7 @@ var runtime = (function(P) {
 			playSpan(span, Math.max(0, Math.min(127, id)), duration);
 		};
 
-		var playSpan = function(span, id, duration) {
+		var playSpan = function (span, id, duration) {
 			if (!S.node) {
 				S.node = audioContext.createGain();
 				S.node.gain.value = S.volume;
@@ -338,7 +338,7 @@ var runtime = (function(P) {
 					if (span.decayEnd < duration) {
 						gain.linearRampToValueAtTime(0, time + span.decayEnd);
 					} else {
-						gain.linearRampToValueAtTime(1 - (duration - span.holdEnd) / span.decayTime, time + duration);
+						gain.linearRampToValueAtTime(1 - ((duration - span.holdEnd) / span.decayTime), time + duration);
 					}
 				} else {
 					gain.linearRampToValueAtTime(1, time + duration);
@@ -352,7 +352,7 @@ var runtime = (function(P) {
 			source.stop(time + duration + 0.02267573696);
 		};
 
-		var playSound = function(sound) {
+		var playSound = function (sound) {
 			if (!sound.buffer) return;
 			if (!sound.node) {
 				sound.node = audioContext.createGain();
@@ -373,17 +373,17 @@ var runtime = (function(P) {
 		};
 	}
 
-	var save = function() {
+	var save = function () {
 		STACK.push(STACK_FRAME);
 		STACK_FRAME = {};
 	};
 
-	var restore = function() {
+	var restore = function () {
 		STACK_FRAME = STACK.pop();
 	};
 
 	// var lastCalls = [];
-	var call = function(procedure, id, values) {
+	var call = function (procedure, id, values) {
 		// lastCalls.push(spec);
 		// if (lastCalls.length > 10000) lastCalls.shift();
 		if (procedure) {
@@ -425,7 +425,7 @@ var runtime = (function(P) {
 		}
 	};
 
-	var endCall = function() {
+	var endCall = function () {
 		if (CALLS.length) {
 			if (WARP) WARP--;
 			IMMEDIATE = C.fn;
@@ -435,22 +435,22 @@ var runtime = (function(P) {
 		}
 	};
 
-	var sceneChange = function() {
+	var sceneChange = function () {
 		return self.trigger('whenSceneStarts', self.costumes[self.currentCostumeIndex].costumeName);
 	};
 
-	var broadcast = function(name) {
+	var broadcast = function (name) {
 		return self.trigger('whenIReceive', name);
 	};
 
-	var running = function(bases) {
+	var running = function (bases) {
 		for (var j = 0; j < self.queue.length; j++) {
 			if (self.queue[j] && bases.indexOf(self.queue[j].base) !== -1) return true;
 		}
 		return false;
 	};
 
-	var queue = function(id) {
+	var queue = function (id) {
 		if (WARP) {
 			IMMEDIATE = S.fns[id];
 		} else {
@@ -458,7 +458,7 @@ var runtime = (function(P) {
 		}
 	};
 
-	var forceQueue = function(id) {
+	var forceQueue = function (id) {
 		self.queue[THREAD] = {
 			sprite: S,
 			base: BASE,
@@ -468,18 +468,18 @@ var runtime = (function(P) {
 	};
 
 	// Internal definition
-	(function() {
+	(function () {
 		'use strict';
 
 		P.Stage.prototype.framerate = 30;
 		P.Stage.prototype.frametime = 1000 / P.Stage.prototype.framerate;
 
-		P.Stage.prototype.initRuntime = function() {
+		P.Stage.prototype.initRuntime = function () {
 			this.queue = [];
 			this.onError = this.onError.bind(this);
 		};
 
-		P.Stage.prototype.startThread = function(sprite, base) {
+		P.Stage.prototype.startThread = function (sprite, base) {
 			var thread = {
 				sprite: sprite,
 				base: base,
@@ -499,7 +499,7 @@ var runtime = (function(P) {
 			this.queue.push(thread);
 		};
 
-		P.Stage.prototype.triggerFor = function(sprite, event, arg) {
+		P.Stage.prototype.triggerFor = function (sprite, event, arg) {
 			var threads;
 			if (event === 'whenClicked') {
 				threads = sprite.listeners.whenClicked;
@@ -522,7 +522,7 @@ var runtime = (function(P) {
 			return threads || [];
 		};
 
-		P.Stage.prototype.trigger = function(event, arg) {
+		P.Stage.prototype.trigger = function (event, arg) {
 			var threads = [];
 			for (var i = this.children.length; i--;) {
 				threads = threads.concat(this.triggerFor(this.children[i], event, arg));
@@ -530,12 +530,12 @@ var runtime = (function(P) {
 			return threads.concat(this.triggerFor(this, event, arg));
 		};
 
-		P.Stage.prototype.triggerGreenFlag = function() {
+		P.Stage.prototype.triggerGreenFlag = function () {
 			this.timerStart = this.rightNow();
 			this.trigger('whenGreenFlag');
 		};
 
-		P.Stage.prototype.start = function() {
+		P.Stage.prototype.start = function () {
 			this.isRunning = true;
 			if (this.interval) return;
 			addEventListener('error', this.onError);
@@ -544,7 +544,7 @@ var runtime = (function(P) {
 			if (audioContext) audioContext.resume();
 		};
 
-		P.Stage.prototype.pause = function() {
+		P.Stage.prototype.pause = function () {
 			if (this.interval) {
 				this.baseNow = this.rightNow();
 				clearInterval(this.interval);
@@ -555,7 +555,7 @@ var runtime = (function(P) {
 			this.isRunning = false;
 		};
 
-		P.Stage.prototype.stopAll = function() {
+		P.Stage.prototype.stopAll = function () {
 			this.hidePrompt = false;
 			this.prompter.style.display = 'none';
 			this.promptId = this.nextPromptId = 0;
@@ -576,11 +576,11 @@ var runtime = (function(P) {
 			}
 		};
 
-		P.Stage.prototype.rightNow = function() {
+		P.Stage.prototype.rightNow = function () {
 			return this.baseNow + Date.now() - this.baseTime;
 		};
 
-		P.Stage.prototype.step = function() {
+		P.Stage.prototype.step = function () {
 			self = this;
 			VISUAL = false;
 			var start = Date.now();
@@ -615,12 +615,12 @@ var runtime = (function(P) {
 			S = null;
 		};
 
-		P.Stage.prototype.onError = function(e) {
+		P.Stage.prototype.onError = function (e) {
 			this.handleError(e.error);
 			clearInterval(this.interval);
 		};
 
-		P.Stage.prototype.handleError = function(e) {
+		P.Stage.prototype.handleError = function (e) {
 			console.error(e.stack);
 		};
 
@@ -632,7 +632,7 @@ var runtime = (function(P) {
 	const DRUMS = instrumentConstants.DRUMS;
 
 	return {
-		scopedEval: function(source) {
+		scopedEval: function (source) {
 			console.log(source);
 			return eval(source);
 		}
