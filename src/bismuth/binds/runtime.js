@@ -373,11 +373,13 @@ var runtime = (function (P) {
 		};
 	}
 
+	// Save the current stack frame to the stack.
 	var save = function () {
 		STACK.push(STACK_FRAME);
 		STACK_FRAME = {};
 	};
 
+	// Pop the last stack frame from the stack.
 	var restore = function () {
 		STACK_FRAME = STACK.pop();
 	};

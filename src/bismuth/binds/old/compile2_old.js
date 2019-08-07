@@ -1,5 +1,5 @@
-const CodeGenerator = require('../codegen/code-generator');
-const Parser = require('../codegen/parser.js');
+const CodeGenerator = require('../../codegen/code-generator');
+const Parser = require('../../codegen/parser.js');
 
 var compile = (function (P) {
 	'use strict';

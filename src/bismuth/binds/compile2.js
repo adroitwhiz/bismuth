@@ -30,7 +30,7 @@ const compile = (P => {
 		for (let i = 0; i < parsedScripts.length; i++) {
 			compiledScripts.push(generator.compileScript(parsedScripts[i]));
 		}
-		
+
 		// Part 3: For every continuation function AST in the object,
 		// stringify it into JS code, then eval() it, compiling it into *actual* JS.
 		for (let i = 0; i < object.continuations.length; i++) {
