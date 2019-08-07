@@ -3,15 +3,19 @@ var runtime = (function(P) {
 
 	var self, S, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
 
+	// Cast to boolean.
 	var bool = function(v) {
 		return +v !== 0 && v !== '' && v !== 'false' && v !== false;
 	};
 
+	// Compare two values using Scratch rules.
+	// TODO: Redo this using Scratch 3 techniques and possible make it faster (e.g. by removing regex).
 	var DIGIT = /\d/;
 	var compare = function(x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
-			var nx = +x;
-			var ny = +y;
+			var nx = Number(x);
+			var ny = Number(y);
+			// This is equivalent to "are neither nx nor ny NaN?" because NaN never equals itself
 			if (nx === nx && ny === ny) {
 				return nx < ny ? -1 : nx === ny ? 0 : 1;
 			}
@@ -41,6 +45,7 @@ var runtime = (function(P) {
 		return '' + nx > ys;
 	};
 
+	// Optimized version of "compare" that only checks equality.
 	var equal = function(x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
 			var nx = +x;

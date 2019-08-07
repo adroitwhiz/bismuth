@@ -3,7 +3,7 @@ const canvg = require("canvg");
 const Request = require("./request");
 const JSZip = require("jszip");
 
-const wavFiles = require("./instrument-wavs");
+const wavFiles = require("./io/instrument-wavs.js");
 
 const decodeADPCMAudio = require("./io/decode-adpcm-audio.js");
 const fixSVG = require("./io/fix-svg.js");

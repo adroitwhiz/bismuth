@@ -18,20 +18,24 @@ class CodeGenerator {
 
 		this.translators = BlockTranslators(this);
 
+		this._backpatchIDCounter = 0;
 		this.backpatchMap = {};
 	}
 
-	castValue(value, type) { //TODO: make this work more
-		if (type === (
+	// TODO: Do different things depending on input type to avoid costly unnecessary casts.
+	// Probably lots of speedups to be had here. Requires tagging types probably.
+	castValue(value, outputType, inputType) {
+		if (outputType === (
 			"math_number" ||
 			"math_integer" ||
 			"math_whole_number" ||
 			"math_positive_number" ||
 			"math_angle")) { // numeric types
 			
-			let castedValue = e["||"](e["+"](value), e["number"](0)); // cast to number with unary plus, OR with zero if that fails
+			// cast to number with unary plus, OR with zero if that fails / input is NaN
+			let castedValue = e["||"](e["+"](value), e["number"](0));
 
-			if (type === (
+			if (outputType === (
 				"math_integer" ||
 				"math_whole_number")) { 
 				
@@ -40,7 +44,7 @@ class CodeGenerator {
 				castedValue = e["call"](e["."](e["id"]("Math"), e["id"]("round")), [castedValue]);
 			}
 
-			if (type === "math_positive_number") {
+			if (outputType === "math_positive_number") {
 				// POSITIVE number types
 				// call Math.max(this number, 0)
 				castedValue = e["call"](e["."](e["id"]("Math"), e["id"]("max")), [castedValue, e["num"](0)]);
@@ -49,10 +53,20 @@ class CodeGenerator {
 			return castedValue;
 		}
 
+		if (outputType === "boolean") {
+			// Runtime boolean cast. Not necessary if input type is boolean, but we don't check that yet.
+			return Builders.callUtilMethod("bool", value);
+		}
+
+		if (outputType = "string") {
+			// casts to string with `value + ""`, may be slower than String(value)
+			return e["+"](value, e["string"](""));
+		}
+
 		return value;
 	}
 
-	getInput(input) {
+	getInput(input, shouldCast = true) {
 		let inputNode;
 		if (input.value instanceof ScriptPrims.Literal) {
 			inputNode = {type: "Literal", value: input.value.value};
@@ -62,7 +76,12 @@ class CodeGenerator {
 			inputNode = this.compileBlock(input.value);
 		}
 
-		return this.castValue(inputNode, input.type);
+		return shouldCast ? this.castValue(inputNode, input.type) : inputNode;
+	}
+
+	// TODO: do more stuff here for custom proc defs and others
+	getField(field) {
+		return field.value.value;
 	}
 
 	makeFunction(expr) {
@@ -74,7 +93,8 @@ class CodeGenerator {
 	}
 
 	getBackpatchID() {
-		return Math.floor(Math.random() * 0xffffffff).toString(16);
+		// This makes debugging easier.
+		return `bp_${this._backpatchIDCounter++}`;
 	}
 
 	setBackpatchDestination(backpatchID, continuationID) {

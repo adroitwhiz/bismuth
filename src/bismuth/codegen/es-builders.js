@@ -16,6 +16,7 @@ const Builders = {
 	backpatchID: backpatchID => {
 		return {type: 'BackpatchedContinuationID', value: backpatchID};
 	},
+
 	continuationIdentifier: continuationID => {
 		return continuationID.type && continuationID.type === 'BackpatchedContinuationID' ? continuationID : e["number"](continuationID);
 	},
@@ -39,6 +40,18 @@ const Builders = {
 
 	callSpriteMethod: (method, args) => {
 		return e["call"](Builders.spriteProperty(method), args);
+	},
+
+	// Currently calls a method with completely implicit scope, but set up so this can be changed
+	callUtilMethod: (method, args) => {
+		return e["call"](e["id"](method), args);
+	},
+
+	callMathFunction: (method, args) => {
+		return e["call"](
+			e["."](e["id"]("Math"), e["id"](method)),
+			args
+		)
 	},
 
 	queue: continuationID => {
