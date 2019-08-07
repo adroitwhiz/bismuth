@@ -4,3 +4,6 @@ npm-*
 
 # Build
 /dist
+
+# Test
+/.nyc-output

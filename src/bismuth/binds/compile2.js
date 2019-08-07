@@ -60,12 +60,13 @@ const compile = (P => {
 			// For simple events, just add 'em to the object's list of listeners
 			case "event_whenflagclicked":
 			case "event_whenthisspriteclicked":
-			case "control_start_as_clone":
+			case "control_start_as_clone": {
 				object.listeners[EVENT_SELECTOR_MAP[script.listenerBlock.opcode]].push(listenerFunction);
 				break;
+			}
 			// For "when key pressed", special-case "any" key; otherwise
 			// add to the object's list of listeners for the specific key pressed
-			case "event_whenkeypressed":
+			case "event_whenkeypressed": {
 				const keyField = script.listenerBlock.args.KEY_OPTION.value.value;
 				if (keyField === "any") {
 					for (let i = 128; i > 0; i--) {
@@ -75,18 +76,20 @@ const compile = (P => {
 					object.listeners.whenKeyPressed[P.getKeyCode(keyField)].push(listenerFunction);
 				}
 				break;
+			}
 			// For "when broadcast received" and "when backdrop switches to",
 			// which take identifiers in the form of strings, lowercase the identifiers
 			// and then add them to the object's map of broadcast or backdrop listeners
 			case "event_whenbackdropswitchesto":
-			case "event_whenbroadcastreceived":
+			case "event_whenbroadcastreceived": {
 				const eventName = (
 					script.listenerBlock.args.BROADCAST_OPTION ||
 					script.listenerBlock.args.BACKDROP).value.value.toLowerCase();
 				
-				const listener = object.listeners[EVENT_SELECTOR_MAP[script.listenerBlock.opcode]][eventName];
-				(listener || (listener = [])).push(f);
+				let listener = object.listeners[EVENT_SELECTOR_MAP[script.listenerBlock.opcode]][eventName];
+				(listener || (listener = [])).push(listenerFunction);
 				break;
+			}
 			// Oopsie woopsie
 			default:
 				console.warn(`Unknown hat block ${script.listenerBlock.opcode}`);
