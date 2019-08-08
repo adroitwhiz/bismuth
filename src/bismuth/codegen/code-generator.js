@@ -60,7 +60,7 @@ class CodeGenerator {
 
 		if (outputType === 'boolean') {
 			// Runtime boolean cast. Not necessary if input type is boolean, but we don't check that yet.
-			return Builders.callUtilMethod('bool', value);
+			return Builders.callUtilMethod('bool', [value]);
 		}
 
 		if (outputType === 'string') {
@@ -108,12 +108,12 @@ class CodeGenerator {
 
 	pushContinuation (continuation) {
 		let continuationID = this.getNextContinuationID();
-		this.object.continuations.push(continuation);
+		this.object.continuations.push(this.makeFunction(continuation));
 		return continuationID;
 	}
 
 	continue (substack) {
-		return this.pushContinuation(this.compileFunction(substack));
+		return this.pushContinuation(this.compileSubstack(substack));
 	}
 
 	compileBlock (block, index, script) {

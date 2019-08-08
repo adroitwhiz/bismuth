@@ -26,7 +26,7 @@ const GeneratorCommon = gen => { return {
 			afterTimerComplete
 		]);
 
-		gen.pushContinuation(gen.makeFunction(timer));
+		gen.pushContinuation(timer);
 
 		// Initialize the timer
 		return e['block']([
@@ -62,18 +62,16 @@ const GeneratorCommon = gen => { return {
 	sayOrThinkForSecs: (block, index, script, isThink) => {
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.pushContinuation(
-			gen.makeFunction(
-				e['block']([
-					e['if'](
-						e['==='](
-							Builders.RProperty('id'),
-							Builders.spriteProperty('sayId')
-						),
-						Builders.say(e['null'](), false)
+			e['block']([
+				e['if'](
+					e['==='](
+						Builders.RProperty('id'),
+						Builders.spriteProperty('sayId')
 					),
-					e['block'](gen.compileSubstack(script.splice(index + 1)))
-				])
-			)
+					Builders.say(e['null'](), false)
+				),
+				e['block'](gen.compileSubstack(script.splice(index + 1)))
+			])
 		);
 
 		return e['block']([

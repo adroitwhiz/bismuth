@@ -53,6 +53,12 @@ const BlockTranslators = gen => { return {
 		);
 	},
 
+	'motion_goto': block => {
+		return Builders.callSpriteMethod('gotoObject', [
+			gen.getInput(block.args['TO'])
+		]);
+	},
+
 	'motion_changexby': block => {
 		return e['statement']( // S.moveTo(S.scratchX + block x input, S.scratchY)
 			Builders.callSpriteMethod('moveTo', [
@@ -93,6 +99,10 @@ const BlockTranslators = gen => { return {
 				gen.getInput(block.args['Y'])
 			])
 		);
+	},
+
+	'motion_ifonedgebounce': () => {
+		return Builders.callSpriteMethod('bounceOffEdge', []);
 	},
 
 	// Looks
@@ -149,7 +159,7 @@ const BlockTranslators = gen => { return {
 	},
 
 	'looks_setsizeto': block => {
-		// S.scale = Math.max(0, CHANGE * 0.01)
+		// S.scale = Math.max(0, SIZE * 0.01)
 		// TODO: change this when sprite size is changed to be a percentage
 		return e['='](
 			Builders.spriteProperty('scale'),
@@ -240,7 +250,7 @@ const BlockTranslators = gen => { return {
 		]);
 
 		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
-		gen.pushContinuation(gen.makeFunction(loopBody));
+		gen.pushContinuation(loopBody);
 
 		// Initialize the loop counter to its proper value,
 		// then immediately call the first iteration of the loop
@@ -267,13 +277,14 @@ const BlockTranslators = gen => { return {
 		// For each iteration of the loop body,
 		// run the loop contents, then queue up the loop body again.
 		// Calling getInput on the substack is what triggers compilation and pushes continuations.
-		const loopBody = gen.getInput(block.args['SUBSTACK']);
-		// The next continuation ID is the one for this script, so backpatch the return address to it.
-		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
-		return e['block']([
-			loopBody,
-			Builders.forceQueue(Builders.backpatchID(returnAddress))
+		let loopID;
+		const loopBody = e['block']([
+			gen.getInput(block.args['SUBSTACK']),
+			Builders.queue(loopID = gen.getNextContinuationID())
 		]);
+		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
+		gen.pushContinuation(loopBody);
+		return Builders.immediateCall(loopID);
 	},
 
 	'control_if': (block, index, script) => {
@@ -306,7 +317,6 @@ const BlockTranslators = gen => { return {
 		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
 		const bodyTrue = gen.getInput(block.args['SUBSTACK']);
 
-
 		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
 		const bodyFalse = gen.getInput(block.args['SUBSTACK2']);
 
@@ -314,6 +324,29 @@ const BlockTranslators = gen => { return {
 			gen.getInput(block.args['CONDITION']),
 			bodyTrue,
 			bodyFalse
+		);
+	},
+
+	// Sensing
+	'sensing_mousedown': () => {
+		return Builders.stageProperty('mousePressed');
+	},
+	'sensing_mousex': () => {
+		return Builders.stageProperty('mouseX');
+	},
+
+	'sensing_mousey': () => {
+		return Builders.stageProperty('mouseY');
+	},
+
+	'sensing_timer': () => {
+		// ((self.now - self.timerStart) / 1000)
+		return e['/'](
+			e['-'](
+				Builders.stageProperty('now'),
+				Builders.stageProperty('timerStart')
+			),
+			e['num'](1000)
 		);
 	},
 
@@ -489,29 +522,6 @@ const BlockTranslators = gen => { return {
 				console.warn(`Unrecognized math op ${gen.getField(block.args['OPERATOR'])}`);
 				return e['num'](0);
 		}
-	},
-
-	// Sensing
-	'sensing_mousedown': () => {
-		return Builders.stageProperty('mousePressed');
-	},
-	'sensing_mousex': () => {
-		return Builders.stageProperty('mouseX');
-	},
-
-	'sensing_mousey': () => {
-		return Builders.stageProperty('mouseY');
-	},
-
-	'sensing_timer': () => {
-		// ((self.now - self.timerStart) / 1000)
-		return e['/'](
-			e['-'](
-				Builders.stageProperty('now'),
-				Builders.stageProperty('timerStart')
-			),
-			e['num'](1000)
-		);
 	},
 
 	// Data
