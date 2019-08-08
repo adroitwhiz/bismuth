@@ -43,7 +43,7 @@ const decodeADPCMAudio = (ab, callback) => {
 		i = offset;
 		let j = 0;
 		while (true) {
-			if ((((i - offset) % blockSize) == 0) && (lastByte < 0)) {
+			if ((((i - offset) % blockSize) === 0) && (lastByte < 0)) {
 				if (i >= dv.byteLength) break;
 				sample = dv.getInt16(i, true); i += 2;
 				index = dv.getUint8(i); i += 1;

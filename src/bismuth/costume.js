@@ -37,7 +37,7 @@ class Costume {
 		if (this.textLayer) {
 			this.context.drawImage(this.textLayer, 0, 0);
 		}
-		if (this.base.isStage && this.index == this.base.currentCostumeIndex) {
+		if (this.base.isStage && this.index === this.base.currentCostumeIndex) {
 			setTimeout(() => {
 				this.base.updateBackdrop();
 			});

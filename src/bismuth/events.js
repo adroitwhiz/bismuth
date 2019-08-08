@@ -1,22 +1,22 @@
-var addEvents = function (cla /*, events... */) {
+const addEvents = function (cla /*, events... */) {
 	[].slice.call(arguments, 1).forEach(function (event) {
 		addEvent(cla, event);
 	});
 };
 
-var addEvent = function (cla, event) {
-	var capital = event[0].toUpperCase() + event.substr(1);
+const addEvent = function (cla, event) {
+	const capital = event[0].toUpperCase() + event.substr(1);
 
 	cla.prototype.addEventListener = cla.prototype.addEventListener || function (event, listener) {
-		var listeners = this['$' + event] = this['$' + event] || [];
+		const listeners = this['$' + event] = this['$' + event] || [];
 		listeners.push(listener);
 		return this;
 	};
 
 	cla.prototype.removeEventListener = cla.prototype.removeEventListener || function (event, listener) {
-		var listeners = this['$' + event];
+		const listeners = this['$' + event];
 		if (listeners) {
-			var i = listeners.indexOf(listener);
+			const i = listeners.indexOf(listener);
 			if (i !== -1) {
 				listeners.splice(i, 1);
 			}
@@ -25,13 +25,13 @@ var addEvent = function (cla, event) {
 	};
 
 	cla.prototype.dispatchEvent = cla.prototype.dispatchEvent || function (event, arg) {
-		var listeners = this['$' + event];
+		const listeners = this['$' + event];
 		if (listeners) {
 			listeners.forEach(function (listener) {
 				listener(arg);
 			});
 		}
-		var listener = this['on' + event];
+		const listener = this['on' + event];
 		if (listener) {
 			listener(arg);
 		}

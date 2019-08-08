@@ -23,6 +23,7 @@ module.exports = {
 		'comma-spacing': ['error'],
 		'comma-style': ['error'],
 		'eol-last': ['error', 'always'],
+		'eqeqeq': ['warn'],
 		'func-call-spacing': ['error', 'never'],
 		'indent': ['error', 'tab', {'SwitchCase': 1}],
 		'key-spacing': ['error', {
@@ -78,7 +79,8 @@ module.exports = {
 				'no-redeclare': 'off',
 				'no-mixed-operators': 'off',
 				'no-unused-vars': 'off',
-				'max-len': 'off'
+				'max-len': 'off',
+				'eqeqeq': 'off'
 			}
 		},
 		{

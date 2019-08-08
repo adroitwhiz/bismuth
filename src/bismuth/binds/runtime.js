@@ -11,7 +11,7 @@ const runtime = (function (P) {
 	// Compare two values using Scratch rules.
 	// TODO: Redo this using Scratch 3 techniques and possibly make it faster (e.g. by removing regex).
 	var DIGIT = /\d/;
-	var compare = function (x, y) {
+	const compare = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
 			let nx = Number(x);
 			let ny = Number(y);
@@ -24,7 +24,7 @@ const runtime = (function (P) {
 		let ys = String(y).toLowerCase();
 		return xs < ys ? -1 : xs === ys ? 0 : 1;
 	};
-	var numLess = function (nx, y) {
+	const numLess = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
 			let ny = +y;
 			if (ny === ny) {
@@ -34,7 +34,7 @@ const runtime = (function (P) {
 		let ys = String(y).toLowerCase();
 		return String(nx) < ys;
 	};
-	var numGreater = function (nx, y) {
+	const numGreater = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
 			let ny = +y;
 			if (ny === ny) {
@@ -46,7 +46,7 @@ const runtime = (function (P) {
 	};
 
 	// Optimized version of "compare" that only checks equality.
-	var equal = function (x, y) {
+	const equal = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
 			let nx = +x;
 			let ny = +y;
@@ -58,7 +58,7 @@ const runtime = (function (P) {
 		let ys = String(y).toLowerCase();
 		return xs === ys;
 	};
-	var numEqual = function (nx, y) {
+	const numEqual = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
 			let ny = +y;
 			return ny === ny && nx === ny;
@@ -66,7 +66,7 @@ const runtime = (function (P) {
 		return false;
 	};
 
-	var mod = function (x, y) {
+	const mod = function (x, y) {
 		let r = x % y;
 		if (r / y < 0) {
 			r += y;
@@ -74,7 +74,7 @@ const runtime = (function (P) {
 		return r;
 	};
 
-	var random = function (x, y) {
+	const random = function (x, y) {
 		x = +x || 0;
 		y = +y || 0;
 		if (x > y) {
@@ -88,7 +88,7 @@ const runtime = (function (P) {
 		return (Math.random() * (y - x)) + x;
 	};
 
-	let moveByLayers = function (numLayers) {
+	const moveByLayers = function (numLayers) {
 		let i = self.children.indexOf(SPRITE);
 		if (i !== -1) {
 			self.children.splice(i, 1);
@@ -97,7 +97,7 @@ const runtime = (function (P) {
 	};
 
 	// TODO: find a more descriptive name
-	let moveToFrontBack = function (destination) {
+	const moveToFrontBack = function (destination) {
 		let i = self.children.indexOf(SPRITE);
 		if (i !== -1) self.children.splice(i, 1);
 		if (destination === 'front') {
@@ -107,7 +107,7 @@ const runtime = (function (P) {
 		}
 	};
 
-	var rgb2hsl = function (rgb) {
+	const rgb2hsl = function (rgb) {
 		let r = ((rgb >> 16) & 0xff) / 0xff;
 		let g = ((rgb >> 8) & 0xff) / 0xff;
 		let b = (rgb & 0xff) / 0xff;
@@ -140,22 +140,22 @@ const runtime = (function (P) {
 		return [h, s * 100, l * 100];
 	};
 
-	var clone = function (name) {
+	const clone = function (name) {
 		let parent = name === '_myself_' ? SPRITE : self.getObject(name);
 		let c = parent.clone();
 		self.children.splice(self.children.indexOf(parent), 0, c);
 		self.triggerFor(c, 'whenCloned');
 	};
 
-	var epoch = Date.UTC(2000, 0, 1);
+	const epoch = Date.UTC(2000, 0, 1);
 
-	var timeAndDate = P.Watcher.timeAndDate;
+	const timeAndDate = P.Watcher.timeAndDate;
 
-	var getVar = function (name) {
+	const getVar = function (name) {
 		return self.vars[name] === undefined ? SPRITE.vars[name] : self.vars[name];
 	};
 
-	var getList = function (name) {
+	const getList = function (name) {
 		if (self.lists[name] !== undefined) return self.lists;
 		if (SPRITE.lists[name] === undefined) {
 			SPRITE.lists[name] = [];
@@ -163,7 +163,7 @@ const runtime = (function (P) {
 		return SPRITE.lists[name];
 	};
 
-	var listIndex = function (list, index, length) {
+	const listIndex = function (list, index, length) {
 		let i = index | 0;
 		if (i === index) return i > 0 && i <= length ? i - 1 : -1;
 		if (index === 'random' || index === 'any') {
@@ -175,7 +175,7 @@ const runtime = (function (P) {
 		return i > 0 && i <= length ? i - 1 : -1;
 	};
 
-	var contentsOfList = function (list) {
+	const contentsOfList = function (list) {
 		let isSingle = true;
 		for (let i = list.length; i--;) {
 			if (list[i].length !== 1) {
@@ -186,23 +186,23 @@ const runtime = (function (P) {
 		return list.join(isSingle ? '' : ' ');
 	};
 
-	var getLineOfList = function (list, index) {
+	const getLineOfList = function (list, index) {
 		let i = listIndex(list, index, list.length);
 		return i === -1 ? '' : list[i];
 	};
 
-	var listContains = function (list, value) {
+	const listContains = function (list, value) {
 		for (let i = list.length; i--;) {
 			if (equal(list[i], value)) return true;
 		}
 		return false;
 	};
 
-	var appendToList = function (list, value) {
+	const appendToList = function (list, value) {
 		list.push(value);
 	};
 
-	var deleteLineOfList = function (list, index) {
+	const deleteLineOfList = function (list, index) {
 		if (index === 'all') {
 			list.length = 0;
 		} else {
@@ -215,7 +215,7 @@ const runtime = (function (P) {
 		}
 	};
 
-	var insertInList = function (list, index, value) {
+	const insertInList = function (list, index, value) {
 		let i = listIndex(list, index, list.length + 1);
 		if (i === list.length) {
 			list.push(value);
@@ -224,7 +224,7 @@ const runtime = (function (P) {
 		}
 	};
 
-	var setLineOfList = function (list, index, value) {
+	const setLineOfList = function (list, index, value) {
 		let i = listIndex(list, index, list.length);
 		if (i !== -1) {
 			list[i] = value;
@@ -233,7 +233,7 @@ const runtime = (function (P) {
 
 	// TODO: figure out whether to attempt to emit code that will call this
 	// Scratch 3.0 disallows dynamic mathop
-	var mathFunc = function (f, x) {
+	const mathFunc = function (f, x) {
 		switch (f) {
 			case 'abs':
 				return Math.abs(x);
@@ -267,7 +267,7 @@ const runtime = (function (P) {
 		return 0;
 	};
 
-	var attribute = function (attr, objName) {
+	const attribute = function (attr, objName) {
 		let o = self.getObject(objName);
 		if (!o) return 0;
 		if (o.isSprite) {
@@ -305,9 +305,9 @@ const runtime = (function (P) {
 		return 0;
 	};
 
-	var VOLUME = 0.3;
+	let VOLUME = 0.3;
 
-	var audioContext = P.audioContext;
+	let audioContext = P.audioContext;
 	if (audioContext) {
 		var wavBuffers = P.IO.wavBuffers;
 
@@ -395,18 +395,18 @@ const runtime = (function (P) {
 	}
 
 	// Save the current stack frame to the stack, and create a new stack frame.
-	var save = function () {
+	const save = function () {
 		STACK.push(STACK_FRAME);
 		STACK_FRAME = {};
 	};
 
 	// Pop the last stack frame from the stack.
-	var restore = function () {
+	const restore = function () {
 		STACK_FRAME = STACK.pop();
 	};
 
 	// var lastCalls = [];
-	var call = function (procedure, id, values) {
+	const call = function (procedure, id, values) {
 		// lastCalls.push(spec);
 		// if (lastCalls.length > 10000) lastCalls.shift();
 		if (procedure) {
@@ -448,7 +448,7 @@ const runtime = (function (P) {
 		}
 	};
 
-	var endCall = function () {
+	const endCall = function () {
 		if (CALLS.length) {
 			if (WARP) WARP--;
 			IMMEDIATE = C.fn;
@@ -458,22 +458,22 @@ const runtime = (function (P) {
 		}
 	};
 
-	var sceneChange = function () {
+	const sceneChange = function () {
 		return self.trigger('whenSceneStarts', self.costumes[self.currentCostumeIndex].costumeName);
 	};
 
-	var broadcast = function (name) {
+	const broadcast = function (name) {
 		return self.trigger('whenIReceive', name);
 	};
 
-	var running = function (bases) {
+	const running = function (bases) {
 		for (let j = 0; j < self.queue.length; j++) {
 			if (self.queue[j] && bases.indexOf(self.queue[j].base) !== -1) return true;
 		}
 		return false;
 	};
 
-	var queue = function (id) {
+	const queue = function (id) {
 		if (WARP) {
 			IMMEDIATE = SPRITE.fns[id];
 		} else {
@@ -481,7 +481,7 @@ const runtime = (function (P) {
 		}
 	};
 
-	var forceQueue = function (id) {
+	const forceQueue = function (id) {
 		self.queue[THREAD] = {
 			sprite: SPRITE,
 			base: BASE,
@@ -503,7 +503,7 @@ const runtime = (function (P) {
 		};
 
 		P.Stage.prototype.startThread = function (sprite, base) {
-			var thread = {
+			const thread = {
 				sprite: sprite,
 				base: base,
 				fn: base,
@@ -512,8 +512,8 @@ const runtime = (function (P) {
 					stack: [{}]
 				}]
 			};
-			for (var i = 0; i < this.queue.length; i++) {
-				var q = this.queue[i];
+			for (let i = 0; i < this.queue.length; i++) {
+				const q = this.queue[i];
 				if (q && q.sprite === sprite && q.base === base) {
 					this.queue[i] = thread;
 					return;
@@ -523,7 +523,7 @@ const runtime = (function (P) {
 		};
 
 		P.Stage.prototype.triggerFor = function (sprite, event, arg) {
-			var threads;
+			let threads;
 			if (event === 'whenClicked') {
 				threads = sprite.listeners.whenClicked;
 			} else if (event === 'whenCloned') {
@@ -538,7 +538,7 @@ const runtime = (function (P) {
 				threads = sprite.listeners.whenSceneStarts[String(arg).toLowerCase()];
 			}
 			if (threads) {
-				for (var i = 0; i < threads.length; i++) {
+				for (let i = 0; i < threads.length; i++) {
 					this.startThread(sprite, threads[i]);
 				}
 			}
@@ -546,8 +546,8 @@ const runtime = (function (P) {
 		};
 
 		P.Stage.prototype.trigger = function (event, arg) {
-			var threads = [];
-			for (var i = this.children.length; i--;) {
+			let threads = [];
+			for (let i = this.children.length; i--;) {
 				threads = threads.concat(this.triggerFor(this.children[i], event, arg));
 			}
 			return threads.concat(this.triggerFor(this, event, arg));
@@ -585,7 +585,7 @@ const runtime = (function (P) {
 			this.queue.length = 0;
 			this.resetFilters();
 			this.stopSounds();
-			for (var i = 0; i < this.children.length; i++) {
+			for (let i = 0; i < this.children.length; i++) {
 				var c = this.children[i];
 				if (c.isClone) {
 					c.remove();
@@ -606,7 +606,7 @@ const runtime = (function (P) {
 		P.Stage.prototype.step = function () {
 			self = this;
 			VISUAL = false;
-			var start = Date.now();
+			const start = Date.now();
 			do {
 				var queue = this.queue;
 				this.now = this.rightNow();
@@ -630,7 +630,7 @@ const runtime = (function (P) {
 						CALLS.push(C);
 					}
 				}
-				for (var i = queue.length; i--;) {
+				for (let i = queue.length; i--;) {
 					if (!queue[i]) queue.splice(i, 1);
 				}
 			} while (

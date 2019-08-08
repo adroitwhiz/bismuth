@@ -261,7 +261,9 @@ class Stage extends Base {
 		const w = this.allWatchers[p.dataset.watcher];
 		this.dragging[id] = {
 			watcher: w,
-			offset: (e.target.dataset.button == null ? -w.button.offsetWidth / 2 | 0 : w.button.getBoundingClientRect().left - t.clientX) - w.slider.getBoundingClientRect().left
+			offset: (e.target.dataset.button == null ?
+				-w.button.offsetWidth / 2 | 0 :
+				w.button.getBoundingClientRect().left - t.clientX) - w.slider.getBoundingClientRect().left
 		};
 	}
 

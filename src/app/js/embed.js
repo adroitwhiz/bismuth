@@ -1,20 +1,20 @@
 (function (global) {
 	'use strict';
 
-	var script = document.currentScript || (function (scripts) {
+	const script = document.currentScript || (function (scripts) {
 		return scripts[scripts.length - 1];
 	})(document.getElementsByTagName('script'));
 
-	var hasUI = true;
-	var params = script.src.split('?')[1].split('&');
+	let hasUI = true;
+	const params = script.src.split('?')[1].split('&');
 	params.forEach(function (p) {
-		var parts = p.split('=');
+		const parts = p.split('=');
 		if (parts.length > 1 && parts[0] === 'ui') {
 			hasUI = parts[1] !== 'false';
 		}
 	});
 
-	var iframe = document.createElement('iframe');
+	const iframe = document.createElement('iframe');
 	iframe.setAttribute('allowfullscreen', true);
 	iframe.setAttribute('allowtransparency', true);
 	iframe.src = script.src.replace(/^http:/, 'https:').replace(/embed\.js/, 'embed.html');

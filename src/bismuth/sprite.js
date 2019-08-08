@@ -392,9 +392,10 @@ class Sprite extends Base {
 	}
 
 	distanceTo (thing) {
+		let x, y;
 		if (thing === '_mouse_') {
-			var x = this.stage.mouseX;
-			var y = this.stage.mouseY;
+			x = this.stage.mouseX;
+			y = this.stage.mouseY;
 		} else {
 			const sprite = this.stage.getObject(thing);
 			if (!sprite) return 10000;
@@ -419,9 +420,10 @@ class Sprite extends Base {
 	}
 
 	pointTowards (thing) {
+		let x, y;
 		if (thing === '_mouse_') {
-			var x = this.stage.mouseX;
-			var y = this.stage.mouseY;
+			x = this.stage.mouseX;
+			y = this.stage.mouseY;
 		} else {
 			const sprite = this.stage.getObject(thing);
 			if (!sprite) return 0;
