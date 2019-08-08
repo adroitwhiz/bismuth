@@ -118,7 +118,7 @@ class Base {
 
 	setCostume (costume) {
 		if (typeof costume !== 'number') {
-			costume = '' + costume;
+			costume = String(costume);
 			for (let i = 0; i < this.costumes.length; i++) {
 				if (this.costumes[i].costumeName === costume) {
 					this.currentCostumeIndex = i;

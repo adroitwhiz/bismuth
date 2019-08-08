@@ -126,10 +126,10 @@ var player = (function (P) {
 			var h = window.innerHeight - padding - controls.offsetHeight;
 			w = Math.min(w, h / .75);
 			h = (w * .75) + controls.offsetHeight;
-			document.body.style.width = w + 'px';
-			document.body.style.height = h + 'px';
-			document.body.style.marginLeft = ((window.innerWidth - w) / 2) + 'px';
-			document.body.style.marginTop = ((window.innerHeight - h - padding) / 2) + 'px';
+			document.body.style.width = `${w}px`;
+			document.body.style.height = `${h}px`;
+			document.body.style.marginLeft = `${(window.innerWidth - w) / 2}px`;
+			document.body.style.marginTop = `${(window.innerHeight - h - padding) / 2}px`;
 			stage.setZoom(w / 480);
 		} else {
 			stage.setZoom(1);
@@ -176,7 +176,7 @@ var player = (function (P) {
 
 	function load (id, cb, titleCallback) {
 		P.player.projectId = id;
-		P.player.projectURL = id ? 'https://scratch.mit.edu/projects/' + id + '/' : '';
+		P.player.projectURL = id ? `https://scratch.mit.edu/projects/${id}/` : '';
 
 		if (stage) stage.destroy();
 		while (player.firstChild) player.removeChild(player.lastChild);
@@ -241,7 +241,7 @@ var player = (function (P) {
 			console.error(e, e.stack);
 		};
 		request.onprogress = function (e) {
-			progressBar.style.width = (10 + (e.loaded / e.total * 90)) + '%';
+			progressBar.style.width = `${10 + (e.loaded / e.total * 90)}%`;
 		};
 	}
 

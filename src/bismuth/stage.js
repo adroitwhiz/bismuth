@@ -209,7 +209,7 @@ class Stage extends Base {
 		this.promptTitle.textContent = '';
 		this.promptTitle.style.cursor = 'default';
 		this.promptTitle.style.font = 'bold 1.3em sans-serif';
-		this.promptTitle.style.margin = '0 ' + (-25 / 13) + 'em ' + (5 / 13) + 'em 0';
+		this.promptTitle.style.margin = `0 ${-25 / 13}em ${5 / 13}em 0`;
 		this.promptTitle.style.whiteSpace = 'pre';
 		this.promptTitle.style.overflow = 'hidden';
 		this.promptTitle.style.textOverflow = 'ellipsis';
@@ -221,16 +221,16 @@ class Stage extends Base {
 		this.prompt.style.MozBoxSizing =
 		this.prompt.style.boxSizing = 'border-box';
 		this.prompt.style.font = '1.3em sans-serif';
-		this.prompt.style.padding = '0 ' + (3 / 13) + 'em';
+		this.prompt.style.padding = `0 ${3 / 13}em`;
 		this.prompt.style.outline = '0';
 		this.prompt.style.margin = '0';
 		this.prompt.style.width = '100%';
-		this.prompt.style.height = '' + (20 / 13) + 'em';
+		this.prompt.style.height = `${20 / 13}em`;
 		this.prompt.style.display = 'block';
 		this.prompt.style.WebkitBorderRadius =
 		this.prompt.style.borderRadius = '0';
 		this.prompt.style.WebkitBoxShadow =
-		this.prompt.style.boxShadow = 'inset ' + (1 / 13) + 'em ' + (1 / 13) + 'em ' + (2 / 13) + 'em rgba(0, 0, 0, .2), inset ' + (-1 / 13) + 'em ' + (-1 / 13) + 'em ' + (1 / 13) + 'em rgba(255, 255, 255, .2)';
+		this.prompt.style.boxShadow = `inset ${1 / 13}em ${1 / 13}em ${2 / 13}em rgba(0, 0, 0, .2), inset ${-1 / 13}em ${-1 / 13}em ${1 / 13}em rgba(255, 255, 255, .2)`;
 		this.prompt.style.WebkitAppearance = 'none';
 
 		this.promptButton = document.createElement('div');
@@ -366,13 +366,13 @@ class Stage extends Base {
 		this.canvas.style.width =
 		this.backdropCanvas.style.width =
 		this.penCanvas.style.width =
-		this.ui.style.width = (480 * zoom | 0) + 'px';
+		this.ui.style.width = `${480 * zoom | 0}px`;
 		this.root.style.height =
 		this.canvas.style.height =
 		this.backdropCanvas.style.height =
 		this.penCanvas.style.height =
-		this.ui.style.height = (360 * zoom | 0) + 'px';
-		this.root.style.fontSize = (zoom * 10) + 'px';
+		this.ui.style.height = `${360 * zoom | 0}px`;
+		this.root.style.fontSize = `${zoom * 10}px`;
 		this.zoom = zoom;
 		this.updateBackdrop();
 	}

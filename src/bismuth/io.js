@@ -45,7 +45,7 @@ IO.load = (url, callback, self, type) => {
 		if (xhr.status === 200) {
 			request.load(xhr.response);
 		} else {
-			request.error(new Error('HTTP ' + xhr.status + ': ' + xhr.statusText));
+			request.error(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
 		}
 	};
 	xhr.onerror = () => {
@@ -67,7 +67,7 @@ IO.loadImage = (url, callback, self) => {
 		request.load(image);
 	};
 	image.onerror = () => {
-		request.error(new Error('Failed to load image: ' + url));
+		request.error(new Error(`Failed to load image: ${url}`));
 	};
 	if (callback) request.onLoad(callback.bind(self));
 	return request;
@@ -115,7 +115,7 @@ IO.loadScratchr2ProjectTitle = (id, callback, self) => {
 	const request = new Request.CompositeRequest();
 
 	request.defer = true;
-	request.add(P.IO.load('https://scratch.mit.edu/projects/' + id + '/').onLoad(data => {
+	request.add(P.IO.load(`https://scratch.mit.edu/projects/${id}/`).onLoad(data => {
 		const m = /<title>\s*(.+?)(\s+on\s+Scratch)?\s*<\/title>/.exec(data);
 		if (callback) request.onLoad(callback.bind(self));
 		if (m) {

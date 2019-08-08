@@ -144,7 +144,7 @@ class Sprite extends Base {
 				x -= .5;
 				y -= .5;
 			}
-			context.strokeStyle = this.penCSS || 'hsl(' + this.penHue + ',' + this.penSaturation + '%,' + (this.penLightness > 100 ? 200 - this.penLightness : this.penLightness) + '%)';
+			context.strokeStyle = this.penCSS || `hsl(${this.penHue},${this.penSaturation}%,${this.penLightness > 100 ? 200 - this.penLightness : this.penLightness}%)`;
 			context.lineWidth = this.penSize;
 			context.beginPath();
 			context.moveTo(240 + ox, 180 - oy);
@@ -160,7 +160,7 @@ class Sprite extends Base {
 		const context = this.stage.penContext;
 		const x = this.scratchX;
 		const y = this.scratchY;
-		context.fillStyle = this.penCSS || 'hsl(' + this.penHue + ',' + this.penSaturation + '%,' + (this.penLightness > 100 ? 200 - this.penLightness : this.penLightness) + '%)';
+		context.fillStyle = this.penCSS || `hsl(${this.penHue},${this.penSaturation}%,${this.penLightness > 100 ? 200 - this.penLightness : this.penLightness}%)`;
 		context.beginPath();
 		context.arc(240 + x, 180 - y, this.penSize / 2, 0, 2 * Math.PI, false);
 		context.fill();
@@ -384,10 +384,10 @@ class Sprite extends Base {
 		const div = document.createElement('div');
 		div.style.outline = '1px solid red';
 		div.style.position = 'absolute';
-		div.style.left = (240 + bounds.left) + 'px';
-		div.style.top = (180 - bounds.top) + 'px';
-		div.style.width = (bounds.right - bounds.left) + 'px';
-		div.style.height = (bounds.top - bounds.bottom) + 'px';
+		div.style.left = `${240 + bounds.left}px`;
+		div.style.top = `${180 - bounds.top}px`;
+		div.style.width = `${bounds.right - bounds.left}px`;
+		div.style.height = `${bounds.top - bounds.bottom}px`;
 		this.stage.canvas.parentNode.appendChild(div);
 	}
 
@@ -441,16 +441,16 @@ class Sprite extends Base {
 			this.bubble.style.display = 'none';
 			return ++this.sayId;
 		}
-		text = '' + text;
+		text = String(text);
 		this.saying = true;
 		this.thinking = thinking;
 		if (!this.bubble) {
 			this.bubble = document.createElement('div');
-			this.bubble.style.maxWidth = '' + (127 / 14) + 'em';
-			this.bubble.style.minWidth = '' + (48 / 14) + 'em';
-			this.bubble.style.padding = '' + (8 / 14) + 'em ' + (10 / 14) + 'em';
-			this.bubble.style.border = '' + (3 / 14) + 'em solid rgb(160, 160, 160)';
-			this.bubble.style.borderRadius = '' + (10 / 14) + 'em';
+			this.bubble.style.maxWidth = `${127 / 14}em`;
+			this.bubble.style.minWidth = `${48 / 14}em`;
+			this.bubble.style.padding = `${8 / 14}em ${10 / 14}em`;
+			this.bubble.style.border = `${3 / 14}em solid rgb(160, 160, 160)`;
+			this.bubble.style.borderRadius = `${10 / 14}em`;
 			this.bubble.style.background = '#fff';
 			this.bubble.style.position = 'absolute';
 			this.bubble.style.font = 'bold 1.4em sans-serif';
@@ -462,13 +462,13 @@ class Sprite extends Base {
 			this.bubble.appendChild(this.bubbleText = document.createTextNode(''));
 			this.bubble.appendChild(this.bubblePointer = document.createElement('div'));
 			this.bubblePointer.style.position = 'absolute';
-			this.bubblePointer.style.height = '' + (21 / 14) + 'em';
-			this.bubblePointer.style.width = '' + (44 / 14) + 'em';
-			this.bubblePointer.style.background = 'url(icons.svg) ' + (-195 / 14) + 'em ' + (-4 / 14) + 'em';
-			this.bubblePointer.style.backgroundSize = '' + (320 / 14) + 'em ' + (96 / 14) + 'em';
+			this.bubblePointer.style.height = `${21 / 14}em`;
+			this.bubblePointer.style.width = `${44 / 14}em`;
+			this.bubblePointer.style.background = `url(icons.svg) ${-195 / 14}em ${-4 / 14}em`;
+			this.bubblePointer.style.backgroundSize = `${320 / 14}em ${96 / 14}em`;
 			this.stage.ui.appendChild(this.bubble);
 		}
-		this.bubblePointer.style.backgroundPositionX = ((thinking ? -259 : -195) / 14) + 'em';
+		this.bubblePointer.style.backgroundPositionX = `${(thinking ? -259 : -195) / 14}em`;
 		this.bubble.style.display = 'block';
 		this.bubbleText.nodeValue = text;
 		this.updateBubble();
@@ -485,19 +485,19 @@ class Sprite extends Base {
 		let bottom = 180 + b.top;
 		const width = this.bubble.offsetWidth / this.stage.zoom;
 		const height = this.bubble.offsetHeight / this.stage.zoom;
-		this.bubblePointer.style.top = ((height - 6) / 14) + 'em';
+		this.bubblePointer.style.top = `${(height - 6) / 14}em`;
 		if (left + width + 2 > 480) {
-			this.bubble.style.right = ((240 - b.left) / 14) + 'em';
+			this.bubble.style.right = `${(240 - b.left) / 14}em`;
 			this.bubble.style.left = 'auto';
-			this.bubblePointer.style.right = (3 / 14) + 'em';
+			this.bubblePointer.style.right = `${3 / 14}em`;
 			this.bubblePointer.style.left = 'auto';
-			this.bubblePointer.style.backgroundPositionY = (-36 / 14) + 'em';
+			this.bubblePointer.style.backgroundPositionY = `${-36 / 14}em`;
 		} else {
-			this.bubble.style.left = (left / 14) + 'em';
+			this.bubble.style.left = `${left / 14}em`;
 			this.bubble.style.right = 'auto';
-			this.bubblePointer.style.left = (3 / 14) + 'em';
+			this.bubblePointer.style.left = `${3 / 14}em`;
 			this.bubblePointer.style.right = 'auto';
-			this.bubblePointer.style.backgroundPositionY = (-4 / 14) + 'em';
+			this.bubblePointer.style.backgroundPositionY = `${-4 / 14}em`;
 		}
 		if (bottom + height + 2 > 360) {
 			bottom = 360 - height - 2;
@@ -505,7 +505,7 @@ class Sprite extends Base {
 		if (bottom < 19) {
 			bottom = 19;
 		}
-		this.bubble.style.bottom = (bottom / 14) + 'em';
+		this.bubble.style.bottom = `${bottom / 14}em`;
 	}
 
 	remove () {

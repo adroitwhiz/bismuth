@@ -76,7 +76,7 @@ const decodeADPCMAudio = (ab, callback) => {
 		}
 		return callback(null, buffer);
 	}
-	callback(new Error('Unrecognized WAV format ' + format));
+	callback(new Error(`Unrecognized WAV format ${format}`));
 };
 
 module.exports = decodeADPCMAudio;

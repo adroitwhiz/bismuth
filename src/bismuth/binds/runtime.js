@@ -20,8 +20,8 @@ const runtime = (function (P) {
 				return nx < ny ? -1 : nx === ny ? 0 : 1;
 			}
 		}
-		let xs = ('' + x).toLowerCase();
-		let ys = ('' + y).toLowerCase();
+		let xs = String(x).toLowerCase();
+		let ys = String(y).toLowerCase();
 		return xs < ys ? -1 : xs === ys ? 0 : 1;
 	};
 	var numLess = function (nx, y) {
@@ -31,8 +31,8 @@ const runtime = (function (P) {
 				return nx < ny;
 			}
 		}
-		let ys = ('' + y).toLowerCase();
-		return '' + nx < ys;
+		let ys = String(y).toLowerCase();
+		return String(nx) < ys;
 	};
 	var numGreater = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
@@ -41,8 +41,8 @@ const runtime = (function (P) {
 				return nx > ny;
 			}
 		}
-		let ys = ('' + y).toLowerCase();
-		return '' + nx > ys;
+		let ys = String(y).toLowerCase();
+		return String(nx) > ys;
 	};
 
 	// Optimized version of "compare" that only checks equality.
@@ -54,8 +54,8 @@ const runtime = (function (P) {
 				return nx === ny;
 			}
 		}
-		let xs = ('' + x).toLowerCase();
-		let ys = ('' + y).toLowerCase();
+		let xs = String(x).toLowerCase();
+		let ys = String(y).toLowerCase();
 		return xs === ys;
 	};
 	var numEqual = function (nx, y) {
@@ -531,11 +531,11 @@ const runtime = (function (P) {
 			} else if (event === 'whenGreenFlag') {
 				threads = sprite.listeners.whenGreenFlag;
 			} else if (event === 'whenIReceive') {
-				threads = sprite.listeners.whenIReceive[('' + arg).toLowerCase()];
+				threads = sprite.listeners.whenIReceive[String(arg).toLowerCase()];
 			} else if (event === 'whenKeyPressed') {
 				threads = sprite.listeners.whenKeyPressed[arg];
 			} else if (event === 'whenSceneStarts') {
-				threads = sprite.listeners.whenSceneStarts[('' + arg).toLowerCase()];
+				threads = sprite.listeners.whenSceneStarts[String(arg).toLowerCase()];
 			}
 			if (threads) {
 				for (var i = 0; i < threads.length; i++) {
