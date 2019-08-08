@@ -3,14 +3,25 @@ const runtime = (function (P) {
 
 	var self, SPRITE, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
 
+	const KEY_CODES = {
+		space: 32,
+		'left arrow': 37,
+		'up arrow': 38,
+		'right arrow': 39,
+		'down arrow': 40,
+		any: 'any'
+	};
+
+	const getKeyCode = keyName => KEY_CODES[keyName.toLowerCase()] || keyName.toUpperCase().charCodeAt(0);
+
 	// Cast to boolean.
-	var bool = function (v) {
+	const bool = function (v) {
 		return +v !== 0 && v !== '' && v !== 'false' && v !== false;
 	};
 
 	// Compare two values using Scratch rules.
 	// TODO: Redo this using Scratch 3 techniques and possibly make it faster (e.g. by removing regex).
-	var DIGIT = /\d/;
+	const DIGIT = /\d/;
 	const compare = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
 			let nx = Number(x);

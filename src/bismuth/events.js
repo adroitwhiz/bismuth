@@ -1,5 +1,5 @@
 const addEvents = function (cla /*, events... */) {
-	[].slice.call(arguments, 1).forEach(function (event) {
+	Array.prototype.slice.call(arguments, 1).forEach(function (event) {
 		addEvent(cla, event);
 	});
 };

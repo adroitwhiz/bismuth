@@ -105,6 +105,39 @@ const BlockTranslators = gen => { return {
 		return Builders.callSpriteMethod('bounceOffEdge', []);
 	},
 
+	'motion_setrotationstyle': block => {
+		// TODO: change the sprite to just use these names
+		let rotationStyle;
+		switch (gen.getField(block.args['STYLE'])) {
+			case 'left-right':
+				rotationStyle = 'leftRight';
+				break;
+			case 'don\'t rotate':
+				rotationStyle = 'none';
+				break;
+			case 'all around':
+				rotationStyle = 'normal';
+				break;
+		}
+
+		return e['='](
+			Builders.spriteProperty('rotationStyle'),
+			e['string'](rotationStyle)
+		);
+	},
+
+	'motion_xposition': () => {
+		return Builders.spriteProperty('scratchX');
+	},
+
+	'motion_yposition': () => {
+		return Builders.spriteProperty('scratchY');
+	},
+
+	'motion_direction': () => {
+		return Builders.spriteProperty('direction');
+	},
+
 	// Looks
 	'looks_sayforsecs': (block, index, script) => {
 		return gen.commonGenerators.sayOrThinkForSecs(block, index, script, false);
@@ -153,11 +186,6 @@ const BlockTranslators = gen => { return {
 		);
 	},
 
-	'looks_size': () => {
-		// TODO: change this when sprite size is changed to be a percentage
-		return e['*'](Builders.spriteProperty('scale'), e['num'](100));
-	},
-
 	'looks_setsizeto': block => {
 		// S.scale = Math.max(0, SIZE * 0.01)
 		// TODO: change this when sprite size is changed to be a percentage
@@ -195,6 +223,11 @@ const BlockTranslators = gen => { return {
 				e['num'](1)
 			) :
 			Builders.callSpriteMethod('getCostumeName', []);
+	},
+
+	'looks_size': () => {
+		// TODO: change this when sprite size is changed to be a percentage
+		return e['*'](Builders.spriteProperty('scale'), e['num'](100));
 	},
 
 	// Control
@@ -291,10 +324,7 @@ const BlockTranslators = gen => { return {
 		// At tne end of an "if" block, there's an implicit "continue with the rest of the script".
 		const returnAddress = gen.getBackpatchID();
 		// Create a continuation for the rest of the blocks.
-		// Note that this is a slice instead of a splice, so it doesn't remove this code from this script.
-		// That means if the branch is taken, it will call the continuation for the rest of the blocks then return.
-		// If not, it will proceed with the rest of the blocks in this script. This means code is duplicated.
-		const continuationID = gen.continue(script.slice(index + 1));
+		const continuationID = gen.continue(script.splice(index + 1));
 		// Backpatch the return address to the rest of the script.
 		gen.setBackpatchDestination(returnAddress, continuationID);
 		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
@@ -303,14 +333,15 @@ const BlockTranslators = gen => { return {
 
 		return e['if'](
 			gen.getInput(block.args['CONDITION']),
-			body
+			body,
+			Builders.immediateCall(continuationID)
 		);
 	},
 
 	'control_if_else': (block, index, script) => {
 		const returnAddress = gen.getBackpatchID();
 		// Create a continuation for the rest of the blocks
-		const continuationID = gen.continue(script.slice(index + 1));
+		const continuationID = gen.continue(script.splice(index + 1));
 		
 		gen.setBackpatchDestination(returnAddress, continuationID);
 
@@ -328,6 +359,34 @@ const BlockTranslators = gen => { return {
 	},
 
 	// Sensing
+	'sensing_touchingobject': block => {
+		return Builders.callSpriteMethod('touching', [gen.getInput(block.args['TOUCHINGOBJECTMENU'])]);
+	},
+
+	'sensing_touchingcolor': block => {
+		return Builders.callSpriteMethod('touchingColor', [gen.getInput(block.args['COLOR'])]);
+	},
+
+	'sensing_coloristouchingcolor': block => {
+		return Builders.callSpriteMethod('colorIsTouchingColor', [
+			gen.getInput(block.args['COLOR']),
+			gen.getInput(block.args['COLOR2'])
+		]);
+	},
+
+	'sensing_keypressed': block => {
+		// Boolean(stage.keys[getKeyCode(KEY_OPTION)])
+		return e['call'](
+			e['id']('Boolean'),
+			[e['get'](
+				Builders.stageProperty('keys'),
+				Builders.callRuntimeMethod('getKeyCode', [
+					gen.getInput(block.args['KEY_OPTION'])
+				])
+			)]
+		);
+	},
+
 	'sensing_mousedown': () => {
 		return Builders.stageProperty('mousePressed');
 	},
@@ -347,6 +406,13 @@ const BlockTranslators = gen => { return {
 				Builders.stageProperty('timerStart')
 			),
 			e['num'](1000)
+		);
+	},
+
+	'sensing_resettimer': () => {
+		return e['='](
+			Builders.stageProperty('timerStart'),
+			Builders.stageProperty('now')
 		);
 	},
 
@@ -475,14 +541,13 @@ const BlockTranslators = gen => { return {
 		// Scratch modulo preserves the sign of the divisor, JS modulo preserves the sign of the dividend
 		Builders.callUtilMethod(
 			'mod',
-			gen.getInput(block.args['NUM1']),
-			gen.getInput(block.args['NUM2'])
+			[gen.getInput(block.args['NUM1']), gen.getInput(block.args['NUM2'])]
 		);
 	},
 
 	'operator_round': block => {
 		// Math.round(NUM)
-		return Builders.callMathFunction('round', gen.getInput(block.args['NUM']));
+		return Builders.callMathFunction('round', [gen.getInput(block.args['NUM'])]);
 	},
 
 	'operator_mathop': block => {

@@ -16,20 +16,8 @@ const P = (() => {
 	const audioContext = AudioContext && new AudioContext();
 	window.audioContext = audioContext;
 
-	const KEY_CODES = {
-		space: 32,
-		'left arrow': 37,
-		'up arrow': 38,
-		'right arrow': 39,
-		'down arrow': 40,
-		any: 'any'
-	};
-
-	const getKeyCode = keyName => KEY_CODES[keyName.toLowerCase()] || keyName.toUpperCase().charCodeAt(0);
-
 	return {
 		hasTouchEvents: hasTouchEvents,
-		getKeyCode: getKeyCode,
 		audioContext: audioContext,
 		IO: IO,
 		Base: Base,

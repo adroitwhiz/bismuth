@@ -301,6 +301,11 @@ class Sprite extends Base {
 		return false;
 	}
 
+	colorIsTouchingColor (color, mask) {
+		// TODO
+		return false;
+	}
+
 	bounceOffEdge () {
 		let b = this.rotatedBounds();
 		const dl = 240 + b.left;
