@@ -71,6 +71,13 @@ const Builders = {
 		return e['call'](Builders.spriteProperty(method), args);
 	},
 
+	callStageMethod: (method, args) => {
+		if (!(args instanceof Array)) {
+			throw new Error(`args should be array: ${method}`);
+		}
+		return e['call'](Builders.stageProperty(method), args);
+	},
+
 	// Currently calls a method with completely implicit scope, but set up so this can be changed
 	callUtilMethod: (method, args) => {
 		if (!(args instanceof Array)) {

@@ -79,8 +79,10 @@ const compile = (P => {
 					script.listenerBlock.args.BROADCAST_OPTION ||
 					script.listenerBlock.args.BACKDROP).value.value.toLowerCase();
 				
-				let listener = object.listeners[EVENT_SELECTOR_MAP[script.listenerBlock.opcode]][eventName];
-				(listener || (listener = [])).push(listenerFunction);
+				let listenerName = EVENT_SELECTOR_MAP[script.listenerBlock.opcode];
+
+				(object.listeners[listenerName][eventName] ||
+				(object.listeners[listenerName][eventName] = [])).push(listenerFunction);
 				break;
 			}
 			// Oopsie woopsie

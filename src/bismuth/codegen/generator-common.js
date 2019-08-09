@@ -4,6 +4,20 @@ const Builders = require('./es-builders');
 
 // Common functions to be reused across block generation functions.
 const GeneratorCommon = gen => { return {
+	waitUntilCondition: (condition, onConditionTrue) => {
+		const loopId = gen.getNextContinuationID();
+
+		const waitLoop = e['block']([
+			e['if'](
+				condition,
+				onConditionTrue,
+				Builders.forceQueue(loopId)
+			)
+		]);
+
+		return gen.pushContinuation(waitLoop);
+	},
+
 	createTimer: (duration, afterTimerComplete, beforeTimerStart) => {
 		const timerID = gen.getNextContinuationID();
 
@@ -28,9 +42,20 @@ const GeneratorCommon = gen => { return {
 
 		gen.pushContinuation(timer);
 
+		let timerStartBlock = [
+			Builders.save()
+		];
+
+		if (beforeTimerStart) {
+			if (beforeTimerStart.type === 'BlockStatement') {
+				timerStartBlock = timerStartBlock.concat(beforeTimerStart.body);
+			} else {
+				timerStartBlock.push(beforeTimerStart);
+			}
+		}
+
 		// Initialize the timer
-		return e['block']([
-			beforeTimerStart,
+		return e['block'](timerStartBlock.concat([
 			e['statement']( // R.start = self.now
 				e['='](
 					Builders.RProperty('start'),
@@ -42,7 +67,7 @@ const GeneratorCommon = gen => { return {
 			
 			// initial forceQueue of the timer check
 			Builders.forceQueue(timerID)
-		]);
+		]));
 	},
 
 	simpleMathOperator: (block, operator) => {

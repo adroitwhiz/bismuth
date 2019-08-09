@@ -323,6 +323,116 @@ const BlockTranslators = gen => { return {
 		return e['*'](Builders.spriteProperty('scale'), e['num'](100));
 	},
 
+	// Sound
+	'sound_playuntildone': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		return gen.commonGenerators.createTimer(
+			// TODO: change sound duration to milliseconds
+			e['*'](
+				e['.'](e['id']('sound'), e['id']('duration')),
+				e['num'](1000)
+			),
+			
+			Builders.forceQueue(continuationID),
+			e['block']([
+				e['let'](
+					e['id']('sound'),
+					Builders.callSpriteMethod('getSound', [gen.getInput(block.args['SOUND_MENU'])])
+				),
+				e['if'](
+					e['==='](e['id']('sound'), e['null']()),
+					Builders.forceQueue(continuationID),
+					Builders.callRuntimeMethod('playSound', [e['id']('sound')])
+				)
+			])
+		);
+	},
+
+	'sound_play': block => {
+		return e['block']([
+			e['let'](
+				e['id']('sound'),
+				Builders.callSpriteMethod('getSound', [gen.getInput(block.args['SOUND_MENU'])])
+			),
+			e['if'](
+				e['!=='](e['id']('sound'), e['null']()),
+				Builders.callRuntimeMethod('playSound', [e['id']('sound')])
+			)
+		]);
+	},
+
+	'sound_stopallsounds': () => {
+		return Builders.callStageMethod('stopAllSounds', []);
+	},
+	
+	// Events
+	'event_broadcast': block => {
+		// TODO: figure out what BASE is then determine what this does
+		// let threads = broadcast(BROADCAST_INPUT);
+		// if (threads.indexOf(BASE) !== -1) return;
+		return e['block']([
+			e['let'](
+				e['id']('threads'),
+				Builders.callRuntimeMethod('broadcast', [
+					gen.getInput(block.args['BROADCAST_INPUT'])
+				])
+			),
+			e['if'](
+				e['!=='](
+					e['call'](
+						e['.'](e['id']('threads'), e['id']('indexOf')),
+						[e['id']('BASE')]
+					),
+					e['num'](-1)
+				),
+				e['return']()
+			)
+		]);
+	},
+
+	'event_broadcastandwait': (block, index, script) => {
+		// Like regular broadcast, but stored on the stack with a 'wait until' loop in there.
+		// save();
+		// R.threads = broadcast(BROADCAST_INPUT);
+		// if (R.threads.indexOf(BASE) !== -1) return;
+		// Then create an idle loop that checks each call whether the started threads are done,
+		// and continues with the rest of the script once they are.
+
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitLoop = gen.commonGenerators.waitUntilCondition(
+			e['!'](Builders.callRuntimeMethod('running', [Builders.RProperty('threads')])),
+			e['block']([
+				Builders.restore(),
+				Builders.immediateCall(continuationID)
+			])
+		);
+
+		return e['block']([
+			Builders.save(),
+			e['='](
+				Builders.RProperty('threads'),
+				Builders.callRuntimeMethod('broadcast', [
+					gen.getInput(block.args['BROADCAST_INPUT'])
+				])
+			),
+			e['if'](
+				e['!=='](
+					e['call'](
+						e['.'](Builders.RProperty('threads'), e['id']('indexOf')),
+						[e['id']('BASE')]
+					),
+					e['num'](-1)
+				),
+				e['return']()
+			),
+			Builders.forceQueue(waitLoop)
+		]);
+	},
+
 	// Control
 	'control_wait': (block, index, script) => {
 		// Since this block causes the script's execution to "yield",
@@ -335,8 +445,7 @@ const BlockTranslators = gen => { return {
 
 		return gen.commonGenerators.createTimer(
 			e['*'](gen.getInput(block.args['DURATION']), e['num'](1000)),
-			Builders.immediateCall(continuationID),
-			Builders.save()
+			Builders.immediateCall(continuationID)
 		);
 	},
 
@@ -345,10 +454,7 @@ const BlockTranslators = gen => { return {
 		const continuationID = gen.continue(script.splice(index + 1));
 
 		const returnAddress = gen.getBackpatchID();
-		gen.returnStack.push(Builders.forceQueue(Builders.backpatchID(returnAddress)));
-
-		// Get the continuation ID to use for the loop body.
-		let loopID;
+		gen.returnStack.push(Builders.queue(Builders.backpatchID(returnAddress)));
 
 		// For each iteration of the loop body:
 		// check if the loop counter is > 0.5
@@ -365,8 +471,7 @@ const BlockTranslators = gen => { return {
 
 				e['block']([
 					e['statement'](e['-='](Builders.RProperty('count'), e['num'](1))),
-					gen.getInput(block.args['SUBSTACK']),
-					Builders.queue(loopID = gen.getNextContinuationID())
+					gen.getInput(block.args['SUBSTACK'])
 				]),
 
 				Builders.restore()
@@ -375,8 +480,8 @@ const BlockTranslators = gen => { return {
 			Builders.immediateCall(continuationID)
 		]);
 
-		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
-		gen.pushContinuation(loopBody);
+		const loopID = gen.pushContinuation(loopBody);
+		gen.setBackpatchDestination(returnAddress, loopID);
 
 		// Initialize the loop counter to its proper value,
 		// then immediately call the first iteration of the loop
@@ -398,18 +503,14 @@ const BlockTranslators = gen => { return {
 		// might create more continuations, but the loop body needs to know about the return stack.
 		// To accomplish this, we *backpatch* the proper return address in after compiling the loop body.
 		const returnAddress = gen.getBackpatchID();
-		gen.returnStack.push(Builders.forceQueue(Builders.backpatchID(returnAddress)));
+		gen.returnStack.push(Builders.queue(Builders.backpatchID(returnAddress)));
 
 		// For each iteration of the loop body,
 		// run the loop contents, then queue up the loop body again.
 		// Calling getInput on the substack is what triggers compilation and pushes continuations.
-		let loopID;
-		const loopBody = e['block']([
-			gen.getInput(block.args['SUBSTACK']),
-			Builders.queue(loopID = gen.getNextContinuationID())
-		]);
-		gen.setBackpatchDestination(returnAddress, gen.getNextContinuationID());
-		gen.pushContinuation(loopBody);
+		const loopBody = gen.getInput(block.args['SUBSTACK']);
+		const loopID = gen.pushContinuation(loopBody);
+		gen.setBackpatchDestination(returnAddress, loopID);
 		return Builders.immediateCall(loopID);
 	},
 
@@ -449,6 +550,37 @@ const BlockTranslators = gen => { return {
 			bodyTrue,
 			bodyFalse
 		);
+	},
+
+	'control_wait_until': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitID = gen.commonGenerators.waitUntilCondition(
+			gen.getInput(block.args['CONDITION']),
+			Builders.immediateCall(continuationID)
+		);
+
+		return Builders.queue(waitID);
+	},
+
+	'control_repeat_until': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const returnAddress = gen.getBackpatchID();
+		gen.returnStack.push(Builders.queue(Builders.backpatchID(returnAddress)));
+
+		const loopBody = e['block']([
+			e['if'](
+				gen.getInput(block.args['CONDITION']),
+				Builders.immediateCall(continuationID)
+			),
+			gen.getInput(block.args['SUBSTACK'])
+		]);
+
+		const loopID = gen.pushContinuation(loopBody);
+		gen.setBackpatchDestination(returnAddress, loopID);
+
+		return Builders.immediateCall(loopID);
 	},
 
 	// Sensing

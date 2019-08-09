@@ -190,6 +190,8 @@ class Base {
 			if (i < 0) i += l;
 			return this.sounds[i];
 		}
+
+		return null;
 	}
 
 	stopSounds () {
