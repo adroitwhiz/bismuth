@@ -44,6 +44,12 @@ const BlockTranslators = gen => { return {
 		);
 	},
 
+	'motion_goto': block => {
+		return Builders.callSpriteMethod('gotoObject', [
+			gen.getInput(block.args['TO'])
+		]);
+	},
+
 	'motion_gotoxy': block => {
 		return e['statement']( // S.moveTo(block x input, block y input)
 			Builders.callSpriteMethod('moveTo', [
@@ -53,9 +59,94 @@ const BlockTranslators = gen => { return {
 		);
 	},
 
-	'motion_goto': block => {
-		return Builders.callSpriteMethod('gotoObject', [
-			gen.getInput(block.args['TO'])
+	'motion_glidesecstoxy': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const glideStepID = gen.getNextContinuationID();
+
+		// let t = Math.min((stage.now - STACK_FRAME.start) * STACK_FRAME.rate, 1)
+		// S.moveTo(STACK_FRAME.initialX + (STACK_FRAME.deltaX * t), STACK_FRAME.initialY * (STACK_FRAME.deltaY * t))
+		// if t < 1 forceQueue(this function) else restore() and proceed with the rest of the script
+		const glideStep = e['block']([
+			e['let'](
+				e['id']('t'),
+				Builders.callMathFunction('min', [
+					e['*'](
+						e['-'](
+							Builders.stageProperty('now'),
+							Builders.RProperty('start')
+						),
+						Builders.RProperty('rate')
+					),
+					e['num'](1)
+				])
+			),
+			Builders.callSpriteMethod('moveTo', [
+				e['+'](
+					Builders.RProperty('initialX'),
+					e['*'](
+						Builders.RProperty('deltaX'),
+						e['id']('t')
+					)
+				),
+				e['+'](
+					Builders.RProperty('initialY'),
+					e['*'](
+						Builders.RProperty('deltaY'),
+						e['id']('t')
+					)
+				)
+			]),
+			e['if'](
+				e['<'](e['id']('t'), e['num'](1)),
+				Builders.forceQueue(glideStepID),
+				Builders.immediateCall(continuationID)
+			)
+		]);
+
+		// STACK_FRAME.start = stage.now;
+		// STACK_FRAME.rate = 0.001 / SECS; (convert seconds to millis.)
+		// STACK_FRAME.initialX = S.scratchX;
+		// STACK_FRAME.initialY = S.scratchY;
+		// STACK_FRAME.deltaX = X - S.scratchX;
+		// STACK_FRAME.deltaY = Y - S.scratchY;
+		return e['block']([
+			Builders.save(),
+			e['='](
+				Builders.RProperty('start'),
+				Builders.stageProperty('now')
+			),
+			e['='](
+				Builders.RProperty('rate'),
+				e['/'](
+					e['num'](0.001),
+					gen.getInput(block.args['SECS'])
+				)
+			),
+			e['='](
+				Builders.RProperty('initialX'),
+				Builders.spriteProperty('scratchX')
+			),
+			e['='](
+				Builders.RProperty('initialY'),
+				Builders.spriteProperty('scratchY')
+			),
+			e['='](
+				Builders.RProperty('deltaX'),
+				e['-'](
+					gen.getInput(block.args['X']),
+					Builders.spriteProperty('scratchX')
+				)
+			),
+			e['='](
+				Builders.RProperty('deltaY'),
+				e['-'](
+					gen.getInput(block.args['Y']),
+					Builders.spriteProperty('scratchY')
+				)
+			),
+			Builders.immediateCall(glideStepID)
 		]);
 	},
 
@@ -242,7 +333,7 @@ const BlockTranslators = gen => { return {
 
 		return gen.commonGenerators.createTimer(
 			e['*'](gen.getInput(block.args['DURATION']), e['num'](1000)),
-			Builders.forceQueue(continuationID),
+			Builders.immediateCall(continuationID),
 			Builders.save()
 		);
 	},
@@ -441,8 +532,10 @@ const BlockTranslators = gen => { return {
 		// runtime method random(NUM1, NUM2)
 		return Builders.callUtilMethod(
 			'random',
-			gen.getInput(block.args['NUM1']),
-			gen.getInput(block.args['NUM2'])
+			[
+				gen.getInput(block.args['FROM']),
+				gen.getInput(block.args['TO'])
+			]
 		);
 	},
 
@@ -452,8 +545,10 @@ const BlockTranslators = gen => { return {
 		return e['==='](
 			Builders.callUtilMethod(
 				'compare',
-				gen.getInput(block.args['OPERAND1']),
-				gen.getInput(block.args['OPERAND2'])
+				[
+					gen.getInput(block.args['OPERAND1']),
+					gen.getInput(block.args['OPERAND2'])
+				]
 			),
 			e['num'](-1)
 		);
@@ -464,8 +559,10 @@ const BlockTranslators = gen => { return {
 		// TODO: can make this do different things depending on input types
 		Builders.callUtilMethod(
 			'equal',
-			gen.getInput(block.args['OPERAND1']),
-			gen.getInput(block.args['OPERAND2'])
+			[
+				gen.getInput(block.args['OPERAND1']),
+				gen.getInput(block.args['OPERAND2'])
+			]
 		);
 	},
 
@@ -475,8 +572,10 @@ const BlockTranslators = gen => { return {
 		return e['==='](
 			Builders.callUtilMethod(
 				'compare',
-				gen.getInput(block.args['OPERAND1']),
-				gen.getInput(block.args['OPERAND2'])
+				[
+					gen.getInput(block.args['OPERAND1']),
+					gen.getInput(block.args['OPERAND2'])
+				]
 			),
 			e['num'](1)
 		);

@@ -65,20 +65,32 @@ const Builders = {
 	},
 
 	callSpriteMethod: (method, args) => {
+		if (!(args instanceof Array)) {
+			throw new Error(`args should be array: ${method}`);
+		}
 		return e['call'](Builders.spriteProperty(method), args);
 	},
 
 	// Currently calls a method with completely implicit scope, but set up so this can be changed
 	callUtilMethod: (method, args) => {
+		if (!(args instanceof Array)) {
+			throw new Error(`args should be array: ${method}`);
+		}
 		return e['call'](e['id'](method), args);
 	},
 
 	// Currently calls a method with completely implicit scope, but set up so this can be changed
 	callRuntimeMethod: (method, args) => {
+		if (!(args instanceof Array)) {
+			throw new Error(`args should be array: ${method}`);
+		}
 		return e['call'](e['id'](method), args);
 	},
 
 	callMathFunction: (method, args) => {
+		if (!(args instanceof Array)) {
+			throw new Error(`args should be array: ${method}`);
+		}
 		return e['call'](
 			e['.'](e['id']('Math'), e['id'](method)),
 			args
