@@ -184,6 +184,13 @@ const Builders = {
 			Builders.spriteProperty('saying'),
 			Builders.callSpriteMethod('updateBubble', [])
 		);
+	},
+
+	CONSTANTS: {
+		SPRITE_IDENTIFIER: SPRITE_IDENTIFIER,
+		STAGE_IDENTIFIER: STAGE_IDENTIFIER,
+		R_IDENTIFIER: R_IDENTIFIER,
+		VISUAL_IDENTIFIER: VISUAL_IDENTIFIER
 	}
 };
 

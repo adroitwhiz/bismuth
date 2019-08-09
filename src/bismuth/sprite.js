@@ -524,6 +524,9 @@ class Sprite extends Base {
 			this.node.disconnect();
 			this.node = null;
 		}
+		const children = this.stage.children;
+		const spriteIndex = children.indexOf(this);
+		if (spriteIndex !== -1) children.splice(spriteIndex, 1);
 	}
 }
 

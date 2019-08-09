@@ -583,6 +583,43 @@ const BlockTranslators = gen => { return {
 		return Builders.immediateCall(loopID);
 	},
 
+	'control_create_clone_of': block => {
+		return Builders.callRuntimeMethod('clone', [gen.getInput(block.args['CLONE_OPTION'])]);
+	},
+
+	'control_delete_this_clone': () => {
+		return e['block']([
+			Builders.callSpriteMethod('remove', []),
+			// Loop over all active threads, and swap them for undefined if they target this clone.
+			// for (let i = 0; i < stage.queue.length; i++)
+			e['for'](
+				e['let'](e['id']('i'), e['num'](0)),
+				e['<'](e['id']('i'), e['.'](Builders.stageProperty('queue'), e['id']('length'))),
+				e['++'](e['id']('i')),
+				e['block']([
+					// if (stage.queue[i] && stage.queue[i].sprite === S)
+					e['if'](
+						e['&&'](
+							e['get'](Builders.stageProperty('queue'), e['id']('i')),
+							e['==='](
+								e['.'](
+									e['get'](Builders.stageProperty('queue'), e['id']('i')),
+									e['id']('sprite')
+								),
+								Builders.CONSTANTS.SPRITE_IDENTIFIER
+							)
+						),
+						// stage.queue[i] = undefined;
+						e['='](
+							e['get'](Builders.stageProperty('queue'), e['id']('i')),
+							e['undefined']()
+						)
+					)
+				])
+			)
+		]);
+	},
+
 	// Sensing
 	'sensing_touchingobject': block => {
 		return Builders.callSpriteMethod('touching', [gen.getInput(block.args['TOUCHINGOBJECTMENU'])]);
