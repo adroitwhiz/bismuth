@@ -1,7 +1,39 @@
 const runtime = (function (P) {
 	'use strict';
 
-	var self, SPRITE, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
+	// var self, SPRITE, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
+
+	// The stage. Not sure why it's named this way.
+	let self;
+
+	// The sprite for which scripts are currently being executed.
+	let SPRITE;
+
+	// The current stack frame. Used for storing state like the timer, text bubble ID, etc.
+	let STACK_FRAME;
+
+	// The stack on which the stack frames are stored.
+	let STACK;
+
+	// The current procedure???
+	let C;
+
+	// The procedure call stack.
+	let CALLS;
+
+	// Warp-mode counter. Incremented when entering warp-mode and decremented when leaving it.
+	let WARP;
+
+	let BASE;
+
+	// The thread currently being executed. Corresponds to a "script".
+	let THREAD;
+
+	// A function to be immediately executed after the current one.
+	let IMMEDIATE;
+
+	// Tracks whether a visual change was made this frame. If so, yields threads until next frame.
+	let VISUAL;
 
 	const KEY_CODES = {
 		space: 32,

@@ -105,6 +105,8 @@ const BlockTranslators = gen => { return {
 			)
 		]);
 
+		gen.pushContinuation(glideStep);
+
 		// STACK_FRAME.start = stage.now;
 		// STACK_FRAME.rate = 0.001 / SECS; (convert seconds to millis.)
 		// STACK_FRAME.initialX = S.scratchX;
