@@ -74,11 +74,28 @@ class CodeGenerator {
 	getInput (input, shouldCast = true) {
 		let inputNode;
 		if (input.value instanceof ScriptPrims.Literal) {
-			inputNode = {type: 'Literal', value: input.value.value};
+			// TODO: revisit this
+			if (input.type === 'procedure_arguments') {
+				const compiledArgs = {};
+
+				for (const arg of Object.keys(input.value.value)) {
+					if (input.value.value.hasOwnProperty(arg)) {
+						compiledArgs[arg] = this.getInput(input.value.value[arg]);
+					}
+				}
+
+				return e['obj'](compiledArgs);
+			} else {
+				inputNode = Builders.literal(input.value.value);
+			}
+			
 		} else if (input.value instanceof ScriptPrims.Script) {
 			inputNode = e['block'](this.compileSubstack(input.value));
-		} else {
+		} else if (input.value instanceof ScriptPrims.Block) {
 			inputNode = this.compileBlock(input.value);
+		} else {
+			// TODO: find out a less janky way to do this
+			inputNode = input;
 		}
 
 		return shouldCast ? this.castValue(inputNode, input.type) : inputNode;
@@ -150,6 +167,7 @@ class CodeGenerator {
 			compiledInstructions.push(this.compileBlock(currentBlock, instructionIndex, substack));
 		}
 
+		// If there's something on the return stack, pop it and add it to the substack.
 		if (this.returnStack.length > 0) {
 			compiledInstructions.push(this.returnStack.pop());
 		}
@@ -162,6 +180,9 @@ class CodeGenerator {
 	}
 
 	compileScript (script) {
+		if (script.blocks[0].opcode === 'procedures_definition') {
+			this.returnStack.push(Builders.endCall());
+		}
 		return new CompiledScript(script.blocks[0], this.continue(script.shifted));
 	}
 }

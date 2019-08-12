@@ -2,7 +2,6 @@ var player = (function (P) {
 	'use strict';
 
 	var stage;
-	var frameId = null;
 	var isFullScreen = false;
 
 	var progressBar = document.querySelector('.progress-bar');
@@ -31,7 +30,9 @@ var player = (function (P) {
 
 	function turboClick () {
 		stage.isTurbo = !stage.isTurbo;
-		flag.title = stage.isTurbo ? 'Turbo mode enabled. Shift+click to disable.' : 'Shift+click to enable turbo mode.';
+		flag.title = stage.isTurbo ?
+			'Turbo mode enabled. Shift+click to disable.' :
+			'Shift+click to enable turbo mode.';
 		turbo.style.display = stage.isTurbo ? 'block' : 'none';
 	}
 

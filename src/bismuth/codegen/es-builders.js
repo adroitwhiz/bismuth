@@ -11,6 +11,7 @@ const SPRITE_IDENTIFIER = e['id']('SPRITE');
 const STAGE_IDENTIFIER = e['id']('self');
 const R_IDENTIFIER = e['id']('STACK_FRAME');
 const VISUAL_IDENTIFIER = e['id']('VISUAL');
+const CALL_STACK_FRAME_IDENTIFIER = e['id']('C');
 
 // Similar to estree-builder, this is a collection of "AST builder" functions, but for Bismuth-specific stuff.
 const Builders = {
@@ -62,6 +63,10 @@ const Builders = {
 
 	RProperty: property => {
 		return e['.'](R_IDENTIFIER, e['id'](property));
+	},
+
+	callStackFrameProperty: property => {
+		return e['.'](CALL_STACK_FRAME_IDENTIFIER, e['id'](property));
 	},
 
 	callSpriteMethod: (method, args) => {
@@ -136,6 +141,10 @@ const Builders = {
 
 	restore: () => {
 		return e['statement'](Builders.callRuntimeMethod('restore', []));
+	},
+
+	endCall: () => {
+		return e['call'](e['id']('endCall'), []);
 	},
 
 	setVisualForScope: scope => {

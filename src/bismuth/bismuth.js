@@ -1,14 +1,9 @@
-const canvg = require('canvg');
-const JSZip = require('jszip');
-
 const P = (() => {
 	const IO = require('./io');
 	const Base = require('./spritebase');
 	const Stage = require('./stage');
 	const Sprite = require('./sprite');
 	const Watcher = require('./watcher');
-
-	const SCALE = window.devicePixelRatio || 1;
 
 	const hasTouchEvents = 'ontouchstart' in document;
 

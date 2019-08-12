@@ -5,6 +5,14 @@ class Literal {
 	}
 }
 
+class Argument {
+	constructor (name, type, value) {
+		this.name = name;
+		this.type = type;
+		this.value = value;
+	}
+}
+
 class Block {
 	constructor (opcode, args) {
 		this.opcode = opcode;
@@ -39,4 +47,4 @@ class Script {
 	}
 }
 
-module.exports = {Literal, Block, Script};
+module.exports = {Literal, Argument, Block, Script};

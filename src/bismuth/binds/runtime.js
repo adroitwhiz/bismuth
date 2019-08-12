@@ -15,7 +15,7 @@ const runtime = (function (P) {
 	// The stack on which the stack frames are stored.
 	let STACK;
 
-	// The current procedure???
+	// The current procedure call stack frame.
 	let C;
 
 	// The procedure call stack.
@@ -449,22 +449,23 @@ const runtime = (function (P) {
 	};
 
 	// var lastCalls = [];
-	const call = function (procedure, id, values) {
+	const call = function (procedure, id, args) {
 		// lastCalls.push(spec);
 		// if (lastCalls.length > 10000) lastCalls.shift();
 		if (procedure) {
 			STACK.push(STACK_FRAME);
+			STACK_FRAME = {};
+
 			CALLS.push(C);
 			C = {
 				base: procedure.fn,
 				fn: SPRITE.fns[id],
-				args: values,
-				numargs: [],
-				boolargs: [],
+				args: args,
+				argMap: procedure.inputs,
 				stack: STACK = [],
 				warp: procedure.warp
 			};
-			STACK_FRAME = {};
+			
 			if (C.warp || WARP) {
 				WARP++;
 				IMMEDIATE = procedure.fn;
@@ -504,6 +505,12 @@ const runtime = (function (P) {
 
 	const sceneChange = function () {
 		return self.trigger('whenSceneStarts', self.costumes[self.currentCostumeIndex].costumeName);
+	};
+
+	const penClear = function () {
+		self.penCanvas.width = 480 * self.maxZoom;
+		self.penContext.scale(self.maxZoom, self.maxZoom);
+		self.penContext.lineCap = 'round';
 	};
 
 	const broadcast = function (name) {

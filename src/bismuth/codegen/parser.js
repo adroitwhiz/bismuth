@@ -1,8 +1,8 @@
 const ScriptPrims = require('./script-prims');
 const Block = ScriptPrims.Block;
 const Script = ScriptPrims.Script;
+const Argument = ScriptPrims.Argument;
 const Literal = ScriptPrims.Literal;
-const FieldAccessor = ScriptPrims.FieldAccessor;
 
 const specMap = require('./specmap');
 
@@ -26,7 +26,7 @@ class Parser {
 		const blockOpcode = block[0];
 		const blockArgs = block.slice(1);
 
-		const parsedOpcode = specMap[blockOpcode].opcode;
+		let parsedOpcode = specMap[blockOpcode].opcode;
 
 		if (!parsedOpcode) {
 			console.warn(`Unknown opcode ${blockOpcode}`);
@@ -35,35 +35,89 @@ class Parser {
 
 		const parsedArgs = {};
 
-		if (parsedOpcode === 'procedures_definition') { // The one block that works differently...
-			const argTypes = blockArgs[0]
-				// split argument string (e. g. "say text %s in %n seconds") by percent sign;
-				// this gives us ["say text", " %s in", " %n seconds"]
-				.split(/(?=[^\\]%[nbs])/)
-				// trim whitespace and take first two characters only (now ["sa", "%s", "%n"])
-				.map(arg => arg.trim().substr(0, 2))
-				// filter by percent sign to get argument types only (["%s", "%n"]) and we're done
-				.filter(arg => arg.substr(0, 1) === '%');
-			
-			const argNames = blockArgs[1];
+		switch (parsedOpcode) {
+			case 'procedures_definition': {
+				const argTypes = blockArgs[0]
+					// split argument string (e. g. "say text %s in %n seconds") by percent sign;
+					// this gives us ["say text", " %s in", " %n seconds"]
+					.split(/(?=[^\\]%[nbs])/)
+					// trim whitespace and take first two characters only (now ["sa", "%s", "%n"])
+					.map(arg => arg.trim().substr(0, 2))
+					// filter by percent sign to get argument types only (["%s", "%n"]) and we're done
+					.filter(arg => arg.substr(0, 1) === '%');
 
-			for (let i = 0; i < argTypes.length; i++) {
-				//TODO: make this actually work
-				parsedArgs.push(new FieldAccessor('ARGUMENT', argNames[i]));
-			}
+				const argNames = blockArgs[1];
 
-			//TODO: implement warp-speed
-		} else if (parsedOpcode === 'procedures_call') { /// The *other* block that works differently...
-			parsedArgs.push(new FieldAccessor('PROCEDURE', blockArgs[0]));
-			for (let i = 1; i < blockArgs.length; i++) {
-				//TODO: make this actually work
-				parsedArgs.push(this.parseArgument(blockArgs, block[0], i, {type: 'input', inputOp: 'auto'}));
+				const argMap = {};
+
+				// Scratch 2.0 doesn't give us named arguments in procedure calls, so follow scratch-vm's behavior
+				// and make them 'input0', 'input1', etc.
+				for (let i = 0; i < argTypes.length; i++) {
+					argMap[argNames[i]] = `input${i}`;
+				}
+
+				parsedArgs.PROCEDURE = new Argument(
+					'PROCEDURE',
+					'field',
+					new Literal('field', blockArgs[0])
+				);
+
+				parsedArgs.ARGUMENTS = new Argument(
+					'ARGUMENTS',
+					'procedure_arguments_map',
+					new Literal('procedure_arguments_map', argMap)
+				);
+
+				parsedArgs.WARP_MODE = new Argument(
+					'WARP_MODE',
+					'boolean',
+					new Literal('boolean', blockArgs[3])
+				);
+
+				break;
 			}
-		} else {
-			for (let i = 0; i < blockArgs.length; i++) {
-				const parsedArg = this.parseArgument(blockArgs, block[0], i);
-				if (parsedArg) parsedArgs[parsedArg.name] = parsedArg;
+			case 'procedures_call': {
+				const args = {};
+
+				parsedArgs.PROCEDURE = new Argument(
+					'PROCEDURE',
+					'field',
+					new Literal('field', blockArgs[0])
+				);
+				parsedArgs.ARGUMENTS = new Argument(
+					'ARGUMENTS',
+					'procedure_arguments',
+					new Literal('procedure_arguments', args)
+				);
+				for (let i = 1; i < blockArgs.length; i++) {
+					// TODO: change 'auto' type to whatever the arg type is
+					// Scratch 2.0 doesn't give us named arguments in procedure calls, so follow scratch-vm's behavior
+					// and make them 'input0', 'input1', etc.
+					args[`input${i - 1}`] = this.parseArgument(
+						blockArgs,
+						block[0],
+						i,
+						{type: 'input', inputOp: 'auto', inputName: `input${i - 1}`}
+					);
+				}
+
+				break;
 			}
+			default: {
+				for (let i = 0; i < blockArgs.length; i++) {
+					const parsedArg = this.parseArgument(blockArgs, block[0], i);
+					if (parsedArg) parsedArgs[parsedArg.name] = parsedArg;
+				}
+
+				break;
+			}
+		}
+
+		// 'getParam' maps to two different opcodes depending on its type (bool, string, number),
+		// which is given as the second argument. 'b' for 'boolean' maps to 'argument_reporter_boolean',
+		// all others map to 'argument_reporter_string_number'.
+		if (parsedOpcode === 'argument_reporter_string_number' && blockArgs[1] === 'b') {
+			parsedOpcode = 'argument_reporter_boolean';
 		}
 
 		// Handle blocks that have been given menus in 3.0
@@ -138,13 +192,11 @@ class Parser {
 			parsedArgument = new Literal(mappedBlockArg.inputOp || 'field', arg);
 		}
 
-		return {
-			name: mappedBlockArg[`${mappedBlockArg.type}Name`],
-			value: parsedArgument,
-			// "type" is duplicated here if the argument is a literal
-			// should all arguments be literals? e.g. make a substack a literal too
-			type: mappedBlockArg.inputOp || 'field'
-		};
+		return new Argument(
+			mappedBlockArg[`${mappedBlockArg.type}Name`],
+			mappedBlockArg.inputOp || 'field',
+			parsedArgument
+		);
 	}
 }
 

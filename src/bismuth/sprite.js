@@ -156,7 +156,7 @@ class Sprite extends Base {
 		}
 	}
 
-	dotPen () {
+	penDot () {
 		const context = this.stage.penContext;
 		const x = this.scratchX;
 		const y = this.scratchY;
@@ -164,6 +164,10 @@ class Sprite extends Base {
 		context.beginPath();
 		context.arc(240 + x, 180 - y, this.penSize / 2, 0, 2 * Math.PI, false);
 		context.fill();
+	}
+
+	penStamp () {
+		this.draw(this.stage.penContext);
 	}
 
 	draw (context, noEffects) {

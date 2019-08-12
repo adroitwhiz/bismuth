@@ -85,6 +85,15 @@ const compile = (P => {
 				(object.listeners[listenerName][eventName] = [])).push(listenerFunction);
 				break;
 			}
+			case 'procedures_definition': {
+				const blockArgs = script.listenerBlock.args;
+				object.procedures[blockArgs['PROCEDURE'].value.value] = {
+					inputs: blockArgs['ARGUMENTS'].value.value,
+					warp: blockArgs['WARP_MODE'].value.value,
+					fn: listenerFunction
+				};
+				break;
+			}
 			// Oopsie woopsie
 			default:
 				console.warn(`Unknown hat block ${script.listenerBlock.opcode}`);

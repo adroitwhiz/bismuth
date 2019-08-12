@@ -862,6 +862,53 @@ const BlockTranslators = gen => { return {
 	// Data
 	'data_variable': block => {
 		return Builders.callRuntimeMethod('getVar', [gen.getInput(block.args['VARIABLE'])]);
+	},
+
+	// Custom procedures wOoOoOoO
+	'procedures_call': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+		console.log(gen.getInput(block.args['ARGUMENTS']));
+
+		return Builders.callRuntimeMethod('call', [
+			e['get'](Builders.spriteProperty('procedures'), gen.getInput(block.args['PROCEDURE'])),
+			Builders.literal(continuationID),
+			gen.getInput(block.args['ARGUMENTS'])
+		]);
+	},
+
+	'argument_reporter_string_number': block => {
+		return e['get'](
+			Builders.callStackFrameProperty('args'),
+			e['.'](Builders.callStackFrameProperty('argMap'), e['id'](gen.getField(block.args['VALUE'])))
+		);
+	},
+
+	// TODO: something different?
+	'argument_reporter_boolean': block => {
+		return e['get'](
+			Builders.callStackFrameProperty('args'),
+			e['.'](Builders.callStackFrameProperty('argMap'), e['id'](gen.getField(block.args['VALUE'])))
+		);
+	},
+
+	// Pen
+	'pen_clear': () => {
+		return Builders.callRuntimeMethod('penClear', []);
+	},
+
+	'pen_stamp': () => {
+		return Builders.callSpriteMethod('penStamp', []);
+	},
+
+	'pen_penDown': () => {
+		return e['block']([
+			e['='](Builders.spriteProperty('isPenDown'), e['true']()),
+			Builders.callSpriteMethod('penDot', [])
+		]);
+	},
+
+	'pen_penUp': () => {
+		return e['='](Builders.spriteProperty('isPenDown'), e['false']());
 	}
 }; };
 
