@@ -73,9 +73,9 @@ class CodeGenerator {
 			return castedValue;
 		}
 
-		if (outputType === 'string') {
+		if (outputType === 'string' || outputType === 'text') {
 			// casts to string with `value + ""`, may be slower than String(value)
-			castedValue = e['call'](e['id']('String'), value);
+			castedValue = e['call'](e['id']('String'), [value]);
 			castedValue.__typeTag = 'string';
 			return castedValue;
 		}
