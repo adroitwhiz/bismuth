@@ -1,6 +1,7 @@
 const CodeGenerator = require('../codegen/code-generator');
 const Parser = require('../codegen/parser');
 const generateJavascriptCode = require('../codegen/emit-javascript');
+const getKeyCode = require('../get-key-code');
 
 const compile = (P => {
 	const EVENT_SELECTOR_MAP = {
@@ -66,7 +67,7 @@ const compile = (P => {
 						object.listeners.whenKeyPressed[i].push(listenerFunction);
 					}
 				} else {
-					object.listeners.whenKeyPressed[P.getKeyCode(keyField)].push(listenerFunction);
+					object.listeners.whenKeyPressed[getKeyCode(keyField)].push(listenerFunction);
 				}
 				break;
 			}

@@ -78,7 +78,7 @@ class Base {
 		}
 	}
 
-	showVariable (name, visible) {
+	setVariableVisible (name, visible) {
 		let watcher = this.watchers[name];
 		const stage = this.stage;
 		if (!watcher) {

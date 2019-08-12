@@ -30,15 +30,18 @@ class CodeGenerator {
 	// Probably lots of speedups to be had here. Requires tagging types probably.
 	/* eslint-disable-next-line no-unused-vars */
 	castValue (value, outputType, inputType) {
+		let castedValue = value;
 		if (outputType === (
 			'math_number' ||
 			'math_integer' ||
 			'math_whole_number' ||
 			'math_positive_number' ||
 			'math_angle')) { // numeric types
-			
+
 			// cast to number with unary plus, OR with zero if that fails / input is NaN
-			let castedValue = e['||'](e['+'](value), e['number'](0));
+			if (value.__typeTag !== 'number') {
+				castedValue = e['||'](e['+'](value), e['number'](0));
+			}
 
 			if (outputType === (
 				'math_integer' ||
@@ -55,20 +58,29 @@ class CodeGenerator {
 				castedValue = e['call'](e['.'](e['id']('Math'), e['id']('max')), [castedValue, e['num'](0)]);
 			}
 
+			castedValue.__typeTag = 'number';
+
 			return castedValue;
 		}
 
 		if (outputType === 'boolean') {
 			// Runtime boolean cast. Not necessary if input type is boolean, but we don't check that yet.
-			return Builders.callUtilMethod('bool', [value]);
+			if (value.__typeTag !== 'boolean') {
+				castedValue = Builders.callUtilMethod('bool', [value]);
+			}
+			
+			castedValue.__typeTag = 'boolean';
+			return castedValue;
 		}
 
 		if (outputType === 'string') {
 			// casts to string with `value + ""`, may be slower than String(value)
-			return e['+'](value, e['string'](''));
+			castedValue = e['call'](e['id']('String'), value);
+			castedValue.__typeTag = 'string';
+			return castedValue;
 		}
 
-		return value;
+		return castedValue;
 	}
 
 	getInput (input, shouldCast = true) {
@@ -138,6 +150,7 @@ class CodeGenerator {
 			return this.translators[block.opcode](block, index, script);
 		} else {
 			console.warn(`Unknown opcode ${block.opcode}`);
+			return null;
 		}
 	}
 
@@ -164,7 +177,9 @@ class CodeGenerator {
 				);
 			}
 
-			compiledInstructions.push(this.compileBlock(currentBlock, instructionIndex, substack));
+			const compiledBlock = this.compileBlock(currentBlock, instructionIndex, substack);
+
+			if (compiledBlock !== null) compiledInstructions.push(compiledBlock);
 		}
 
 		// If there's something on the return stack, pop it and add it to the substack.

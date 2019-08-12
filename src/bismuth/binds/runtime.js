@@ -35,16 +35,7 @@ const runtime = (function (P) {
 	// Tracks whether a visual change was made this frame. If so, yields threads until next frame.
 	let VISUAL;
 
-	const KEY_CODES = {
-		space: 32,
-		'left arrow': 37,
-		'up arrow': 38,
-		'right arrow': 39,
-		'down arrow': 40,
-		any: 'any'
-	};
-
-	const getKeyCode = keyName => KEY_CODES[keyName.toLowerCase()] || keyName.toUpperCase().charCodeAt(0);
+	const getKeyCode = require('../get-key-code');
 
 	// Cast to boolean.
 	const bool = function (v) {

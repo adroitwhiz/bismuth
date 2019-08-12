@@ -71,10 +71,12 @@ const GeneratorCommon = gen => { return {
 	},
 
 	simpleMathOperator: (block, operator) => {
-		return e[operator](
+		const mathOp = e[operator](
 			gen.getInput(block.args['NUM1']),
 			gen.getInput(block.args['NUM2'])
 		);
+		mathOp.__typeTag = 'number';
+		return mathOp;
 	},
 
 	sayOrThink: (block, isThink) => {
@@ -111,7 +113,7 @@ const GeneratorCommon = gen => { return {
 		]);
 	},
 
-	// A reference to either a  local or global variable.
+	// A reference to either a local or global variable.
 	variableReference: block => {
 		// If the stage has a variable by this name (e.g. it's a global variable), access that variable.
 		// Otherwise, access the sprite's variable by that name whether it exists or not.
@@ -125,6 +127,21 @@ const GeneratorCommon = gen => { return {
 				e['id']('vars')
 			),
 			gen.getInput(block.args['VARIABLE'])
+		);
+	},
+
+	setVariableVisible: (block, isVisible) => {
+		// If the stage has a variable by this name (e.g. it's a global variable), call stage.setVariableVisible.
+		// Otherwise, call SPRITE.setVariableVisible.
+		const variableName = block.args['VARIABLE'].value.value;
+		return e['call'](
+			e['.'](
+				gen.object.stage.vars[variableName] === undefined ?
+					Builders.CONSTANTS.SPRITE_IDENTIFIER :
+					Builders.CONSTANTS.STAGE_IDENTIFIER,
+				e['id']('setVariableVisible')
+			),
+			[gen.getInput(block.args['VARIABLE']), Builders.literal(isVisible)]
 		);
 	},
 

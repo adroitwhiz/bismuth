@@ -728,7 +728,7 @@ const BlockTranslators = gen => { return {
 	'operator_equals': block => {
 		// runtime method equal(OPERAND1, OPERAND2)
 		// TODO: can make this do different things depending on input types
-		Builders.callUtilMethod(
+		return Builders.callUtilMethod(
 			'equal',
 			[
 				gen.getInput(block.args['OPERAND1']),
@@ -870,6 +870,14 @@ const BlockTranslators = gen => { return {
 
 	'data_changevariableby': block => {
 		return e['+='](gen.commonGenerators.variableReference(block), gen.getInput(block.args['VALUE']));
+	},
+
+	'data_showvariable': block => {
+		return gen.commonGenerators.setVariableVisible(block, true);
+	},
+
+	'data_hidevariable': block => {
+		return gen.commonGenerators.setVariableVisible(block, false);
 	},
 
 	// Custom procedures wOoOoOoO
