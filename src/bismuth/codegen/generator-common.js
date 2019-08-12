@@ -111,6 +111,23 @@ const GeneratorCommon = gen => { return {
 		]);
 	},
 
+	// A reference to either a  local or global variable.
+	variableReference: block => {
+		// If the stage has a variable by this name (e.g. it's a global variable), access that variable.
+		// Otherwise, access the sprite's variable by that name whether it exists or not.
+		// This captures the behavior of nonexistant variables always being created in local scope.
+		const variableName = block.args['VARIABLE'].value.value;
+		return e['get'](
+			e['.'](
+				gen.object.stage.vars[variableName] === undefined ?
+					Builders.CONSTANTS.SPRITE_IDENTIFIER :
+					Builders.CONSTANTS.STAGE_IDENTIFIER,
+				e['id']('vars')
+			),
+			gen.getInput(block.args['VARIABLE'])
+		);
+	},
+
 	// Update the sprite text bubble on show/hide so it doesn't stick around when it shouldn't.
 	setVisible: visible => {
 		return e['block']([

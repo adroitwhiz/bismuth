@@ -44,12 +44,6 @@ const BlockTranslators = gen => { return {
 		);
 	},
 
-	'motion_goto': block => {
-		return Builders.callSpriteMethod('gotoObject', [
-			gen.getInput(block.args['TO'])
-		]);
-	},
-
 	'motion_gotoxy': block => {
 		return e['statement']( // S.moveTo(block x input, block y input)
 			Builders.callSpriteMethod('moveTo', [
@@ -57,6 +51,12 @@ const BlockTranslators = gen => { return {
 				gen.getInput(block.args['Y'])
 			])
 		);
+	},
+
+	'motion_goto': block => {
+		return Builders.callSpriteMethod('gotoObject', [
+			gen.getInput(block.args['TO'])
+		]);
 	},
 
 	'motion_glidesecstoxy': (block, index, script) => {
@@ -324,6 +324,19 @@ const BlockTranslators = gen => { return {
 	},
 
 	// Sound
+	'sound_play': block => {
+		return e['block']([
+			e['let'](
+				e['id']('sound'),
+				Builders.callSpriteMethod('getSound', [gen.getInput(block.args['SOUND_MENU'])])
+			),
+			e['if'](
+				e['!=='](e['id']('sound'), e['null']()),
+				Builders.callRuntimeMethod('playSound', [e['id']('sound')])
+			)
+		]);
+	},
+
 	'sound_playuntildone': (block, index, script) => {
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.continue(script.splice(index + 1));
@@ -348,19 +361,6 @@ const BlockTranslators = gen => { return {
 				)
 			])
 		);
-	},
-
-	'sound_play': block => {
-		return e['block']([
-			e['let'](
-				e['id']('sound'),
-				Builders.callSpriteMethod('getSound', [gen.getInput(block.args['SOUND_MENU'])])
-			),
-			e['if'](
-				e['!=='](e['id']('sound'), e['null']()),
-				Builders.callRuntimeMethod('playSound', [e['id']('sound')])
-			)
-		]);
 	},
 
 	'sound_stopallsounds': () => {
@@ -861,7 +861,15 @@ const BlockTranslators = gen => { return {
 
 	// Data
 	'data_variable': block => {
-		return Builders.callRuntimeMethod('getVar', [gen.getInput(block.args['VARIABLE'])]);
+		return gen.commonGenerators.variableReference(block);
+	},
+
+	'data_setvariableto': block => {
+		return e['='](gen.commonGenerators.variableReference(block), gen.getInput(block.args['VALUE']));
+	},
+
+	'data_changevariableby': block => {
+		return e['+='](gen.commonGenerators.variableReference(block), gen.getInput(block.args['VALUE']));
 	},
 
 	// Custom procedures wOoOoOoO
