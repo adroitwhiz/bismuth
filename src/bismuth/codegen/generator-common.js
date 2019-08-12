@@ -145,6 +145,31 @@ const GeneratorCommon = gen => { return {
 		);
 	},
 
+	// A reference to either a local or global list.
+	listReference: block => {
+		// If the stage has a variable by this name (e.g. it's a global list), access that variable.
+		// Otherwise, access the sprite's list by that name.
+		// If the sprite doesn't have a list by that name, create one here.
+		// This captures the behavior of nonexistant lists always being created in local scope.
+		const listName = block.args['LIST'].value.value;
+
+		const listIsLocal = gen.object.stage.lists[listName] === undefined;
+
+		if (listIsLocal && gen.object.lists[listName] === undefined) {
+			gen.object.lists[listName] = [];
+		}
+
+		return e['get'](
+			e['.'](
+				listIsLocal ?
+					Builders.CONSTANTS.SPRITE_IDENTIFIER :
+					Builders.CONSTANTS.STAGE_IDENTIFIER,
+				e['id']('lists')
+			),
+			gen.getInput(block.args['LIST'])
+		);
+	},
+
 	// Update the sprite text bubble on show/hide so it doesn't stick around when it shouldn't.
 	setVisible: visible => {
 		return e['block']([

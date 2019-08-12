@@ -41,16 +41,6 @@ sensing_current
 sensing_dayssince2000
 sensing_username
 
-data_showvariable
-data_hidevariable
-data_listcontents
-data_addtolist
-data_deleteoflist
-data_insertatlist
-data_replaceitemoflist
-data_itemoflist
-data_lengthoflist
-data_listcontainsitem
 data_showlist
 data_hidelist
 

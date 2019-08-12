@@ -880,6 +880,68 @@ const BlockTranslators = gen => { return {
 		return gen.commonGenerators.setVariableVisible(block, false);
 	},
 
+	'data_listcontents': block => {
+		return Builders.callRuntimeMethod('contentsOfList', [
+			gen.commonGenerators.listReference(block)
+		]);
+	},
+
+	'data_addtolist': block => {
+		// LIST.push(ITEM)
+		return e['call'](
+			e['.'](
+				gen.commonGenerators.listReference(block),
+				e['id']('push')
+			),
+			[gen.getInput(block.args['ITEM'])]
+		);
+	},
+
+	'data_deleteoflist': block => {
+		// TODO: handle 'delete all/last' properly
+		return Builders.callRuntimeMethod('deleteLineOfList', [
+			gen.commonGenerators.listReference(block),
+			gen.getInput(block.args['INDEX'])
+		]);
+	},
+
+	'data_insertatlist': block => {
+		return Builders.callRuntimeMethod('insertInList', [
+			gen.commonGenerators.listReference(block),
+			gen.getInput(block.args['INDEX']),
+			gen.getInput(block.args['ITEM'])
+		]);
+	},
+
+	'data_replaceitemoflist': block => {
+		return Builders.callRuntimeMethod('setLineOfList', [
+			gen.commonGenerators.listReference(block),
+			gen.getInput(block.args['INDEX']),
+			gen.getInput(block.args['ITEM'])
+		]);
+	},
+
+	'data_itemoflist': block => {
+		return Builders.callRuntimeMethod('getLineOfList', [
+			gen.commonGenerators.listReference(block),
+			gen.getInput(block.args['INDEX'])
+		]);
+	},
+
+	'data_lengthoflist': block => {
+		return e['.'](
+			gen.commonGenerators.listReference(block),
+			e['id']('length')
+		);
+	},
+
+	'data_listcontainsitem': block => {
+		return Builders.callRuntimeMethod('listContains', [
+			gen.commonGenerators.listReference(block),
+			gen.getInput(block.args['ITEM'])
+		]);
+	},
+
 	// Custom procedures wOoOoOoO
 	'procedures_call': (block, index, script) => {
 		const continuationID = gen.continue(script.splice(index + 1));
