@@ -14,7 +14,6 @@ music_setInstrument
 music_midiSetInstrument
 sound_changevolumeby
 sound_setvolumeto
-sound_volume
 music_changeTempo
 music_setTempo
 music_getTempo
@@ -29,17 +28,13 @@ pen_setPenSizeTo
 
 control_while
 control_for_each
-control_stop
 
-sensing_distanceto
 sensing_askandwait
 sensing_answer
 sensing_loudness
 sensing_loud
-sensing_of
 sensing_current
 sensing_dayssince2000
-sensing_username
 
 data_showlist
 data_hidelist

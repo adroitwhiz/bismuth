@@ -366,6 +366,10 @@ const BlockTranslators = gen => { return {
 	'sound_stopallsounds': () => {
 		return Builders.callStageMethod('stopAllSounds', []);
 	},
+
+	'sound_volume': () => {
+		return e['*'](Builders.spriteProperty('volume'), e['num'](100));
+	},
 	
 	// Events
 	'event_broadcast': block => {
@@ -583,6 +587,30 @@ const BlockTranslators = gen => { return {
 		return Builders.immediateCall(loopID);
 	},
 
+	'control_stop': block => {
+		switch (gen.getField(block.args['STOP_OPTION'])) {
+			case 'all': {
+				return e['block']([
+					Builders.callRuntimeMethod('stopAll', []),
+					e['return']()
+				]);
+			}
+			case 'this script': {
+				return e['block']([
+					Builders.callRuntimeMethod('endCall', []),
+					e['return']()
+				]);
+			}
+			case 'other scripts in sprite':
+			case 'other scripts in stage': {
+				return e['block']([
+					Builders.callRuntimeMethod('stopOtherScripts', []),
+					e['return']()
+				]);
+			}
+		}
+	},
+
 	'control_create_clone_of': block => {
 		return Builders.callRuntimeMethod('clone', [gen.getInput(block.args['CLONE_OPTION'])]);
 	},
@@ -636,6 +664,12 @@ const BlockTranslators = gen => { return {
 		]);
 	},
 
+	'sensing_distanceto': block => {
+		return Builders.callSpriteMethod('distanceTo', [
+			gen.getInput(block.args['DISTANCETOMENU'])
+		]);
+	},
+
 	'sensing_keypressed': block => {
 		// Boolean(stage.keys[getKeyCode(KEY_OPTION)])
 		return e['call'](
@@ -676,6 +710,18 @@ const BlockTranslators = gen => { return {
 			Builders.stageProperty('timerStart'),
 			Builders.stageProperty('now')
 		);
+	},
+
+	'sensing_of': block => {
+		return Builders.callRuntimeMethod('attribute', [
+			gen.getInput(block.args['PROPERTY']),
+			gen.getInput(block.args['OBJECT'])
+		]);
+	},
+
+	'sensing_username': () => {
+		// Username block returns empty string for non-logged-in users
+		return e['str']('');
 	},
 
 	// Operators
@@ -784,15 +830,12 @@ const BlockTranslators = gen => { return {
 		// STRING.charAt(LETTER - 1)
 		// charAt is zero-indexed, operator_letter_of is one-indexed.
 		// Indexed in terms of UTF-16 code units.
-		return e['.'](
-			gen.getInput(block.args['STRING']),
-			e['call'](
-				'charAt',
-				e['-'](
-					gen.getInput(block.args['LETTER']),
-					e['num'](1)
-				)
-			)
+		return e['call'](
+			e['.'](gen.getInput(block.args['STRING']), e['id']('charAt')),
+			[e['-'](
+				gen.getInput(block.args['LETTER']),
+				e['num'](1)
+			)]
 		);
 	},
 	
@@ -809,7 +852,7 @@ const BlockTranslators = gen => { return {
 		// runtime mod(num1, num2)
 		// Unfortunately we can't use the JS modulo operator.
 		// Scratch modulo preserves the sign of the divisor, JS modulo preserves the sign of the dividend
-		Builders.callUtilMethod(
+		return Builders.callUtilMethod(
 			'mod',
 			[gen.getInput(block.args['NUM1']), gen.getInput(block.args['NUM2'])]
 		);
@@ -945,7 +988,6 @@ const BlockTranslators = gen => { return {
 	// Custom procedures wOoOoOoO
 	'procedures_call': (block, index, script) => {
 		const continuationID = gen.continue(script.splice(index + 1));
-		console.log(gen.getInput(block.args['ARGUMENTS']));
 
 		return Builders.callRuntimeMethod('call', [
 			e['get'](Builders.spriteProperty('procedures'), gen.getInput(block.args['PROCEDURE'])),
@@ -957,7 +999,7 @@ const BlockTranslators = gen => { return {
 	'argument_reporter_string_number': block => {
 		return e['get'](
 			Builders.callStackFrameProperty('args'),
-			e['.'](Builders.callStackFrameProperty('argMap'), e['id'](gen.getField(block.args['VALUE'])))
+			e['get'](Builders.callStackFrameProperty('argMap'), gen.getInput(block.args['VALUE']))
 		);
 	},
 
@@ -965,7 +1007,7 @@ const BlockTranslators = gen => { return {
 	'argument_reporter_boolean': block => {
 		return e['get'](
 			Builders.callStackFrameProperty('args'),
-			e['.'](Builders.callStackFrameProperty('argMap'), e['id'](gen.getField(block.args['VALUE'])))
+			e['get'](Builders.callStackFrameProperty('argMap'), gen.getInput(block.args['VALUE']))
 		);
 	},
 

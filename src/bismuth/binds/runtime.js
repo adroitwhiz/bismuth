@@ -508,6 +508,14 @@ const runtime = (function (P) {
 		return self.trigger('whenIReceive', name);
 	};
 
+	const stopOtherScripts = function () {
+		for (let i = 0; i < self.queue.length; i++) {
+			if (i !== THREAD && self.queue[i] && self.queue[i].sprite === SPRITE) {
+				self.queue[i] = undefined;
+			}
+		}
+	};
+
 	const running = function (bases) {
 		for (let j = 0; j < self.queue.length; j++) {
 			if (self.queue[j] && bases.indexOf(self.queue[j].base) !== -1) return true;
