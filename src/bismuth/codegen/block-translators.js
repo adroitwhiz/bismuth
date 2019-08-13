@@ -264,16 +264,41 @@ const BlockTranslators = gen => { return {
 		return Builders.callSpriteMethod('showNextCostume', []);
 	},
 
+	'looks_switchbackdropto': block => {
+		// stage.setCostume(BACKDROP);
+		// if (sceneChange().indexOf(BASE) !== -1) return;
+		// TODO: figure this out
+		return e['block']([
+			Builders.callStageMethod('setCostume', [gen.getInput(block.args['BACKDROP'])]),
+			e['if'](
+				e['!=='](
+					e['call'](
+						e['.'](
+							Builders.callRuntimeMethod('sceneChange', []),
+							e['id']('indexOf')
+						),
+						[Builders.CONSTANTS.BASE_IDENTIFIER]
+					),
+					e['num'](-1)
+				),
+				e['return']()
+			)
+		]);
+	},
+
 	'looks_changesizeby': block => {
-		// S.scale += Math.max(0, CHANGE * 0.01)
+		// S.scale += Math.max(0, S.scale + CHANGE * 0.01)
 		// TODO: change this when sprite size is changed to be a percentage
-		return e['+='](
+		return e['='](
 			Builders.spriteProperty('scale'),
 			Builders.callMathFunction('max', [
 				e['num'](0),
-				e['*'](
-					gen.getInput(block.args['CHANGE']),
-					e['num'](0.01)
+				e['+'](
+					Builders.spriteProperty('scale'),
+					e['*'](
+						gen.getInput(block.args['CHANGE']),
+						e['num'](0.01)
+					)
 				)
 			])
 		);
@@ -616,36 +641,40 @@ const BlockTranslators = gen => { return {
 	},
 
 	'control_delete_this_clone': () => {
-		return e['block']([
-			Builders.callSpriteMethod('remove', []),
-			// Loop over all active threads, and swap them for undefined if they target this clone.
-			// for (let i = 0; i < stage.queue.length; i++)
-			e['for'](
-				e['let'](e['id']('i'), e['num'](0)),
-				e['<'](e['id']('i'), e['.'](Builders.stageProperty('queue'), e['id']('length'))),
-				e['++'](e['id']('i')),
-				e['block']([
-					// if (stage.queue[i] && stage.queue[i].sprite === S)
-					e['if'](
-						e['&&'](
-							e['get'](Builders.stageProperty('queue'), e['id']('i')),
-							e['==='](
-								e['.'](
-									e['get'](Builders.stageProperty('queue'), e['id']('i')),
-									e['id']('sprite')
-								),
-								Builders.CONSTANTS.SPRITE_IDENTIFIER
+		return e['if'](
+			Builders.spriteProperty('isClone'),
+			e['block']([
+				Builders.callSpriteMethod('remove', []),
+				// Loop over all active threads, and swap them for undefined if they target this clone.
+				// if (SPRITE.isClone)
+				// for (let i = 0; i < stage.queue.length; i++)
+				e['for'](
+					e['let'](e['id']('i'), e['num'](0)),
+					e['<'](e['id']('i'), e['.'](Builders.stageProperty('queue'), e['id']('length'))),
+					e['++'](e['id']('i')),
+					e['block']([
+						// if (stage.queue[i] && stage.queue[i].sprite === SPRITE)
+						e['if'](
+							e['&&'](
+								e['get'](Builders.stageProperty('queue'), e['id']('i')),
+								e['==='](
+									e['.'](
+										e['get'](Builders.stageProperty('queue'), e['id']('i')),
+										e['id']('sprite')
+									),
+									Builders.CONSTANTS.SPRITE_IDENTIFIER
+								)
+							),
+							// stage.queue[i] = undefined;
+							e['='](
+								e['get'](Builders.stageProperty('queue'), e['id']('i')),
+								e['undefined']()
 							)
-						),
-						// stage.queue[i] = undefined;
-						e['='](
-							e['get'](Builders.stageProperty('queue'), e['id']('i')),
-							e['undefined']()
 						)
-					)
-				])
-			)
-		]);
+					])
+				)
+			])
+		);
 	},
 
 	// Sensing
@@ -821,8 +850,8 @@ const BlockTranslators = gen => { return {
 	'operator_join': block => {
 		// STRING1 + STRING2
 		return e['+'](
-			gen.getInput(block.args['STRING1']),
-			gen.getInput(block.args['STRING2'])
+			gen.getInput(block.args['STRING1'], true),
+			gen.getInput(block.args['STRING2'], true)
 		);
 	},
 
@@ -831,7 +860,7 @@ const BlockTranslators = gen => { return {
 		// charAt is zero-indexed, operator_letter_of is one-indexed.
 		// Indexed in terms of UTF-16 code units.
 		return e['call'](
-			e['.'](gen.getInput(block.args['STRING']), e['id']('charAt')),
+			e['.'](gen.getInput(block.args['STRING'], true), e['id']('charAt')),
 			[e['-'](
 				gen.getInput(block.args['LETTER']),
 				e['num'](1)
@@ -843,7 +872,7 @@ const BlockTranslators = gen => { return {
 		// STRING.length
 		// Indexed in terms of UTF-16 code units.
 		return e['.'](
-			gen.getInput(block.args['STRING']),
+			gen.getInput(block.args['STRING'], true),
 			e['id']('length')
 		);
 	},
@@ -912,7 +941,13 @@ const BlockTranslators = gen => { return {
 	},
 
 	'data_changevariableby': block => {
-		return e['+='](gen.commonGenerators.variableReference(block), gen.getInput(block.args['VALUE']));
+		return e['='](
+			gen.commonGenerators.variableReference(block),
+			e['+'](
+				gen.castValue(gen.commonGenerators.variableReference(block), 'math_number'),
+				gen.getInput(block.args['VALUE'])
+			)
+		);
 	},
 
 	'data_showvariable': block => {

@@ -12,6 +12,7 @@ const STAGE_IDENTIFIER = e['id']('self');
 const R_IDENTIFIER = e['id']('STACK_FRAME');
 const VISUAL_IDENTIFIER = e['id']('VISUAL');
 const CALL_STACK_FRAME_IDENTIFIER = e['id']('C');
+const BASE_IDENTIFIER = e['id']('BASE');
 
 // Similar to estree-builder, this is a collection of "AST builder" functions, but for Bismuth-specific stuff.
 const Builders = {
@@ -48,7 +49,7 @@ const Builders = {
 	consoleLog: args => {
 		return e['call'](
 			e['.'](e['id']('console'), e['id']('log')),
-			typeof args === 'string' ? e['string'](args) : args
+			typeof args === 'string' ? [e['string'](args)] : args
 		);
 	},
 
@@ -199,7 +200,8 @@ const Builders = {
 		SPRITE_IDENTIFIER: SPRITE_IDENTIFIER,
 		STAGE_IDENTIFIER: STAGE_IDENTIFIER,
 		R_IDENTIFIER: R_IDENTIFIER,
-		VISUAL_IDENTIFIER: VISUAL_IDENTIFIER
+		VISUAL_IDENTIFIER: VISUAL_IDENTIFIER,
+		BASE_IDENTIFIER: BASE_IDENTIFIER
 	}
 };
 

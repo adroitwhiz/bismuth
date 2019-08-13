@@ -639,7 +639,6 @@ const runtime = (function (P) {
 				var c = this.children[i];
 				if (c.isClone) {
 					c.remove();
-					this.children.splice(i, 1);
 					i -= 1;
 				} else {
 					c.resetFilters();

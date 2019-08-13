@@ -83,7 +83,7 @@ class CodeGenerator {
 		return castedValue;
 	}
 
-	getInput (input, shouldCast = true) {
+	getInput (input, forceCast = false) {
 		let inputNode;
 		if (input.value instanceof ScriptPrims.Literal) {
 			// TODO: revisit this
@@ -110,7 +110,10 @@ class CodeGenerator {
 			inputNode = input;
 		}
 
-		return shouldCast ? this.castValue(inputNode, input.type) : inputNode;
+		// 'text' is a catch-all type that can be a number, string or boolean.
+		// For performance reasons, don't cast it unless explicitly told to
+		// (e.g. by blocks that only operate on strings).
+		return (input.type !== 'text' || forceCast) ? this.castValue(inputNode, input.type) : inputNode;
 	}
 
 	// TODO: do more stuff here for custom proc defs and others

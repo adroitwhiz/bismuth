@@ -415,7 +415,6 @@ class Stage extends Base {
 		while (i--) {
 			if (this.children[i].isClone) {
 				this.children[i].remove();
-				this.children.splice(i, 1);
 			}
 		}
 	}
