@@ -26,11 +26,14 @@ class Parser {
 		const blockOpcode = block[0];
 		const blockArgs = block.slice(1);
 
-		let parsedOpcode = specMap[blockOpcode].opcode;
+		const mappedBlock = specMap[blockOpcode];
+		let parsedOpcode;
 
-		if (!parsedOpcode) {
+		if (mappedBlock) {
+			parsedOpcode = mappedBlock.opcode;
+		} else {
 			console.warn(`Unknown opcode ${blockOpcode}`);
-			return new Block('unknown_opcode', []);
+			return new Block('unknown_opcode', {});
 		}
 
 		const parsedArgs = {};

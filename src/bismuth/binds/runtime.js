@@ -636,7 +636,7 @@ const runtime = (function (P) {
 			this.resetFilters();
 			this.stopSounds();
 			for (let i = 0; i < this.children.length; i++) {
-				var c = this.children[i];
+				const c = this.children[i];
 				if (c.isClone) {
 					c.remove();
 					i -= 1;
@@ -656,8 +656,8 @@ const runtime = (function (P) {
 			self = this;
 			VISUAL = false;
 			const start = Date.now();
+			const queue = this.queue;
 			do {
-				var queue = this.queue;
 				this.now = this.rightNow();
 				for (THREAD = 0; THREAD < queue.length; THREAD++) {
 					if (queue[THREAD]) {
@@ -671,7 +671,7 @@ const runtime = (function (P) {
 						queue[THREAD] = undefined;
 						WARP = 0;
 						while (IMMEDIATE) {
-							var fn = IMMEDIATE;
+							const fn = IMMEDIATE;
 							IMMEDIATE = null;
 							fn();
 						}

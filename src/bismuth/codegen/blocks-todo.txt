@@ -1,11 +1,8 @@
-looks_switchbackdropto
 looks_changeeffectby
 looks_seteffectto
 looks_cleargraphiceffects
-looks_backdropnumbername
 looks_switchbackdroptoandwait
 looks_nextbackdrop
-looks_backdropnumbername
 
 music_playDrumForBeats
 music_restForBeats

@@ -343,6 +343,15 @@ const BlockTranslators = gen => { return {
 			Builders.callSpriteMethod('getCostumeName', []);
 	},
 
+	'looks_backdropnumbername': block => {
+		return gen.getField(block.args['NUMBER_NAME']) === 'number' ?
+			e['+'](
+				Builders.stageProperty('currentCostumeIndex'),
+				e['num'](1)
+			) :
+			Builders.callStageMethod('getCostumeName', []);
+	},
+
 	'looks_size': () => {
 		// TODO: change this when sprite size is changed to be a percentage
 		return e['*'](Builders.spriteProperty('scale'), e['num'](100));
@@ -616,7 +625,7 @@ const BlockTranslators = gen => { return {
 		switch (gen.getField(block.args['STOP_OPTION'])) {
 			case 'all': {
 				return e['block']([
-					Builders.callRuntimeMethod('stopAll', []),
+					Builders.callStageMethod('stopAll', []),
 					e['return']()
 				]);
 			}
