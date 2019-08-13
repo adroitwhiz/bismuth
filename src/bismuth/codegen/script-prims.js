@@ -26,7 +26,7 @@ class Script {
 	}
 
 	splice (n) {
-		let spliced = this._blocks.splice(n);
+		const spliced = this._blocks.splice(n);
 		return new Script(spliced);
 	}
 

@@ -59,17 +59,17 @@ class Sprite extends Base {
 		c.sounds = this.sounds;
 
 		{
-			let keys = Object.keys(this.vars);
+			const keys = Object.keys(this.vars);
 			for (let i = keys.length; i--;) {
-				let k = keys[i];
+				const k = keys[i];
 				c.vars[k] = this.vars[k];
 			}
 		}
 
 		{
-			let keys = Object.keys(this.lists);
+			const keys = Object.keys(this.lists);
 			for (let i = keys.length; i--;) {
-				let k = keys[i];
+				const k = keys[i];
 				c.lists[k] = this.lists[k].slice(0);
 			}
 		}
@@ -211,7 +211,7 @@ class Sprite extends Base {
 		const costume = this.costumes[this.currentCostumeIndex];
 
 		if (thing === '_mouse_') {
-			let bounds = this.rotatedBounds();
+			const bounds = this.rotatedBounds();
 			const x = this.stage.rawMouseX;
 			const y = this.stage.rawMouseY;
 			if (x < bounds.left || y < bounds.bottom || x > bounds.right || y > bounds.top) {
@@ -220,7 +220,7 @@ class Sprite extends Base {
 			let cx = (x - this.scratchX) / this.scale;
 			let cy = (this.scratchY - y) / this.scale;
 			if (this.rotationStyle === 'normal' && this.direction !== 90) {
-				let directionRadians = (90 - this.direction) * Math.PI / 180;
+				const directionRadians = (90 - this.direction) * Math.PI / 180;
 				const ox = cx;
 				const s = Math.sin(directionRadians);
 				const c = Math.cos(directionRadians);
@@ -232,7 +232,7 @@ class Sprite extends Base {
 			const costumeImageData = costume.context.getImageData((cx * costume.bitmapResolution) + costume.rotationCenterX, (cy * costume.bitmapResolution) + costume.rotationCenterY, 1, 1).data;
 			return costumeImageData[3] !== 0;
 		} else if (thing === '_edge_') {
-			let bounds = this.rotatedBounds();
+			const bounds = this.rotatedBounds();
 			return bounds.left <= -240 || bounds.right >= 240 || bounds.top >= 180 || bounds.bottom <= -180;
 		} else {
 			if (!this.visible) return false;

@@ -139,7 +139,7 @@ class CodeGenerator {
 	}
 
 	pushContinuation (continuation) {
-		let continuationID = this.getNextContinuationID();
+		const continuationID = this.getNextContinuationID();
 		this.object.continuations.push(this.makeFunction(continuation));
 		return continuationID;
 	}

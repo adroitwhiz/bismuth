@@ -57,6 +57,7 @@ module.exports = {
 			allowMultiplePropertiesPerLine: true
 		}],
 		'operator-linebreak': ['error', 'after'],
+		'prefer-const': ['error'],
 		'quotes': ['error', 'single', {
 			allowTemplateLiterals: true,
 			avoidEscape: true

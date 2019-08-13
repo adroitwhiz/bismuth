@@ -341,7 +341,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback));
 		}
 	} else if (fileExtension === 'wav') {
-		let request = new Request.Request();
+		const request = new Request.Request();
 		onloadCallback = ab => {
 			IO.decodeAudio(ab, buffer => {
 				callback(buffer);
@@ -357,7 +357,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback, null, 'arraybuffer'));
 		}
 	} else if (IO.zip) {
-		let request = new Request.Request();
+		const request = new Request.Request();
 		const image = new Image();
 		image.onload = () => {
 			if (callback) callback(image);

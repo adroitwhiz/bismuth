@@ -80,7 +80,7 @@ const compile = (P => {
 					script.listenerBlock.args.BROADCAST_OPTION ||
 					script.listenerBlock.args.BACKDROP).value.value.toLowerCase();
 				
-				let listenerName = EVENT_SELECTOR_MAP[script.listenerBlock.opcode];
+				const listenerName = EVENT_SELECTOR_MAP[script.listenerBlock.opcode];
 
 				(object.listeners[listenerName][eventName] ||
 				(object.listeners[listenerName][eventName] = [])).push(listenerFunction);

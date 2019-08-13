@@ -47,54 +47,54 @@ const runtime = (function (P) {
 	const DIGIT = /\d/;
 	const compare = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
-			let nx = Number(x);
-			let ny = Number(y);
+			const nx = Number(x);
+			const ny = Number(y);
 			// This is equivalent to "are neither nx nor ny NaN?" because NaN never equals itself
 			if (nx === nx && ny === ny) {
 				return nx < ny ? -1 : nx === ny ? 0 : 1;
 			}
 		}
-		let xs = String(x).toLowerCase();
-		let ys = String(y).toLowerCase();
+		const xs = String(x).toLowerCase();
+		const ys = String(y).toLowerCase();
 		return xs < ys ? -1 : xs === ys ? 0 : 1;
 	};
 	const numLess = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
-			let ny = +y;
+			const ny = +y;
 			if (ny === ny) {
 				return nx < ny;
 			}
 		}
-		let ys = String(y).toLowerCase();
+		const ys = String(y).toLowerCase();
 		return String(nx) < ys;
 	};
 	const numGreater = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
-			let ny = +y;
+			const ny = +y;
 			if (ny === ny) {
 				return nx > ny;
 			}
 		}
-		let ys = String(y).toLowerCase();
+		const ys = String(y).toLowerCase();
 		return String(nx) > ys;
 	};
 
 	// Optimized version of "compare" that only checks equality.
 	const equal = function (x, y) {
 		if ((typeof x === 'number' || DIGIT.test(x)) && (typeof y === 'number' || DIGIT.test(y))) {
-			let nx = +x;
-			let ny = +y;
+			const nx = +x;
+			const ny = +y;
 			if (nx === nx && ny === ny) {
 				return nx === ny;
 			}
 		}
-		let xs = String(x).toLowerCase();
-		let ys = String(y).toLowerCase();
+		const xs = String(x).toLowerCase();
+		const ys = String(y).toLowerCase();
 		return xs === ys;
 	};
 	const numEqual = function (nx, y) {
 		if (typeof y === 'number' || DIGIT.test(y)) {
-			let ny = +y;
+			const ny = +y;
 			return ny === ny && nx === ny;
 		}
 		return false;
@@ -112,7 +112,7 @@ const runtime = (function (P) {
 		x = +x || 0;
 		y = +y || 0;
 		if (x > y) {
-			let tmp = y;
+			const tmp = y;
 			y = x;
 			x = tmp;
 		}
@@ -123,7 +123,7 @@ const runtime = (function (P) {
 	};
 
 	const moveByLayers = function (numLayers) {
-		let i = self.children.indexOf(SPRITE);
+		const i = self.children.indexOf(SPRITE);
 		if (i !== -1) {
 			self.children.splice(i, 1);
 			self.children.splice(Math.max(0, i + numLayers), 0, SPRITE);
@@ -132,7 +132,7 @@ const runtime = (function (P) {
 
 	// TODO: find a more descriptive name
 	const moveToFrontBack = function (destination) {
-		let i = self.children.indexOf(SPRITE);
+		const i = self.children.indexOf(SPRITE);
 		if (i !== -1) self.children.splice(i, 1);
 		if (destination === 'front') {
 			self.children.push(SPRITE);
@@ -142,20 +142,20 @@ const runtime = (function (P) {
 	};
 
 	const rgb2hsl = function (rgb) {
-		let r = ((rgb >> 16) & 0xff) / 0xff;
-		let g = ((rgb >> 8) & 0xff) / 0xff;
-		let b = (rgb & 0xff) / 0xff;
+		const r = ((rgb >> 16) & 0xff) / 0xff;
+		const g = ((rgb >> 8) & 0xff) / 0xff;
+		const b = (rgb & 0xff) / 0xff;
 
-		let min = Math.min(r, g, b);
-		let max = Math.max(r, g, b);
+		const min = Math.min(r, g, b);
+		const max = Math.max(r, g, b);
 
 		if (min === max) {
 			return [0, 0, r * 100];
 		}
 
-		let c = max - min;
-		let l = (min + max) / 2;
-		let s = c / (1 - Math.abs((2 * l) - 1));
+		const c = max - min;
+		const l = (min + max) / 2;
+		const s = c / (1 - Math.abs((2 * l) - 1));
 
 		let h;
 		switch (max) {
@@ -175,8 +175,8 @@ const runtime = (function (P) {
 	};
 
 	const clone = function (name) {
-		let parent = name === '_myself_' ? SPRITE : self.getObject(name);
-		let c = parent.clone();
+		const parent = name === '_myself_' ? SPRITE : self.getObject(name);
+		const c = parent.clone();
 		self.children.splice(self.children.indexOf(parent), 0, c);
 		self.triggerFor(c, 'whenCloned');
 	};
@@ -198,7 +198,7 @@ const runtime = (function (P) {
 	};
 
 	const listIndex = function (list, index, length) {
-		let i = index | 0;
+		const i = index | 0;
 		if (i === index) return i > 0 && i <= length ? i - 1 : -1;
 		if (index === 'random' || index === 'any') {
 			return Math.random() * length | 0;
@@ -221,7 +221,7 @@ const runtime = (function (P) {
 	};
 
 	const getLineOfList = function (list, index) {
-		let i = listIndex(list, index, list.length);
+		const i = listIndex(list, index, list.length);
 		return i === -1 ? '' : list[i];
 	};
 
@@ -240,7 +240,7 @@ const runtime = (function (P) {
 		if (index === 'all') {
 			list.length = 0;
 		} else {
-			let i = listIndex(list, index, list.length);
+			const i = listIndex(list, index, list.length);
 			if (i === list.length - 1) {
 				list.pop();
 			} else if (i !== -1) {
@@ -250,7 +250,7 @@ const runtime = (function (P) {
 	};
 
 	const insertInList = function (list, index, value) {
-		let i = listIndex(list, index, list.length + 1);
+		const i = listIndex(list, index, list.length + 1);
 		if (i === list.length) {
 			list.push(value);
 		} else if (i !== -1) {
@@ -259,7 +259,7 @@ const runtime = (function (P) {
 	};
 
 	const setLineOfList = function (list, index, value) {
-		let i = listIndex(list, index, list.length);
+		const i = listIndex(list, index, list.length);
 		if (i !== -1) {
 			list[i] = value;
 		}
@@ -302,7 +302,7 @@ const runtime = (function (P) {
 	};
 
 	const attribute = function (attr, objName) {
-		let o = self.getObject(objName);
+		const o = self.getObject(objName);
 		if (!o) return 0;
 		if (o.isSprite) {
 			switch (attr) {
@@ -332,16 +332,16 @@ const runtime = (function (P) {
 					return 0; // TODO
 			}
 		}
-		let value = o.vars[attr];
+		const value = o.vars[attr];
 		if (value !== undefined) {
 			return value;
 		}
 		return 0;
 	};
 
-	let VOLUME = 0.3;
+	const VOLUME = 0.3;
 
-	let audioContext = P.audioContext;
+	const audioContext = P.audioContext;
 	if (audioContext) {
 		var wavBuffers = P.IO.wavBuffers;
 
