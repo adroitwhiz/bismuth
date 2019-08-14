@@ -708,6 +708,45 @@ const BlockTranslators = gen => { return {
 		]);
 	},
 
+	'sensing_askandwait': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitForAnswerLoop = gen.commonGenerators.waitUntilCondition(
+			e['!=='](
+				Builders.RProperty('id'),
+				Builders.stageProperty('promptId')
+			),
+			Builders.immediateCall(continuationID)
+		);
+
+		const waitForPromptLoop = gen.commonGenerators.waitUntilCondition(
+			e['>='](
+				Builders.stageProperty('promptId'),
+				Builders.RProperty('id')
+			),
+			e['block']([
+				Builders.callSpriteMethod('ask', [gen.getInput(block.args['QUESTION'])]),
+				Builders.immediateCall(waitForAnswerLoop)
+			])
+		);
+
+		// If another script starts an "ask and wait" before this one, we need to wait our turn.
+		// We do this by idle-looping until the active prompt ID is >= the prompt ID we got.
+		return e['block']([
+			e['='](
+				Builders.RProperty('id'),
+				// using pre/postfix operators with estree-builder is playing with fire,
+				// but this is always going to be postfix (stage.nextPromptID++).
+				e['++'](Builders.stageProperty('nextPromptId'))
+			),
+			Builders.immediateCall(waitForPromptLoop)
+		]);
+	},
+
+	'sensing_answer': () => {
+		return Builders.stageProperty('answer');
+	},
+
 	'sensing_keypressed': block => {
 		// Boolean(stage.keys[getKeyCode(KEY_OPTION)])
 		return e['call'](

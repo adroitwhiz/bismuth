@@ -26,8 +26,6 @@ pen_setPenSizeTo
 control_while
 control_for_each
 
-sensing_askandwait
-sensing_answer
 sensing_loudness
 sensing_loud
 sensing_current
