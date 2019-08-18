@@ -23,7 +23,7 @@ const compile = (P => {
 			parsedScripts.push(parser.parseScript(object.scripts[i][2]));
 		}
 
-		console.log(parsedScripts);
+		// console.log(parsedScripts);
 
 		// Part 2: Compile the scripts into their JS AST representations,
 		// adding to the object's array of continuation functions (in AST form)
@@ -36,10 +36,14 @@ const compile = (P => {
 		// stringify it into JS code, then eval() it, compiling it into *actual* JS.
 		for (let i = 0; i < object.continuations.length; i++) {
 			object.fns.push(P.runtime.scopedEval(generateJavascriptCode(generator, object.continuations[i])));
+
+			/* if (object.objName === 'Button') {
+				console.log(i, generateJavascriptCode(generator, object.continuations[i]));
+			} */
 		}
 
-		console.log(compiledScripts);
-		console.log(object);
+		// console.log(compiledScripts);
+		// console.log(object);
 
 		//Part 4: For every compiled script, add a listener
 		for (let i = 0; i < compiledScripts.length; i++) {

@@ -286,6 +286,24 @@ const BlockTranslators = gen => { return {
 		]);
 	},
 
+	'looks_changeeffectby': block => {
+		return Builders.callSpriteMethod('changeFilter', [
+			gen.getInput(block.args['EFFECT']),
+			gen.getInput(block.args['CHANGE'])
+		]);
+	},
+
+	'looks_seteffectto': block => {
+		return Builders.callSpriteMethod('setFilter', [
+			gen.getInput(block.args['EFFECT']),
+			gen.getInput(block.args['VALUE'])
+		]);
+	},
+
+	'looks_cleargraphiceffects': block => {
+		return Builders.callSpriteMethod('resetFilters', []);
+	},
+
 	'looks_changesizeby': block => {
 		// S.scale += Math.max(0, S.scale + CHANGE * 0.01)
 		// TODO: change this when sprite size is changed to be a percentage
@@ -637,10 +655,7 @@ const BlockTranslators = gen => { return {
 			}
 			case 'other scripts in sprite':
 			case 'other scripts in stage': {
-				return e['block']([
-					Builders.callRuntimeMethod('stopOtherScripts', []),
-					e['return']()
-				]);
+				return Builders.callRuntimeMethod('stopOtherScripts', []);
 			}
 		}
 	},
@@ -1024,10 +1039,17 @@ const BlockTranslators = gen => { return {
 	},
 
 	'data_deleteoflist': block => {
-		// TODO: handle 'delete all/last' properly
 		return Builders.callRuntimeMethod('deleteLineOfList', [
 			gen.commonGenerators.listReference(block),
 			gen.getInput(block.args['INDEX'])
+		]);
+	},
+
+	'data_deletealloflist': block => {
+		// TODO: reinit list
+		return Builders.callRuntimeMethod('deleteLineOfList', [
+			gen.commonGenerators.listReference(block),
+			e['string']('all')
 		]);
 	},
 
@@ -1072,10 +1094,20 @@ const BlockTranslators = gen => { return {
 	'procedures_call': (block, index, script) => {
 		const continuationID = gen.continue(script.splice(index + 1));
 
-		return Builders.callRuntimeMethod('call', [
-			e['get'](Builders.spriteProperty('procedures'), gen.getInput(block.args['PROCEDURE'])),
-			Builders.literal(continuationID),
-			gen.getInput(block.args['ARGUMENTS'])
+		if (gen.getField(block.args['PROCEDURE']) === 'bismuth debug') {
+			return e['block']([
+				e['statement'](e['id']('debugger')),
+				Builders.immediateCall(continuationID)
+			]);
+		}
+
+		return e['block']([
+			Builders.callRuntimeMethod('call', [
+				e['get'](Builders.spriteProperty('procedures'), gen.getInput(block.args['PROCEDURE'])),
+				Builders.literal(continuationID),
+				gen.getInput(block.args['ARGUMENTS'])
+			]),
+			e['return']()
 		]);
 	},
 

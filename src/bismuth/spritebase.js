@@ -117,7 +117,7 @@ class Base {
 	}
 
 	setCostume (costume) {
-		if (typeof costume !== 'number') {
+		if (typeof costume !== 'number' && Number.isNaN(Number(costume))) {
 			costume = String(costume);
 			for (let i = 0; i < this.costumes.length; i++) {
 				if (this.costumes[i].costumeName === costume) {

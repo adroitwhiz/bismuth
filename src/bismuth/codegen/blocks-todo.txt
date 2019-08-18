@@ -1,6 +1,3 @@
-looks_changeeffectby
-looks_seteffectto
-looks_cleargraphiceffects
 looks_switchbackdroptoandwait
 looks_nextbackdrop
 

@@ -31,21 +31,19 @@ class CodeGenerator {
 	/* eslint-disable-next-line no-unused-vars */
 	castValue (value, outputType, inputType) {
 		let castedValue = value;
-		if (outputType === (
-			'math_number' ||
-			'math_integer' ||
-			'math_whole_number' ||
-			'math_positive_number' ||
-			'math_angle')) { // numeric types
+		if (outputType === 'math_number' ||
+			outputType === 'math_integer' ||
+			outputType === 'math_whole_number' ||
+			outputType === 'math_positive_number' ||
+			outputType === 'math_angle') { // numeric types
 
 			// cast to number with unary plus, OR with zero if that fails / input is NaN
 			if (value.__typeTag !== 'number') {
 				castedValue = e['||'](e['+'](value), e['number'](0));
 			}
 
-			if (outputType === (
-				'math_integer' ||
-				'math_whole_number')) {
+			if (outputType === 'math_integer' ||
+				outputType === 'math_whole_number') {
 				
 				// ROUND number types
 				// call Math.round

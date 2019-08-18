@@ -1,3 +1,7 @@
+// Maximum number of immediate calls that can be made per tick.
+// Done to prevent bad code from hanging the browser.
+const MAX_IMMEDIATE_CALLS = 10000000;
+
 const runtime = (function (P) {
 	'use strict';
 
@@ -657,6 +661,7 @@ const runtime = (function (P) {
 			VISUAL = false;
 			const start = Date.now();
 			const queue = this.queue;
+			let immedCounter = 0;
 			do {
 				this.now = this.rightNow();
 				for (THREAD = 0; THREAD < queue.length; THREAD++) {
@@ -671,9 +676,18 @@ const runtime = (function (P) {
 						queue[THREAD] = undefined;
 						WARP = 0;
 						while (IMMEDIATE) {
+							if (immedCounter++ > MAX_IMMEDIATE_CALLS) {
+								console.error(
+									`Immediate call overflow on ${SPRITE.objName}`,
+									SPRITE,
+									IMMEDIATE.toString()
+								);
+								break;
+							}
 							const fn = IMMEDIATE;
 							IMMEDIATE = null;
 							fn();
+							
 						}
 						STACK.push(STACK_FRAME);
 						CALLS.push(C);
@@ -709,7 +723,6 @@ const runtime = (function (P) {
 
 	return {
 		scopedEval: function (source) {
-			console.log(source);
 			return eval(source);
 		}
 	};

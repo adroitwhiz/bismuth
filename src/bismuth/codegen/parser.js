@@ -123,6 +123,21 @@ class Parser {
 			parsedOpcode = 'argument_reporter_boolean';
 		}
 
+		// 'data_deleteoflist' will expect an integer index, and the compiler will cast the index to an int.
+		// Indexes of 'all' or 'last' will not be properly cast, so replace 'all' with the new 'delete all' opcode,
+		// and replace 'last' with 'length of list'.
+		if (parsedOpcode === 'data_deleteoflist') {
+			switch (parsedArgs['INDEX'].value.value) {
+				case 'all': {
+					return new Block('data_deletealloflist', {'LIST': parsedArgs.LIST});
+				}
+				case 'last': {
+					parsedArgs['INDEX'].value = new Block('data_lengthoflist', {'LIST': parsedArgs.LIST});
+					break;
+				}
+			}
+		}
+
 		// Handle blocks that have been given menus in 3.0
 		// Adapted from https://github.com/LLK/scratch-vm/blob/develop/src/serialization/sb2.js#L1179
 		switch (blockOpcode) {
