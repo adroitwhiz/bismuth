@@ -37,9 +37,7 @@ const compile = (P => {
 		for (let i = 0; i < object.continuations.length; i++) {
 			object.fns.push(P.runtime.scopedEval(generateJavascriptCode(generator, object.continuations[i])));
 
-			/* if (object.objName === 'Button') {
-				console.log(i, generateJavascriptCode(generator, object.continuations[i]));
-			} */
+			// console.log(i, generateJavascriptCode(generator, object.continuations[i]));
 		}
 
 		// console.log(compiledScripts);

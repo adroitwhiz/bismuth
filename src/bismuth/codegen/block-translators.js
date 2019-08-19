@@ -975,14 +975,17 @@ const BlockTranslators = gen => { return {
 			case 'tan': return Builders.callMathFunction('tan',
 				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR)]
 			);
-			case 'asin': return Builders.callMathFunction('asin',
-				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR_INVERSE)]
+			case 'asin': return e['*'](
+				Builders.callMathFunction('asin', [gen.getInput(block.args['NUM'])]),
+				ANGLE_CONVERSION_FACTOR_INVERSE
 			);
-			case 'acos': return Builders.callMathFunction('acos',
-				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR_INVERSE)]
+			case 'acos': return e['*'](
+				Builders.callMathFunction('acos', [gen.getInput(block.args['NUM'])]),
+				ANGLE_CONVERSION_FACTOR_INVERSE
 			);
-			case 'atan': return Builders.callMathFunction('atan',
-				[e['*'](gen.getInput(block.args['NUM']), ANGLE_CONVERSION_FACTOR_INVERSE)]
+			case 'atan': return e['*'](
+				Builders.callMathFunction('atan', [gen.getInput(block.args['NUM'])]),
+				ANGLE_CONVERSION_FACTOR_INVERSE
 			);
 			case 'ln': return Builders.callMathFunction('log', [gen.getInput(block.args['NUM'])]);
 			case 'log': return Builders.callMathFunction('log10', [gen.getInput(block.args['NUM'])]);

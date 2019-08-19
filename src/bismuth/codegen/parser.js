@@ -138,6 +138,16 @@ class Parser {
 			}
 		}
 
+		// 'insert at list' and 'replace item of list' can have non-numeric indices.
+		// If the 'INDEX' parameter cannot be directly coerced into a number, change its type to 'text'.
+		if ((parsedOpcode === 'data_insertatlist' ||
+			parsedOpcode === 'data_replaceitemoflist') &&
+			Number.isNaN(Number(parsedArgs['INDEX'].value.value))) {
+			
+			parsedArgs['INDEX'].type = 'text';
+			parsedArgs['INDEX'].value.type = 'text';
+		}
+
 		// Handle blocks that have been given menus in 3.0
 		// Adapted from https://github.com/LLK/scratch-vm/blob/develop/src/serialization/sb2.js#L1179
 		switch (blockOpcode) {
