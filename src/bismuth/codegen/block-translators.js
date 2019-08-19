@@ -300,7 +300,7 @@ const BlockTranslators = gen => { return {
 		]);
 	},
 
-	'looks_cleargraphiceffects': block => {
+	'looks_cleargraphiceffects': () => {
 		return Builders.callSpriteMethod('resetFilters', []);
 	},
 

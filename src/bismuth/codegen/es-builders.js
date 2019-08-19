@@ -4,7 +4,7 @@ window.e = e;
 
 window.astring = require('astring');
 
-const VisibilityState = require('./visibility-state');
+const VisibilityState = require('./block-data/visibility-state');
 
 // Define identifiers so I can easily rename them later
 const SPRITE_IDENTIFIER = e['id']('SPRITE');

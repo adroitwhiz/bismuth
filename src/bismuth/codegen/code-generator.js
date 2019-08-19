@@ -4,7 +4,8 @@ const ScriptPrims = require('./script-prims');
 const CompiledScript = require('./listener-script');
 const BlockTranslators = require('./block-translators');
 const GeneratorCommon = require('./generator-common');
-const VisibilityState = require('./visibility-state');
+const VisibilityState = require('./block-data/visibility-state');
+const BlockReturnTypes = require('./block-data/block-return-types');
 const Builders = require('./es-builders');
 
 class CodeGenerator {
@@ -103,6 +104,12 @@ class CodeGenerator {
 			inputNode = e['block'](this.compileSubstack(input.value));
 		} else if (input.value instanceof ScriptPrims.Block) {
 			inputNode = this.compileBlock(input.value);
+
+			// Set node type tag to avoid unnecessary casts
+			const returnType = BlockReturnTypes.get(input.value.opcode);
+			if (returnType !== undefined) {
+				inputNode.__typeTag = returnType;
+			}
 		} else {
 			// TODO: find out a less janky way to do this
 			inputNode = input;
@@ -114,7 +121,7 @@ class CodeGenerator {
 		return (input.type !== 'text' || forceCast) ? this.castValue(inputNode, input.type) : inputNode;
 	}
 
-	// TODO: do more stuff here for custom proc defs and others
+	// TODO: this feels like it should be more complete
 	getField (field) {
 		return field.value.value;
 	}

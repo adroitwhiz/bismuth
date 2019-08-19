@@ -4,7 +4,7 @@ const Script = ScriptPrims.Script;
 const Argument = ScriptPrims.Argument;
 const Literal = ScriptPrims.Literal;
 
-const specMap = require('./specmap');
+const specMap = require('./block-data/specmap');
 
 class Parser {
 	constructor () {
