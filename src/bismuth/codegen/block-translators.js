@@ -305,7 +305,7 @@ const BlockTranslators = gen => { return {
 	},
 
 	'looks_changesizeby': block => {
-		// S.scale += Math.max(0, S.scale + CHANGE * 0.01)
+		// S.scale = Math.max(0, S.scale + CHANGE * 0.01)
 		// TODO: change this when sprite size is changed to be a percentage
 		return e['='](
 			Builders.spriteProperty('scale'),
@@ -786,6 +786,15 @@ const BlockTranslators = gen => { return {
 		return Builders.stageProperty('mouseY');
 	},
 
+	'sensing_loudness': () => {
+		// Mic loudness is currently unimplemented, but all reporters must return values or compilation will fail.
+		return e['num'](0);
+	},
+
+	'sensing_loud': () => {
+		return e['false'];
+	},
+
 	'sensing_timer': () => {
 		// ((stage.rightNow() - self.timerStart) / 1000)
 		// Using the cached "stage.now" will freeze warp mode loops that stop after the timer reaches a certain value.
@@ -811,6 +820,30 @@ const BlockTranslators = gen => { return {
 			gen.getInput(block.args['PROPERTY']),
 			gen.getInput(block.args['OBJECT'])
 		]);
+	},
+
+	'sensing_current': block => {
+		return Builders.callRuntimeMethod('timeAndDate', [
+			gen.getInput(block.args['CURRENTMENU'])
+		]);
+	},
+
+	'sensing_dayssince2000': () => {
+		// (Date.now() - epoch) / 86400000
+		return e['/'](
+			e['-'](
+				e['call'](
+					e['.'](
+						e['id']('Date'),
+						e['id']('now')
+					),
+					[]
+				),
+				// runtime property; change this if changing scope stuff
+				e['id']('epoch')
+			),
+			e['num'](86400000)
+		);
 	},
 
 	'sensing_username': () => {

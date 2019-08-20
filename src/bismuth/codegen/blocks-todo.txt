@@ -15,11 +15,6 @@ music_getTempo
 control_while
 control_for_each
 
-sensing_loudness
-sensing_loud
-sensing_current
-sensing_dayssince2000
-
 data_showlist
 data_hidelist
 

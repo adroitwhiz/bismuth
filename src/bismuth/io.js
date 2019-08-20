@@ -204,7 +204,7 @@ IO.loadProject = data => {
 
 IO.wavBuffers = Object.create(null);
 IO.loadWavs = () => {
-	if (P.audioContext) return;
+	if (!P.audioContext) return;
 
 	for (const name in wavFiles) {
 		if (IO.wavBuffers[name]) {

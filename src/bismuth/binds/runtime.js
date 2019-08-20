@@ -154,7 +154,7 @@ const runtime = (function (P) {
 
 	const epoch = Date.UTC(2000, 0, 1);
 
-	const timeAndDate = P.Watcher.timeAndDate;
+	const timeAndDate = P.Watcher.prototype.timeAndDate;
 
 	const getVar = function (name) {
 		return self.vars[name] === undefined ? SPRITE.vars[name] : self.vars[name];
