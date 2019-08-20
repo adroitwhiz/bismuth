@@ -1,7 +1,7 @@
 const CodeGenerator = require('../codegen/code-generator');
 const Parser = require('../codegen/parser');
 const generateJavascriptCode = require('../codegen/emit-javascript');
-const getKeyCode = require('../get-key-code');
+const getKeyCode = require('../util/get-key-code');
 
 const compile = (P => {
 	const EVENT_SELECTOR_MAP = {

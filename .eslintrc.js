@@ -74,7 +74,7 @@ module.exports = {
 	},
 	overrides: [
 		{
-			'files': ['**/compile.js', '**/compile2_old.js', '**/codegen-block.js'],
+			'files': ['**/old-codegen.js'],
 			'rules': {
 				'no-undef': 'off',
 				'no-redeclare': 'off',

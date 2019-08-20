@@ -39,7 +39,7 @@ const runtime = (function (P) {
 	// Tracks whether a visual change was made this frame. If so, yields threads until next frame.
 	let VISUAL;
 
-	const getKeyCode = require('../get-key-code');
+	const getKeyCode = require('../util/get-key-code');
 
 	// Cast to boolean.
 	const bool = function (v) {
