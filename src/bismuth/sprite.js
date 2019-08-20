@@ -1,4 +1,5 @@
 const Base = require('./spritebase');
+const Color = require('./util/color');
 
 const SCALE = window.devicePixelRatio || 1;
 
@@ -19,12 +20,20 @@ class Sprite extends Base {
 		this.spriteInfo = {};
 		this.visible = true;
 
-		this.penHue = 240;
-		this.penSaturation = 100;
-		this.penLightness = 50;
+		this.penState = {
+			penDown: false,
+			hue: 200 / 3,
+			saturation: 100,
+			value: 100,
+			transparency: 0,
+			colorNumeric: null,
+			_shade: 50, // Used by Scratch 2.0 'pen shade' blocks
+			diameter: 1,
 
-		this.penSize = 1;
-		this.isPenDown = false;
+			penCSS: null
+		};
+		this.updatePenCSS();
+
 		this.isSprite = true;
 		this.bubble = null;
 		this.saying = false;
@@ -99,13 +108,14 @@ class Sprite extends Base {
 		c.scratchX = this.scratchX;
 		c.scratchY = this.scratchY;
 		c.visible = this.visible;
-		c.penColor = this.penColor;
-		c.penCSS = this.penCSS;
-		c.penHue = this.penHue;
-		c.penSaturation = this.penSaturation;
-		c.penLightness = this.penLightness;
-		c.penSize = this.penSize;
-		c.isPenDown = this.isPenDown;
+
+		{
+			const keys = Object.keys(this.penState);
+			for (let i = 0; i < keys.length; i++) {
+				const key = keys[i];
+				c.penState[key] = this.penState[key];
+			}
+		}
 
 		return c;
 	}
@@ -131,28 +141,62 @@ class Sprite extends Base {
 	}
 
 	moveTo (x, y) {
-		let ox = this.scratchX;
-		let oy = this.scratchY;
-		if (ox === x && oy === y && !this.isPenDown) return;
+		const ox = this.scratchX;
+		const oy = this.scratchY;
+		if (ox === x && oy === y && !this.penState.penDown) return;
 		this.scratchX = x;
 		this.scratchY = y;
-		if (this.isPenDown && !this.isDragging) {
-			const context = this.stage.penContext;
-			if (this.penSize % 2 > .5 && this.penSize % 2 < 1.5) {
-				ox -= .5;
-				oy -= .5;
-				x -= .5;
-				y -= .5;
-			}
-			context.strokeStyle = this.penCSS || `hsl(${this.penHue},${this.penSaturation}%,${this.penLightness > 100 ? 200 - this.penLightness : this.penLightness}%)`;
-			context.lineWidth = this.penSize;
-			context.beginPath();
-			context.moveTo(240 + ox, 180 - oy);
-			context.lineTo(240 + x, 180 - y);
-			context.stroke();
+		if (this.penState.penDown && !this.isDragging) {
+			this.penLine(ox, oy, x, y);
 		}
 		if (this.saying) {
 			this.updateBubble();
+		}
+	}
+
+	setPenHSVFromNumeric () {
+		const penState = this.penState;
+		const hsv = Color.rgbToHsv(penState.colorNumeric);
+		penState.hue = hsv[0] / 3.6;
+		penState.saturation = hsv[1] * 100;
+		penState.value = hsv[2] * 100;
+		penState._shade = Color.rgbToLightness(penState.colorNumeric);
+		penState.colorNumeric = null;
+	}
+
+	setPenColorLegacy (color) {
+		const penState = this.penState;
+		color = color % 200;
+		if (color < 0) color += 200;
+		const wrappedShade = (penState._shade > 100) ? 200 - penState._shade : penState._shade;
+		const hsv = Color.hslToHsv(color * 1.8, 1, wrappedShade / 100);
+		penState.hue = color * 0.5;
+		penState.saturation = hsv[1] * 100;
+		penState.value = hsv[2] * 100;
+	}
+
+	setPenShadeLegacy (shade) {
+		const penState = this.penState;
+		shade = shade % 200;
+		if (shade < 0) shade += 200;
+		const wrappedShade = (shade > 100) ? 200 - shade : shade;
+		const hsv = Color.hslToHsv(penState.hue, 1, wrappedShade / 100);
+		penState.saturation = hsv[1] * 100;
+		penState.value = hsv[2] * 100;
+		penState._shade = shade;
+	}
+
+	updatePenCSS () {
+		const penState = this.penState;
+		const colorNum = penState.colorNumeric;
+		if (colorNum === null) {
+			const penRGB = Color.hsvToRgb(penState.hue * 3.6, penState.saturation / 100, penState.value / 100);
+			/* eslint-disable-next-line max-len */
+			penState.penCSS = `rgba(${penRGB[0] * 255}, ${penRGB[1] * 255}, ${penRGB[2] * 255}, ${1 - (penState.transparency / 100)})`;
+
+		} else {
+			/* eslint-disable-next-line max-len */
+			penState.penCSS = `rgba(${(colorNum >> 16) & 0xff}, ${(colorNum >> 8) & 0xff}, ${colorNum & 0xff}, ${(((colorNum >> 24) & 0xff) / 0xff) || 1})`;
 		}
 	}
 
@@ -160,10 +204,26 @@ class Sprite extends Base {
 		const context = this.stage.penContext;
 		const x = this.scratchX;
 		const y = this.scratchY;
-		context.fillStyle = this.penCSS || `hsl(${this.penHue},${this.penSaturation}%,${this.penLightness > 100 ? 200 - this.penLightness : this.penLightness}%)`;
+		context.fillStyle = this.penState.penCSS;
 		context.beginPath();
-		context.arc(240 + x, 180 - y, this.penSize / 2, 0, 2 * Math.PI, false);
+		context.arc(240 + x, 180 - y, this.penState.diameter / 2, 0, 2 * Math.PI, false);
 		context.fill();
+	}
+
+	penLine (ox, oy, x, y) {
+		const context = this.stage.penContext;
+		if (this.penState.diameter % 2 > .5 && this.penState.diameter % 2 < 1.5) {
+			ox -= .5;
+			oy -= .5;
+			x -= .5;
+			y -= .5;
+		}
+		context.strokeStyle = this.penState.penCSS;
+		context.lineWidth = this.penState.diameter;
+		context.beginPath();
+		context.moveTo(240 + ox, 180 - oy);
+		context.lineTo(240 + x, 180 - y);
+		context.stroke();
 	}
 
 	penStamp () {

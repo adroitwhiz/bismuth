@@ -36,7 +36,8 @@ class CodeGenerator {
 			outputType === 'math_integer' ||
 			outputType === 'math_whole_number' ||
 			outputType === 'math_positive_number' ||
-			outputType === 'math_angle') { // numeric types
+			outputType === 'math_angle' ||
+			outputType === 'colour_picker') { // numeric types
 
 			// cast to number with unary plus, OR with zero if that fails / input is NaN
 			if (value.__typeTag !== 'number') {

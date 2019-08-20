@@ -145,39 +145,6 @@ const runtime = (function (P) {
 		}
 	};
 
-	const rgb2hsl = function (rgb) {
-		const r = ((rgb >> 16) & 0xff) / 0xff;
-		const g = ((rgb >> 8) & 0xff) / 0xff;
-		const b = (rgb & 0xff) / 0xff;
-
-		const min = Math.min(r, g, b);
-		const max = Math.max(r, g, b);
-
-		if (min === max) {
-			return [0, 0, r * 100];
-		}
-
-		const c = max - min;
-		const l = (min + max) / 2;
-		const s = c / (1 - Math.abs((2 * l) - 1));
-
-		let h;
-		switch (max) {
-			case r:
-				h = (((g - b) / c) + 6) % 6;
-				break;
-			case g:
-				h = ((b - r) / c) + 2;
-				break;
-			case b:
-				h = ((r - g) / c) + 4;
-				break;
-		}
-		h *= 60;
-
-		return [h, s * 100, l * 100];
-	};
-
 	const clone = function (name) {
 		const parent = name === '_myself_' ? SPRITE : self.getObject(name);
 		const c = parent.clone();

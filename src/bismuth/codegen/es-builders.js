@@ -161,7 +161,7 @@ const Builders = {
 				scope === VisibilityState.VisibilityScope.AFFECTS_VISUAL_FOR_VISIBLE_OR_PEN_DOWN ?
 					e ['||'](
 						Builders.spriteProperty('visible'),
-						Builders.spriteProperty('isPenDown')
+						e['.'](Builders.spriteProperty('penState'), e['id']('penDown'))
 					) :
 					Builders.spriteProperty('visible'),
 				
@@ -193,6 +193,17 @@ const Builders = {
 		return e['if'](
 			Builders.spriteProperty('saying'),
 			Builders.callSpriteMethod('updateBubble', [])
+		);
+	},
+
+	// Update the current sprite's HSV pen state if a numeric pen color is set.
+	setPenHSVIfNumeric: () => {
+		return e['if'](
+			e['!=='](
+				e['.'](Builders.spriteProperty('penState'), e['id']('colorNumeric')),
+				e['null']()
+			),
+			Builders.callSpriteMethod('setPenHSVFromNumeric', [])
 		);
 	},
 

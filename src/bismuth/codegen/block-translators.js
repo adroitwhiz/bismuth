@@ -787,10 +787,12 @@ const BlockTranslators = gen => { return {
 	},
 
 	'sensing_timer': () => {
-		// ((self.now - self.timerStart) / 1000)
+		// ((stage.rightNow() - self.timerStart) / 1000)
+		// Using the cached "stage.now" will freeze warp mode loops that stop after the timer reaches a certain value.
+		// Despite causing two demo projects to freeze the browser, this bug was in the original codegen. Thanks Nathan.
 		return e['/'](
 			e['-'](
-				Builders.stageProperty('now'),
+				Builders.callStageMethod('rightNow', []),
 				Builders.stageProperty('timerStart')
 			),
 			e['num'](1000)
@@ -1140,13 +1142,107 @@ const BlockTranslators = gen => { return {
 
 	'pen_penDown': () => {
 		return e['block']([
-			e['='](Builders.spriteProperty('isPenDown'), e['true']()),
+			e['='](e['.'](Builders.spriteProperty('penState'), e['id']('penDown')), e['true']()),
 			Builders.callSpriteMethod('penDot', [])
 		]);
 	},
 
 	'pen_penUp': () => {
-		return e['='](Builders.spriteProperty('isPenDown'), e['false']());
+		return e['='](e['.'](Builders.spriteProperty('penState'), e['id']('penDown')), e['false']());
+	},
+
+	'pen_setPenColorToColor': block => {
+		const penColor = e['.'](Builders.spriteProperty('penState'), e['id']('colorNumeric'));
+		return e['block']([
+			e['='](
+				penColor,
+				gen.getInput(block.args['COLOR'])
+			),
+			Builders.callSpriteMethod('updatePenCSS', [])
+		]);
+	},
+
+	'pen_changePenHueBy': block => {
+		// The stored pen hue is in Scratch 3.0 form (0-100). 2.0 goes from 0-200, so double it.
+		return e['block']([
+			Builders.setPenHSVIfNumeric(),
+			Builders.callSpriteMethod('setPenColorLegacy', [
+				e['+'](
+					e['*'](
+						e['.'](Builders.spriteProperty('penState'), e['id']('hue')),
+						e['num'](2)
+					),
+					gen.getInput(block.args['HUE'])
+				)
+			]),
+			Builders.callSpriteMethod('updatePenCSS', [])
+		]);
+	},
+
+	'pen_setPenHueToNumber': block => {
+		return e['block']([
+			Builders.setPenHSVIfNumeric(),
+			Builders.callSpriteMethod('setPenColorLegacy', [gen.getInput(block.args['HUE'])]),
+			Builders.callSpriteMethod('updatePenCSS', [])
+		]);
+	},
+
+	'pen_changePenShadeBy': block => {
+		return e['block']([
+			Builders.setPenHSVIfNumeric(),
+			Builders.callSpriteMethod('setPenShadeLegacy', [
+				e['+'](
+					e['.'](Builders.spriteProperty('penState'), e['id']('_shade')),
+					gen.getInput(block.args['SHADE'])
+				)
+			]),
+			Builders.callSpriteMethod('updatePenCSS', [])
+		]);
+	},
+
+	'pen_setPenShadeToNumber': block => {
+		return e['block']([
+			Builders.setPenHSVIfNumeric(),
+			Builders.callSpriteMethod('setPenShadeLegacy', [gen.getInput(block.args['SHADE'])]),
+			Builders.callSpriteMethod('updatePenCSS', [])
+		]);
+	},
+
+	'pen_changePenSizeBy': block => {
+		// let size = SPRITE.penState.diameter + SIZE;
+		// SPRITE.penState.diameter = Math.max(size, 1);
+		const penDiameter = e['.'](Builders.spriteProperty('penState'), e['id']('diameter'));
+		return e['block']([
+			e['let'](
+				e['id']('size'),
+				e['+'](
+					penDiameter,
+					gen.getInput(block.args['SIZE'])
+				)
+			),
+			e['='](
+				penDiameter,
+				Builders.callMathFunction('max', [
+					e['id']('size'),
+					e['num'](1)
+				])
+			)
+		]);
+	},
+
+	'pen_setPenSizeTo': block => {
+		// let size = SIZE;
+		// SPRITE.penState.diameter = Math.max(size, 1);
+		return e['block']([
+			e['let'](e['id']('size'), gen.getInput(block.args['SIZE'])),
+			e['='](
+				e['.'](Builders.spriteProperty('penState'), e['id']('diameter')),
+				Builders.callMathFunction('max', [
+					e['id']('size'),
+					e['num'](1)
+				])
+			)
+		]);
 	}
 }; };
 
