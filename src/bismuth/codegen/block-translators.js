@@ -286,6 +286,69 @@ const BlockTranslators = gen => { return {
 		]);
 	},
 
+	'looks_switchbackdroptoandwait': (block, index, script) => {
+		// Like regular "switch backdrop", but stored on the stack with a 'wait until' loop in there.
+		// save();
+		// stage.setCostume(BACKDROP);
+		// R.threads = sceneChange();
+		// if (R.threads.indexOf(BASE) !== -1) return;
+		// Then create an idle loop that checks each call whether the started threads are done,
+		// and continues with the rest of the script once they are.
+
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitLoop = gen.commonGenerators.waitUntilCondition(
+			e['!'](Builders.callRuntimeMethod('running', [Builders.RProperty('threads')])),
+			e['block']([
+				Builders.restore(),
+				Builders.immediateCall(continuationID)
+			])
+		);
+
+		return e['block']([
+			Builders.save(),
+			Builders.callStageMethod('setCostume', [gen.getInput(block.args['BACKDROP'])]),
+			e['='](
+				Builders.RProperty('threads'),
+				Builders.callRuntimeMethod('sceneChange', [])
+			),
+			e['if'](
+				e['!=='](
+					e['call'](
+						e['.'](Builders.RProperty('threads'), e['id']('indexOf')),
+						[e['id']('BASE')]
+					),
+					e['num'](-1)
+				),
+				e['return']()
+			),
+			Builders.forceQueue(waitLoop)
+		]);
+	},
+
+	'looks_nextbackdrop': () => {
+		// stage.showNextCostume();
+		// if (sceneChange().indexOf(BASE) !== -1) return;
+		// TODO: figure this out
+		return e['block']([
+			Builders.callStageMethod('showNextCostume', []),
+			e['if'](
+				e['!=='](
+					e['call'](
+						e['.'](
+							Builders.callRuntimeMethod('sceneChange', []),
+							e['id']('indexOf')
+						),
+						[Builders.CONSTANTS.BASE_IDENTIFIER]
+					),
+					e['num'](-1)
+				),
+				e['return']()
+			)
+		]);
+	},
+
 	'looks_changeeffectby': block => {
 		return Builders.callSpriteMethod('changeFilter', [
 			gen.getInput(block.args['EFFECT']),
@@ -1276,6 +1339,124 @@ const BlockTranslators = gen => { return {
 				])
 			)
 		]);
+	},
+
+	// Music
+	'music_playDrumForBeats': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		// timer duration = BEATS * 60000 / stage.tempoBPM
+		// playSpan(DRUMS[DRUM - 1] || DRUMS[2], 60, 10)
+		return gen.commonGenerators.createTimer(
+			Builders.musicDuration(gen.getInput(block.args['BEATS'])),
+			Builders.immediateCall(continuationID),
+			Builders.callRuntimeMethod('playSpan', [
+				// runtime property; change this if changing scope stuff
+				e['||'](
+					e['get'](
+						e['id']('DRUMS'),
+						e['-'](
+							gen.getInput(block.args['DRUM']),
+							e['num'](1)
+						)
+					),
+					e['get'](
+						e['id']('DRUMS'),
+						e['num'](2)
+					)
+				),
+				e['num'](60),
+				e['num'](10)
+			])
+		);
+	},
+
+	'music_restForBeats': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		// timer duration = BEATS * 60000 / stage.tempoBPM
+		return gen.commonGenerators.createTimer(
+			Builders.musicDuration(gen.getInput(block.args['BEATS'])),
+			Builders.immediateCall(continuationID)
+		);
+	},
+
+	'music_playNoteForBeats': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		// timer duration = BEATS * 60000 / stage.tempoBPM
+		// playNote(NOTE, timer duration)
+		return gen.commonGenerators.createTimer(
+			e['id']('duration'),
+			Builders.immediateCall(continuationID),
+			e['block']([
+				e['let'](e['id']('duration'), Builders.musicDuration(gen.getInput(block.args['BEATS']))),
+				Builders.callRuntimeMethod('playNote', [
+					gen.getInput(block.args['NOTE']),
+					e['id']('duration')
+				])
+			])
+			
+		);
+	},
+
+	'music_setInstrument': block => {
+		// Clamp instrument to range of possible instruments with Math.min and Math.max
+		return e['='](
+			Builders.spriteProperty('instrument'),
+			Builders.callMathFunction('max', [
+				e['num'](0),
+				Builders.callMathFunction('min', [
+					e['-'](
+						gen.getInput(block.args['INSTRUMENT']),
+						e['num'](1)
+					),
+					e['-'](
+						// runtime property; change this if changing scope stuff
+						e['.'](e['id']('INSTRUMENTS'), e['id']('length')),
+						e['num'](1)
+					)
+				])
+			])
+		);
+	},
+
+	'music_changeTempo': block => {
+		// Clamp tempo between 20 and 500 BPM
+		return e['='](
+			Builders.stageProperty('tempoBPM'),
+			Builders.callMathFunction('max', [
+				e['num'](20),
+				Builders.callMathFunction('min', [
+					e['+'](
+						gen.getInput(block.args['TEMPO']),
+						Builders.stageProperty('tempoBPM')
+					),
+					e['num'](500)
+				])
+			])
+		);
+	},
+
+	'music_setTempo': block => {
+		// Clamp tempo between 20 and 500 BPM
+		return e['='](
+			Builders.stageProperty('tempoBPM'),
+			Builders.callMathFunction('max', [
+				e['num'](20),
+				Builders.callMathFunction('min', [
+					gen.getInput(block.args['TEMPO']),
+					e['num'](500)
+				])
+			])
+		);
+	},
+
+	'music_getTempo': () => {
+		return Builders.stageProperty('tempoBPM');
 	}
 }; };
 

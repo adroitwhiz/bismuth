@@ -37,7 +37,9 @@ class CodeGenerator {
 			outputType === 'math_whole_number' ||
 			outputType === 'math_positive_number' ||
 			outputType === 'math_angle' ||
-			outputType === 'colour_picker') { // numeric types
+			outputType === 'colour_picker' ||
+			outputType === 'music_menu_DRUM' ||
+			outputType === 'music_menu_INSTRUMENT') { // numeric types
 
 			// cast to number with unary plus, OR with zero if that fails / input is NaN
 			if (value.__typeTag !== 'number') {
@@ -45,7 +47,9 @@ class CodeGenerator {
 			}
 
 			if (outputType === 'math_integer' ||
-				outputType === 'math_whole_number') {
+				outputType === 'math_whole_number' ||
+				outputType === 'music_menu_DRUM' ||
+				outputType === 'music_menu_INSTRUMENT') {
 				
 				// ROUND number types
 				// call Math.round

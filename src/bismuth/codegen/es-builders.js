@@ -207,6 +207,14 @@ const Builders = {
 		);
 	},
 
+	// Expression for music block duration in milliseconds, given number of beats.
+	musicDuration: beats => {
+		return e['*'](
+			beats,
+			e['/'](e['num'](60000), Builders.stageProperty('tempoBPM'))
+		);
+	},
+
 	CONSTANTS: {
 		SPRITE_IDENTIFIER: SPRITE_IDENTIFIER,
 		STAGE_IDENTIFIER: STAGE_IDENTIFIER,

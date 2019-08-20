@@ -1,16 +1,6 @@
-looks_switchbackdroptoandwait
-looks_nextbackdrop
-
-music_playDrumForBeats
-music_restForBeats
-music_playNoteForBeats
-music_setInstrument
 music_midiSetInstrument
 sound_changevolumeby
 sound_setvolumeto
-music_changeTempo
-music_setTempo
-music_getTempo
 
 control_while
 control_for_each

@@ -326,7 +326,7 @@ const runtime = (function (P) {
 				var span = spans[i];
 				if (span.top >= id || span.top === 128) break;
 			}
-			playSpan(span, Math.max(0, Math.min(127, id)), duration);
+			playSpan(span, Math.max(0, Math.min(127, id)), duration * 0.001);
 		};
 
 		var playSpan = function (span, id, duration) {
