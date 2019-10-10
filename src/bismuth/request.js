@@ -1,36 +1,61 @@
-const Events = require('./events');
-
 class Request {
 	constructor () {
 		this.loaded = 0;
+		this.listeners = {
+			load: [],
+			progress: [],
+			error: []
+		};
+	}
+
+	on (event, callback) {
+		if (this.listeners.hasOwnProperty(event)) {
+			const listeners = this.listeners[event];
+
+			listeners.push(callback);
+		} else {
+			console.warn(`Unknown event '${event}'`);
+		}
+
+		return this;
+	}
+
+	dispatchEvent (event, result) {
+		if (this.listeners.hasOwnProperty(event)) {
+			for (const listener of this.listeners[event]) {
+				listener(result);
+			}
+		} else {
+			console.warn(`Unknown event '${event}'`);
+		}
+
+		return this;
+	}
+
+	load (result) {
+		this.result = result;
+		this.isDone = true;
+		this.dispatchEvent('load', result);
 	}
 
 	progress (loaded, total, lengthComputable) {
 		this.loaded = loaded;
 		this.total = total;
 		this.lengthComputable = lengthComputable;
-		this.dispatchProgress({
+		this.dispatchEvent('progress', {
 			loaded: loaded,
 			total: total,
 			lengthComputable: lengthComputable
 		});
 	}
 
-	load (result) {
-		this.result = result;
-		this.isDone = true;
-		this.dispatchLoad(result);
-	}
-
 	error (error) {
 		this.result = error;
 		this.isError = true;
 		this.isDone = true;
-		this.dispatchError(error);
+		this.dispatchEvent('error', error);
 	}
 }
-
-Events.addEvents(Request, 'load', 'progress', 'error');
 
 class CompositeRequest extends Request {
 	constructor () {
@@ -49,9 +74,9 @@ class CompositeRequest extends Request {
 			}
 		} else {
 			this.requests.push(request);
-			request.addEventListener('progress', this.update);
-			request.addEventListener('load', this.update);
-			request.addEventListener('error', this.error);
+			request.on('progress', this.update);
+			request.on('load', this.update);
+			request.on('error', this.error);
 			this.update();
 		}
 	}

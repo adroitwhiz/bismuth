@@ -29,7 +29,7 @@ IO.load = (url, callback, type) => {
 		request.progress(e.loaded, e.total, e.lengthComputable);
 	};
 	xhr.onload = () => {
-		console.log(xhr);
+		// console.log(xhr);
 		if (xhr.status === 200) {
 			request.load(xhr.response);
 		} else {
@@ -42,7 +42,7 @@ IO.load = (url, callback, type) => {
 	xhr.responseType = type || '';
 	setTimeout(xhr.send.bind(xhr));
 
-	if (callback) request.onLoad(callback);
+	if (callback) request.on('load', callback);
 	return request;
 };
 
@@ -58,23 +58,22 @@ IO.loadImage = (url, callback, self) => {
 	image.onerror = () => {
 		request.error(new Error(`Failed to load image: ${url}`));
 	};
-	if (callback) request.onLoad(callback.bind(self));
+	if (callback) request.on('load', callback.bind(self));
 	return request;
 };
 
-IO.loadScratchr2Project = (id, callback, self) => {
+IO.loadScratchr2Project = id => {
 	const request = new Request.CompositeRequest();
 	IO.init(request);
 
 	request.defer = true;
 	const projectURL = IO.PROJECT_URL + id;
-	request.add(IO.load(projectURL).onLoad(contents => {
+	request.add(IO.load(projectURL).on('load', contents => {
 		try {
 			const json = parseJSONish(contents);
 
 			try {
 				IO.loadProject(json);
-				if (callback) request.onLoad(callback.bind(self));
 				if (request.isDone) {
 					request.load(new Stage().fromJSON(json));
 				} else {
@@ -85,7 +84,7 @@ IO.loadScratchr2Project = (id, callback, self) => {
 				request.error(e);
 			}
 		} catch (e) {
-			request.add(IO.load(projectURL, null, 'arraybuffer').onLoad(ab => {
+			request.add(IO.load(projectURL, null, 'arraybuffer').on('load', ab => {
 				const request2 = new Request.Request();
 				request.add(request2);
 				request.add(IO.loadSB2Project(ab, stage => {
@@ -105,9 +104,9 @@ IO.loadScratchr2ProjectTitle = (id, callback, self) => {
 	const request = new Request.CompositeRequest();
 
 	request.defer = true;
-	request.add(P.IO.load(IO.PROJECT_API_URL + id).onLoad(data => {
+	request.add(P.IO.load(IO.PROJECT_API_URL + id).on('load', data => {
 		const m = JSON.parse(data).title;
-		if (callback) request.onLoad(callback.bind(self));
+		if (callback) request.on('load', callback.bind(self));
 		if (m) {
 			request.load(m);
 		} else {
@@ -118,40 +117,19 @@ IO.loadScratchr2ProjectTitle = (id, callback, self) => {
 	return request;
 };
 
-IO.loadJSONProject = (json, callback, self) => {
-	const request = new Request.CompositeRequest();
-	IO.init(request);
-
-	try {
-		IO.loadProject(json);
-		if (callback) request.onLoad(callback.bind(self));
-		if (request.isDone) {
-			request.load(new Stage().fromJSON(json));
-		} else {
-			request.defer = false;
-			request.getResult = () => new Stage().fromJSON(json);
-		}
-	} catch (e) {
-		request.error(e);
-	}
-
-	return request;
-};
-
 IO.loadSB2Project = (ab, callback, self) => {
 	const request = new Request.CompositeRequest();
 	IO.init(request);
 
 	try {
-		IO.zip = Object.prototype.toString.call(ab) === '[object ArrayBuffer]' ? new JSZip(ab) : ab;
+		IO.zip = ab instanceof ArrayBuffer ? new JSZip(ab) : ab;
 		const json = parseJSONish(IO.zip.file('project.json').asText());
 
 		IO.loadProject(json);
-		if (callback) request.onLoad(callback.bind(self));
+		if (callback) request.on('load', callback.bind(self));
 		if (request.isDone) {
 			request.load(new Stage().fromJSON(json));
 		} else {
-			request.defer = false;
 			request.getResult = () => new Stage().fromJSON(json);
 		}
 	} catch (e) {
@@ -161,7 +139,7 @@ IO.loadSB2Project = (ab, callback, self) => {
 	return request;
 };
 
-IO.loadSB2File = (f, callback, self) => {
+IO.loadSB2File = (file, callback, self) => {
 	const cr = new Request.CompositeRequest();
 	cr.defer = true;
 	const request = new Request.Request();
@@ -179,8 +157,8 @@ IO.loadSB2File = (f, callback, self) => {
 	reader.onprogress = e => {
 		request.progress(e.loaded, e.total, e.lengthComputable);
 	};
-	reader.readAsArrayBuffer(f);
-	if (callback) cr.onLoad(callback.bind(self));
+	reader.readAsArrayBuffer(file);
+	if (callback) cr.on('load', callback.bind(self));
 	return cr;
 };
 
@@ -212,7 +190,7 @@ IO.loadInstrumentBuffer = name => {
 			IO.instrumentBuffers[name] = buffer;
 			request.load();
 		});
-	}, 'arraybuffer').onError(err => {
+	}, 'arraybuffer').on('error', err => {
 		request.error(err);
 	});
 	return request;

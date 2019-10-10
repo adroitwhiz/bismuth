@@ -251,9 +251,6 @@
 
 				setTimeout(function() {
 					function setTransition(el) {
-						el.style.WebkitTransition =
-						el.style.MozTransition =
-						el.style.OTransition =
 						el.style.transition = 'height 0.2s';
 					}
 					setTransition(titleArea);
@@ -279,8 +276,6 @@
 						var ext = f.name.split('.').pop();
 						if (ext === 'sb2' || ext === 'zip') {
 							var request = P.IO.loadSB2File(f);
-						} else if (ext === 'json') {
-							request = P.IO.loadJSONFile(f);
 						}
 						if (request) {
 							P.player.showProgress(request, function(stage) {
@@ -299,8 +294,6 @@
 						var ext = f.name.split('.').pop();
 						if (ext === 'sb2' || ext === 'zip') {
 							var request = P.IO.loadSB2File(f);
-						} else if (ext === 'json') {
-							request = P.IO.loadJSONFile(f);
 						}
 						if (request) {
 							P.player.showProgress(request, function(stage) {

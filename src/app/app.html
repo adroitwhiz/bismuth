@@ -97,7 +97,7 @@
 
 				var request = P.IO.loadScratchr2Project(projectId);
 
-				request.onload = function (s) {
+				request.on('load', function (s) {
 					splash.style.display = 'none';
 
 					stage = s;
@@ -110,11 +110,11 @@
 					player.appendChild(s.root);
 					s.focus();
 					s.handleError = showError;
-				};
-				request.onerror = showError;
-				request.onprogress = function (e) {
+				});
+				request.on('error', showError);
+				request.on('progress', function (e) {
 					progressBar.style.width = (10 + e.loaded / e.total * 90) + '%';
-				};
+				});
 
 				P.IO.loadScratchr2ProjectTitle(projectId, function(title) {
 					document.title = projectTitle = title;

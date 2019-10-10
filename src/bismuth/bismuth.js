@@ -7,9 +7,8 @@ const P = (() => {
 
 	const hasTouchEvents = 'ontouchstart' in document;
 
-	const AudioContext = window.AudioContext || window.webkitAudioContext;
-	const audioContext = AudioContext && new AudioContext();
-	window.audioContext = audioContext;
+	const AudioContext = window.AudioContext;
+	const audioContext = AudioContext ? new AudioContext() : null;
 
 	return {
 		hasTouchEvents: hasTouchEvents,

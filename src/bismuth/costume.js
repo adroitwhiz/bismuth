@@ -1,5 +1,3 @@
-const Events = require('./events');
-
 class Costume {
 	constructor (data, index, base) {
 		this.index = index;
@@ -18,11 +16,10 @@ class Costume {
 		this.context = this.image.getContext('2d');
 
 		this.render();
-		this.baseLayer.onload = () => {
-			this.render();
-		};
+
+		this.baseLayer.addEventListener('load', this.render);
 		if (this.textLayer) {
-			this.textLayer.onload = this.baseLayer.onload;
+			this.textLayer.addEventListener('load', this.render);
 		}
 	}
 
@@ -44,7 +41,5 @@ class Costume {
 		}
 	}
 }
-
-Events.addEvents(Costume, 'load');
 
 module.exports = Costume;

@@ -212,7 +212,7 @@ var player = (function (P) {
 			progressBar.style.opacity = 1;
 			progressBar.style.display = 'block';
 		});
-		request.onload = function (s) {
+		request.on('load', function (s) {
 			progressBar.style.width = '100%';
 			setTimeout(function () {
 				progressBar.style.opacity = 0;
@@ -235,15 +235,15 @@ var player = (function (P) {
 				loadCallback(stage);
 				loadCallback = null;
 			}
-		};
-		request.onerror = function (e) {
+		});
+		request.on('error', function (e) {
 			progressBar.style.width = '100%';
 			progressBar.className = 'progress-bar error';
 			console.error(e, e.stack);
-		};
-		request.onprogress = function (e) {
+		});
+		request.on('progress', function (e) {
 			progressBar.style.width = `${10 + (e.loaded / e.total * 90)}%`;
-		};
+		});
 	}
 
 	return {

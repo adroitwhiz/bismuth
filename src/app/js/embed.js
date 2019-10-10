@@ -1,4 +1,4 @@
-(function (global) {
+(function () {
 	'use strict';
 
 	const script = document.currentScript || (function (scripts) {
@@ -24,4 +24,4 @@
 	iframe.className = 'Bismuth';
 
 	script.parentNode.replaceChild(iframe, script);
-}(this));
+}());
