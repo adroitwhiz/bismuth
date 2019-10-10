@@ -46,8 +46,7 @@ IO.load = (url, callback, type) => {
 	return request;
 };
 
-IO.loadImage = (url, callback, self) => {
-	console.log(`load image ${url}`);
+IO.loadImage = (url, callback) => {
 	const request = new Request.Request();
 	const image = new Image();
 	image.crossOrigin = 'anonymous';
@@ -58,7 +57,7 @@ IO.loadImage = (url, callback, self) => {
 	image.onerror = () => {
 		request.error(new Error(`Failed to load image: ${url}`));
 	};
-	if (callback) request.on('load', callback.bind(self));
+	if (callback) request.on('load', callback);
 	return request;
 };
 
@@ -100,13 +99,13 @@ IO.loadScratchr2Project = id => {
 	return request;
 };
 
-IO.loadScratchr2ProjectTitle = (id, callback, self) => {
+IO.loadScratchr2ProjectTitle = (id, callback) => {
 	const request = new Request.CompositeRequest();
 
 	request.defer = true;
 	request.add(P.IO.load(IO.PROJECT_API_URL + id).on('load', data => {
 		const m = JSON.parse(data).title;
-		if (callback) request.on('load', callback.bind(self));
+		if (callback) request.on('load', callback);
 		if (m) {
 			request.load(m);
 		} else {
@@ -117,7 +116,7 @@ IO.loadScratchr2ProjectTitle = (id, callback, self) => {
 	return request;
 };
 
-IO.loadSB2Project = (ab, callback, self) => {
+IO.loadSB2Project = (ab, callback) => {
 	const request = new Request.CompositeRequest();
 	IO.init(request);
 
@@ -126,7 +125,7 @@ IO.loadSB2Project = (ab, callback, self) => {
 		const json = parseJSONish(IO.zip.file('project.json').asText());
 
 		IO.loadProject(json);
-		if (callback) request.on('load', callback.bind(self));
+		if (callback) request.on('load', callback);
 		if (request.isDone) {
 			request.load(new Stage().fromJSON(json));
 		} else {
@@ -139,7 +138,7 @@ IO.loadSB2Project = (ab, callback, self) => {
 	return request;
 };
 
-IO.loadSB2File = (file, callback, self) => {
+IO.loadSB2File = (file, callback) => {
 	const cr = new Request.CompositeRequest();
 	cr.defer = true;
 	const request = new Request.Request();
@@ -158,7 +157,7 @@ IO.loadSB2File = (file, callback, self) => {
 		request.progress(e.loaded, e.total, e.lengthComputable);
 	};
 	reader.readAsArrayBuffer(file);
-	if (callback) cr.on('load', callback.bind(self));
+	if (callback) cr.on('load', callback);
 	return cr;
 };
 
