@@ -44,8 +44,6 @@ const fixSVG = (svg, element) => {
 				element.appendChild(tspan);
 			}
 		}
-		// svg.style.cssText = '';
-		// console.log(element.textContent, 'data:image/svg+xml;base64,' + btoa(svg.outerHTML));
 	} else if ((element.hasAttribute('x') || element.hasAttribute('y')) && element.hasAttribute('transform')) {
 		element.setAttribute('x', 0);
 		element.setAttribute('y', 0);

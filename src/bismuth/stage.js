@@ -45,7 +45,6 @@ class Stage extends Base {
 		this.root.style.fontSize = '10px';
 		this.root.style.background = '#fff';
 		this.root.style.contain = 'strict';
-		this.root.style.WebkitUserSelect =
 		this.root.style.MozUserSelect =
 		this.root.style.MSUserSelect =
 		this.root.style.WebkitUserSelect = 'none';

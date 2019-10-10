@@ -5,8 +5,6 @@ const MAX_IMMEDIATE_CALLS = 10000000;
 const runtime = (function (P) {
 	'use strict';
 
-	// var self, SPRITE, STACK_FRAME, STACK, C, WARP, CALLS, BASE, THREAD, IMMEDIATE, VISUAL;
-
 	// The stage. Not sure why it's named this way.
 	let self;
 
@@ -314,7 +312,7 @@ const runtime = (function (P) {
 
 	const audioContext = P.audioContext;
 	if (audioContext) {
-		var wavBuffers = P.IO.wavBuffers;
+		var instrumentBuffers = P.IO.instrumentBuffers;
 
 		var volumeNode = audioContext.createGain();
 		volumeNode.gain.value = VOLUME;
@@ -338,7 +336,7 @@ const runtime = (function (P) {
 
 			var source = audioContext.createBufferSource();
 			var note = audioContext.createGain();
-			var buffer = wavBuffers[span.name];
+			var buffer = instrumentBuffers[span.name];
 			if (!buffer) return;
 
 			source.buffer = buffer;

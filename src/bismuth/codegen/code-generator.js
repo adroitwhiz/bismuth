@@ -1,7 +1,7 @@
 const e = require('estree-builder');
 
 const ScriptPrims = require('./script-prims');
-const CompiledScript = require('./listener-script');
+const CompiledScript = require('./compiled-script');
 const BlockTranslators = require('./block-translators');
 const GeneratorCommon = require('./generator-common');
 const VisibilityState = require('./block-data/visibility-state');

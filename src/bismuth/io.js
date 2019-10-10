@@ -1,17 +1,19 @@
-const Stage = require('./stage');
 const canvg = require('canvg');
-const Request = require('./request');
 const JSZip = require('jszip');
 
-const wavFiles = require('./io/instrument-wavs.js');
+const Request = require('./request');
+const Stage = require('./stage');
 
 const decodeADPCMAudio = require('./io/decode-adpcm-audio.js');
 const fixSVG = require('./io/fix-svg.js');
+const instruments = require('./io/instrument-wavs.js');
+const parseJSONish = require('./io/parse-jsonish.js');
 
 const IO = {};
 
-IO.PROJECT_URL = 'https://projects.scratch.mit.edu/internalapi/project/';
-IO.ASSET_URL = 'https://cdn.assets.scratch.mit.edu/internalapi/asset/';
+IO.PROJECT_URL = 'https://projects.scratch.mit.edu/';
+IO.PROJECT_API_URL = 'https://cors-anywhere.herokuapp.com/https://api.scratch.mit.edu/projects/';
+IO.ASSET_URL = 'https://assets.scratch.mit.edu/internalapi/asset/';
 IO.SOUNDBANK_URL = 'https://cdn.rawgit.com/LLK/scratch-flash/v429/src/soundbank/';
 
 IO.init = request => {
@@ -19,22 +21,7 @@ IO.init = request => {
 	IO.zip = null;
 };
 
-// Some Scratch 2.0 project.json files aren't actually JSON and must be eval'd as JavaScript.
-IO.parseJSONish = json => {
-	if (!/^\s*\{/.test(json)) throw new SyntaxError('Bad JSON');
-	try {
-		return JSON.parse(json);
-	} catch (e) {
-		// let's play guess the regex
-		if (/[^,:{}\[\]0-9\.\-+EINaefilnr-uy \n\r\t]/.test(json.replace(/"(\\.|[^"\\])*"/g, ''))) {
-			throw new SyntaxError('Bad JSON');
-		}
-		return (1, eval)('(' + json + ')');
-	}
-	
-};
-
-IO.load = (url, callback, self, type) => {
+IO.load = (url, callback, type) => {
 	const request = new Request.Request();
 	const xhr = new XMLHttpRequest();
 	xhr.open('GET', url, true);
@@ -42,6 +29,7 @@ IO.load = (url, callback, self, type) => {
 		request.progress(e.loaded, e.total, e.lengthComputable);
 	};
 	xhr.onload = () => {
+		console.log(xhr);
 		if (xhr.status === 200) {
 			request.load(xhr.response);
 		} else {
@@ -54,11 +42,12 @@ IO.load = (url, callback, self, type) => {
 	xhr.responseType = type || '';
 	setTimeout(xhr.send.bind(xhr));
 
-	if (callback) request.onLoad(callback.bind(self));
+	if (callback) request.onLoad(callback);
 	return request;
 };
 
 IO.loadImage = (url, callback, self) => {
+	console.log(`load image ${url}`);
 	const request = new Request.Request();
 	const image = new Image();
 	image.crossOrigin = 'anonymous';
@@ -78,12 +67,25 @@ IO.loadScratchr2Project = (id, callback, self) => {
 	IO.init(request);
 
 	request.defer = true;
-	const url = IO.PROJECT_URL + id + '/get/';
-	request.add(IO.load(url).onLoad(contents => {
+	const projectURL = IO.PROJECT_URL + id;
+	request.add(IO.load(projectURL).onLoad(contents => {
 		try {
-			var json = IO.parseJSONish(contents);
+			const json = parseJSONish(contents);
+
+			try {
+				IO.loadProject(json);
+				if (callback) request.onLoad(callback.bind(self));
+				if (request.isDone) {
+					request.load(new Stage().fromJSON(json));
+				} else {
+					request.defer = false;
+					request.getResult = () => new Stage().fromJSON(json);
+				}
+			} catch (e) {
+				request.error(e);
+			}
 		} catch (e) {
-			request.add(IO.load(url, null, null, 'arraybuffer').onLoad(ab => {
+			request.add(IO.load(projectURL, null, 'arraybuffer').onLoad(ab => {
 				const request2 = new Request.Request();
 				request.add(request2);
 				request.add(IO.loadSB2Project(ab, stage => {
@@ -94,18 +96,6 @@ IO.loadScratchr2Project = (id, callback, self) => {
 			}));
 			return;
 		}
-		try {
-			IO.loadProject(json);
-			if (callback) request.onLoad(callback.bind(self));
-			if (request.isDone) {
-				request.load(new Stage().fromJSON(json));
-			} else {
-				request.defer = false;
-				request.getResult = () => new Stage().fromJSON(json);
-			}
-		} catch (e) {
-			request.error(e);
-		}
 	}));
 
 	return request;
@@ -115,13 +105,11 @@ IO.loadScratchr2ProjectTitle = (id, callback, self) => {
 	const request = new Request.CompositeRequest();
 
 	request.defer = true;
-	request.add(P.IO.load(`https://scratch.mit.edu/projects/${id}/`).onLoad(data => {
-		const m = /<title>\s*(.+?)(\s+on\s+Scratch)?\s*<\/title>/.exec(data);
+	request.add(P.IO.load(IO.PROJECT_API_URL + id).onLoad(data => {
+		const m = JSON.parse(data).title;
 		if (callback) request.onLoad(callback.bind(self));
 		if (m) {
-			const d = document.createElement('div');
-			d.innerHTML = m[1];
-			request.load(d.innerText);
+			request.load(m);
 		} else {
 			request.error(new Error('No title'));
 		}
@@ -156,7 +144,7 @@ IO.loadSB2Project = (ab, callback, self) => {
 
 	try {
 		IO.zip = Object.prototype.toString.call(ab) === '[object ArrayBuffer]' ? new JSZip(ab) : ab;
-		const json = IO.parseJSONish(IO.zip.file('project.json').asText());
+		const json = parseJSONish(IO.zip.file('project.json').asText());
 
 		IO.loadProject(json);
 		if (callback) request.onLoad(callback.bind(self));
@@ -197,34 +185,34 @@ IO.loadSB2File = (f, callback, self) => {
 };
 
 IO.loadProject = data => {
-	IO.loadWavs();
+	IO.loadInstruments();
 	IO.loadArray(data.children, IO.loadObject);
 	IO.loadBase(data);
 };
 
-IO.wavBuffers = Object.create(null);
-IO.loadWavs = () => {
+IO.instrumentBuffers = Object.create(null);
+IO.loadInstruments = () => {
 	if (!P.audioContext) return;
 
-	for (const name in wavFiles) {
-		if (IO.wavBuffers[name]) {
-			if (IO.wavBuffers[name] instanceof Request.Request) {
-				IO.projectRequest.add(IO.wavBuffers[name]);
+	for (const name in instruments) {
+		if (IO.instrumentBuffers[name]) {
+			if (IO.instrumentBuffers[name] instanceof Request.Request) {
+				IO.projectRequest.add(IO.instrumentBuffers[name]);
 			}
 		} else {
-			IO.projectRequest.add(IO.wavBuffers[name] = IO.loadWavBuffer(name));
+			IO.projectRequest.add(IO.instrumentBuffers[name] = IO.loadInstrumentBuffer(name));
 		}
 	}
 };
 
-IO.loadWavBuffer = name => {
+IO.loadInstrumentBuffer = name => {
 	const request = new Request.Request();
-	IO.load(IO.SOUNDBANK_URL + wavFiles[name], ab => {
+	IO.load(IO.SOUNDBANK_URL + instruments[name], ab => {
 		IO.decodeAudio(ab, buffer => {
-			IO.wavBuffers[name] = buffer;
+			IO.instrumentBuffers[name] = buffer;
 			request.load();
 		});
-	}, null, 'arraybuffer').onError(err => {
+	}, 'arraybuffer').onError(err => {
 		request.error(err);
 	});
 	return request;
@@ -283,10 +271,10 @@ IO.loadCostume = data => {
 IO.loadSound = data => {
 	IO.loadMD5(data.md5, data.soundID, asset => {
 		data.$buffer = asset;
-	}, true);
+	});
 };
 
-IO.loadMD5 = (md5, id, callback, isAudio) => {
+IO.loadMD5 = (md5, id, callback) => {
 	let file;
 	let onloadCallback;
 	const fileExtension = md5.split('.').pop();
@@ -350,11 +338,10 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 		};
 		IO.projectRequest.add(request);
 		if (IO.zip) {
-			const audio = new Audio();
 			const ab = file.asArrayBuffer();
 			onloadCallback(ab);
 		} else {
-			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback, null, 'arraybuffer'));
+			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback, 'arraybuffer'));
 		}
 	} else if (IO.zip) {
 		const request = new Request.Request();
@@ -363,7 +350,7 @@ IO.loadMD5 = (md5, id, callback, isAudio) => {
 			if (callback) callback(image);
 			request.load();
 		};
-		image.src = 'data:image/' + (fileExtension === 'jpg' ? 'jpeg' : fileExtension) + ';base64,' + btoa(file.asBinary());
+		image.src = `data:image/${(fileExtension === 'jpg' ? 'jpeg' : fileExtension)};base64,${btoa(file.asBinary())}`;
 		IO.projectRequest.add(request);
 	} else {
 		IO.projectRequest.add(

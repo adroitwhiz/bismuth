@@ -98,8 +98,10 @@ const compile = (P => {
 				break;
 			}
 			// Oopsie woopsie
-			default:
-				console.warn(`Unknown hat block ${script.listenerBlock.opcode}`);
+			default: {
+				// TODO: only log this for truly unknown blocks
+				// console.warn(`Unknown hat block ${script.listenerBlock.opcode}`);
+			}
 		}
 	};
 

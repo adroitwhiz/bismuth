@@ -4,22 +4,22 @@ var player = (function (P) {
 	var stage;
 	var isFullScreen = false;
 
-	var progressBar = document.querySelector('.progress-bar');
-	var player = document.querySelector('.player');
-	var projectLink = document.querySelector('.project-link');
-	var bugLink = document.querySelector('#bug-link');
+	const playerArea = document.querySelector('#player-area');
+	const player = playerArea.querySelector('.player');
 
-	var controls = document.querySelector('.controls');
-	var flag = document.querySelector('.flag');
-	var turbo = document.querySelector('.turbo');
-	var pause = document.querySelector('.pause');
-	var stop = document.querySelector('.stop');
-	var fullScreen = document.querySelector('.full-screen');
+	const progressBar = document.querySelector('.progress-bar');
 
-	var error = document.querySelector('.internal-error');
-	var errorBugLink = document.querySelector('#error-bug-link');
+	const controls = playerArea.querySelector('.controls');
+	const flag = controls.querySelector('.flag');
+	const turbo = controls.querySelector('.turbo');
+	const pause = controls.querySelector('.pause');
+	const stop = controls.querySelector('.stop');
+	const fullScreen = controls.querySelector('.full-screen');
 
-	var flagTouchTimeout;
+	const error = document.querySelector('.internal-error');
+	const errorBugLink = document.querySelector('#error-bug-link');
+
+	let flagTouchTimeout;
 
 	function flagTouchStart () {
 		flagTouchTimeout = setTimeout(function () {

@@ -1,8 +1,8 @@
 // Some reporter blocks are known to return certain types (e.g. math blocks always return numbers).
-// To avoid redundant type coercions], we can "type tag" the generated JS for those blocks],
+// To avoid redundant type coercions, we can "type tag" the generated JS for those blocks,
 // so the compiler knows that they are already of the proper type.
 // This is a map of return types for reporter blocks.
-// Valid return types are string], number], and boolean.
+// Valid return types are string, number, and boolean.
 const BLOCK_RETURN_TYPES = new Map([
 	['motion_xposition', 'number'],
 	['motion_yposition', 'number'],
@@ -45,5 +45,4 @@ const BLOCK_RETURN_TYPES = new Map([
 	['data_listcontainsitem', 'boolean']
 ]);
 
-window.brt = BLOCK_RETURN_TYPES;
 module.exports = BLOCK_RETURN_TYPES;
