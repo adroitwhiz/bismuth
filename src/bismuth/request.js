@@ -1,6 +1,7 @@
 class Request {
 	constructor () {
 		this.loaded = 0;
+		this.isDone = false;
 		this.listeners = {
 			load: [],
 			progress: [],
@@ -33,9 +34,12 @@ class Request {
 	}
 
 	load (result) {
-		this.result = result;
-		this.isDone = true;
-		this.dispatchEvent('load', result);
+		// Delay for one microtick to prevent synchronous shenanigans
+		Promise.resolve().then(() => {
+			this.result = result;
+			this.isDone = true;
+			this.dispatchEvent('load', result);
+		});
 	}
 
 	progress (loaded, total, lengthComputable) {
@@ -50,10 +54,13 @@ class Request {
 	}
 
 	error (error) {
-		this.result = error;
-		this.isError = true;
-		this.isDone = true;
-		this.dispatchEvent('error', error);
+		// Delay for one microtick to prevent synchronous shenanigans
+		Promise.resolve().then(() => {
+			this.result = error;
+			this.isError = true;
+			this.isDone = true;
+			this.dispatchEvent('error', error);
+		});
 	}
 }
 
@@ -62,7 +69,7 @@ class CompositeRequest extends Request {
 		super();
 
 		this.requests = [];
-		this.isDone = true;
+		this.isDone = false;
 		this.update = this.update.bind(this);
 		this.error = this.error.bind(this);
 	}

@@ -29,7 +29,6 @@ IO.load = (url, callback, type) => {
 		request.progress(e.loaded, e.total, e.lengthComputable);
 	};
 	xhr.onload = () => {
-		// console.log(xhr);
 		if (xhr.status === 200) {
 			request.load(xhr.response);
 		} else {
@@ -40,97 +39,85 @@ IO.load = (url, callback, type) => {
 		request.error(new Error('XHR Error'));
 	};
 	xhr.responseType = type || '';
-	setTimeout(xhr.send.bind(xhr));
+	xhr.send();
 
 	if (callback) request.on('load', callback);
 	return request;
 };
 
-IO.loadImage = (url, callback) => {
+IO.loadImage = url => {
 	const request = new Request.Request();
 	const image = new Image();
 	image.crossOrigin = 'anonymous';
 	image.src = url;
-	image.onload = () => {
+
+	if (image.complete) {
 		request.load(image);
-	};
+	} else {
+		image.onload = () => {
+			request.load(image);
+		};
+	}
+
 	image.onerror = () => {
 		request.error(new Error(`Failed to load image: ${url}`));
 	};
-	if (callback) request.on('load', callback);
 	return request;
 };
 
 IO.loadScratchr2Project = id => {
-	const request = new Request.CompositeRequest();
-	IO.init(request);
+	const projectRequest = new Request.CompositeRequest();
+	IO.init(projectRequest);
+	projectRequest.defer = true;
 
-	request.defer = true;
 	const projectURL = IO.PROJECT_URL + id;
-	request.add(IO.load(projectURL).on('load', contents => {
+	projectRequest.add(IO.load(projectURL).on('load', contents => {
 		try {
 			const json = parseJSONish(contents);
 
-			try {
-				IO.loadProject(json);
-				if (request.isDone) {
-					request.load(new Stage().fromJSON(json));
-				} else {
-					request.defer = false;
-					request.getResult = () => new Stage().fromJSON(json);
-				}
-			} catch (e) {
-				request.error(e);
-			}
-		} catch (e) {
-			request.add(IO.load(projectURL, null, 'arraybuffer').on('load', ab => {
-				const request2 = new Request.Request();
-				request.add(request2);
-				request.add(IO.loadSB2Project(ab, stage => {
-					request.getResult = () => stage;
-					request2.load();
+			IO.loadProject(json).then((json) => {
+				projectRequest.load(new Stage().fromJSON(json));
+			});
+		} catch (err) {
+			// Some projects from the offline editor come in compressed .sb2 format.
+			projectRequest.add(IO.load(projectURL, null, 'arraybuffer').on('load', ab => {
+				projectRequest.add(IO.loadSB2Project(ab, stage => {
+					projectRequest.load(stage);
 				}));
-				request.defer = false;
 			}));
 			return;
 		}
 	}));
 
-	return request;
+	return projectRequest;
 };
 
-IO.loadScratchr2ProjectTitle = (id, callback) => {
-	const request = new Request.CompositeRequest();
-
-	request.defer = true;
-	request.add(P.IO.load(IO.PROJECT_API_URL + id).on('load', data => {
-		const m = JSON.parse(data).title;
-		if (callback) request.on('load', callback);
-		if (m) {
-			request.load(m);
-		} else {
-			request.error(new Error('No title'));
-		}
-	}));
-
-	return request;
+IO.loadScratchr2ProjectTitle = projectID => {
+	return new Promise((resolve, reject) => {
+		P.IO.load(IO.PROJECT_API_URL + projectID).on('load', data => {
+			const title = JSON.parse(data).title;
+			if (title) {
+				resolve(title);
+			} else {
+				reject(new Error('No title'));
+			}
+		});
+	});
 };
 
 IO.loadSB2Project = (ab, callback) => {
 	const request = new Request.CompositeRequest();
 	IO.init(request);
+	request.defer = true;
 
 	try {
 		IO.zip = ab instanceof ArrayBuffer ? new JSZip(ab) : ab;
 		const json = parseJSONish(IO.zip.file('project.json').asText());
-
-		IO.loadProject(json);
 		if (callback) request.on('load', callback);
-		if (request.isDone) {
+
+		IO.loadProject(json).then(json => {
 			request.load(new Stage().fromJSON(json));
-		} else {
-			request.getResult = () => new Stage().fromJSON(json);
-		}
+		});
 	} catch (e) {
 		request.error(e);
 	}
@@ -162,62 +149,66 @@ IO.loadSB2File = (file, callback) => {
 };
 
 IO.loadProject = data => {
-	IO.loadInstruments();
-	IO.loadArray(data.children, IO.loadObject);
-	IO.loadBase(data);
+	return Promise.all([
+		IO.loadInstruments(),
+		...data.children.map(IO.loadObject),
+		IO.loadBase(data)
+	]).then(() => { return data; });
 };
 
 IO.instrumentBuffers = Object.create(null);
 IO.loadInstruments = () => {
 	if (!P.audioContext) return;
 
+	const instrumentPromises = [];
+
 	for (const name in instruments) {
-		if (IO.instrumentBuffers[name]) {
-			if (IO.instrumentBuffers[name] instanceof Request.Request) {
-				IO.projectRequest.add(IO.instrumentBuffers[name]);
-			}
-		} else {
-			IO.projectRequest.add(IO.instrumentBuffers[name] = IO.loadInstrumentBuffer(name));
+		if (!IO.instrumentBuffers[name]) {
+			const instrumentRequest = IO.loadInstrumentBuffer(name);
+			IO.instrumentBuffers[name] = instrumentRequest;
+			IO.projectRequest.add(instrumentRequest);
+
+			instrumentPromises.push(new Promise(resolve => {
+				instrumentRequest.on('load', resolve);
+			}));
 		}
 	}
+
+	return Promise.all(instrumentPromises);
 };
 
 IO.loadInstrumentBuffer = name => {
-	const request = new Request.Request();
-	IO.load(IO.SOUNDBANK_URL + instruments[name], ab => {
-		IO.decodeAudio(ab, buffer => {
+	return IO.load(IO.SOUNDBANK_URL + instruments[name], ab => {
+		IO.decodeAudio(ab).then(buffer => {
 			IO.instrumentBuffers[name] = buffer;
-			request.load();
 		});
-	}, 'arraybuffer').on('error', err => {
-		request.error(err);
-	});
-	return request;
+	}, 'arraybuffer');
 };
 
-IO.decodeAudio = (ab, cb) => {
+IO.decodeAudio = ab => {
 	if (P.audioContext) {
-		decodeADPCMAudio(ab, (err, buffer) => {
-			if (buffer) return setTimeout(() => { cb(buffer); });
-			const p = P.audioContext.decodeAudioData(ab, buffer => {
-				cb(buffer);
-			}, err2 => {
-				console.warn(err, err2);
-				cb(null);
+		// TODO: try to decode natively first for performance?
+		return decodeADPCMAudio(ab)
+			.catch(() => {
+				return new Promise((resolve, reject) => {
+					// TODO: return null if decode fails rather than rejecting?
+					P.audioContext.decodeAudioData(ab, resolve, reject);
+				});
 			});
-			if (p.catch) p.catch(() => {});
-		});
 	} else {
-		setTimeout(cb);
+		return Promise.reject('No audio context');
 	}
 };
 
 IO.loadBase = data => {
-	data.scripts = data.scripts || [];
-	data.costumes = IO.loadArray(data.costumes, IO.loadCostume);
-	data.sounds = IO.loadArray(data.sounds, IO.loadSound);
-	data.variables = data.variables || [];
-	data.lists = data.lists || [];
+	const costumePromises = Promise.all(data.costumes.map(IO.loadCostume));
+	const soundPromises = Promise.all(data.sounds.map(IO.loadSound));
+
+	return Promise.all([costumePromises, soundPromises]).then(() => {
+		data.scripts = data.scripts || [];
+		data.variables = data.variables || [];
+		data.lists = data.lists || [];
+	});
 };
 
 IO.loadArray = (data, process) => {
@@ -230,111 +221,146 @@ IO.loadArray = (data, process) => {
 
 IO.loadObject = data => {
 	if (!data.cmd && !data.listName) {
-		IO.loadBase(data);
+		return IO.loadBase(data);
 	}
+
+	return Promise.resolve(null);
 };
 
 IO.loadCostume = data => {
-	IO.loadMD5(data.baseLayerMD5, data.baseLayerID, asset => {
+	const baseLayerPromise = IO.loadMD5(data.baseLayerMD5, data.baseLayerID).then(asset => {
 		data.$image = asset;
 	});
+
 	if (data.textLayerMD5) {
-		IO.loadMD5(data.textLayerMD5, data.textLayerID, asset => {
+		const textLayerPromise = IO.loadMD5(data.textLayerMD5, data.textLayerID).then(asset => {
 			data.$text = asset;
 		});
+
+		return Promise.all([baseLayerPromise, textLayerPromise]);
 	}
+
+	return baseLayerPromise;
 };
 
 IO.loadSound = data => {
-	IO.loadMD5(data.md5, data.soundID, asset => {
+	return IO.loadMD5(data.md5, data.soundID).then(asset => {
 		data.$buffer = asset;
 	});
 };
 
-IO.loadMD5 = (md5, id, callback) => {
+const loadSVG = source => {
+	const parser = new DOMParser();
+	let doc = parser.parseFromString(source, 'image/svg+xml');
+	let svg = doc.documentElement;
+	if (!svg.style) {
+		doc = parser.parseFromString('<body>' + source, 'text/html');
+		svg = doc.querySelector('svg');
+	}
+	svg.style.visibility = 'hidden';
+	svg.style.position = 'absolute';
+	svg.style.left = '-10000px';
+	svg.style.top = '-10000px';
+	document.body.appendChild(svg);
+	const viewBox = svg.viewBox.baseVal;
+	if (viewBox && (viewBox.x || viewBox.y)) {
+		svg.width.baseVal.value = viewBox.width - viewBox.x;
+		svg.height.baseVal.value = viewBox.height - viewBox.y;
+		viewBox.x = 0;
+		viewBox.y = 0;
+		viewBox.width = 0;
+		viewBox.height = 0;
+	}
+	fixSVG(svg, svg);
+	document.body.removeChild(svg);
+	svg.style.visibility = svg.style.position = svg.style.left = svg.style.top = '';
+
+	const canvas = document.createElement('canvas');
+	const image = new Image();
+	// svg.style.cssText = '';
+	// console.log(md5, 'data:image/svg+xml;base64,' + btoa(div.innerHTML.trim()));
+
+	return new Promise(resolve => {
+		canvg(canvas, new XMLSerializer().serializeToString(svg), {
+			ignoreMouse: true,
+			ignoreAnimation: true,
+			ignoreClear: true,
+			renderCallback: () => {
+				image.src = canvas.toDataURL();
+				if (image.complete) {
+					resolve(image);
+				} else {
+					image.addEventListener('load', () => {
+						resolve(image);
+					});
+				}
+			}
+		});
+	});
+};
+
+IO.loadMD5 = (md5, id) => {
 	let file;
-	let onloadCallback;
 	const fileExtension = md5.split('.').pop();
 	if (IO.zip) {
 		file = IO.zip.file(`${id}.${fileExtension}`);
 		md5 = file.name;
 	}
-	if (fileExtension === 'svg') {
-		onloadCallback = source => {
-			const parser = new DOMParser();
-			let doc = parser.parseFromString(source, 'image/svg+xml');
-			let svg = doc.documentElement;
-			if (!svg.style) {
-				doc = parser.parseFromString('<body>' + source, 'text/html');
-				svg = doc.querySelector('svg');
-			}
-			svg.style.visibility = 'hidden';
-			svg.style.position = 'absolute';
-			svg.style.left = '-10000px';
-			svg.style.top = '-10000px';
-			document.body.appendChild(svg);
-			const viewBox = svg.viewBox.baseVal;
-			if (viewBox && (viewBox.x || viewBox.y)) {
-				svg.width.baseVal.value = viewBox.width - viewBox.x;
-				svg.height.baseVal.value = viewBox.height - viewBox.y;
-				viewBox.x = 0;
-				viewBox.y = 0;
-				viewBox.width = 0;
-				viewBox.height = 0;
-			}
-			fixSVG(svg, svg);
-			document.body.removeChild(svg);
-			svg.style.visibility = svg.style.position = svg.style.left = svg.style.top = '';
 
-			const canvas = document.createElement('canvas');
-			const image = new Image();
-			callback(image);
-			// svg.style.cssText = '';
-			// console.log(md5, 'data:image/svg+xml;base64,' + btoa(div.innerHTML.trim()));
-			canvg(canvas, new XMLSerializer().serializeToString(svg), {
-				ignoreMouse: true,
-				ignoreAnimation: true,
-				ignoreClear: true,
-				renderCallback () {
-					image.src = canvas.toDataURL();
+	return new Promise(callback => {
+		switch (fileExtension) {
+			case 'svg': {
+				const onloadCallback = source => {
+					loadSVG(source).then(callback);
+				};
+	
+				if (IO.zip) {
+					onloadCallback(file.asText());
+				} else {
+					const request = IO.load(IO.ASSET_URL + md5 + '/get/').on('load', onloadCallback);
+					IO.projectRequest.add(request);
 				}
-			});
-		};
-		if (IO.zip) {
-			onloadCallback(file.asText());
-		} else {
-			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback));
+	
+				break;
+			}
+			// TODO: MP3
+			case 'wav': {
+				const onloadCallback = ab => {
+					IO.decodeAudio(ab).then(buffer => {
+						callback(buffer);
+					});
+				};
+				if (IO.zip) {
+					const ab = file.asArrayBuffer();
+					onloadCallback(ab);
+				} else {
+					const request = IO.load(IO.ASSET_URL + md5 + '/get/', null, 'arraybuffer').on('load', onloadCallback);
+					IO.projectRequest.add(request);
+				}
+	
+				break;
+			}
+			case 'png':
+			case 'jpg':
+			case 'jpeg': {
+				if (IO.zip) {
+					const image = new Image();
+					image.onload = () => {
+						callback(image);
+					};
+					image.src = `data:image/${(fileExtension === 'jpg' ? 'jpeg' : fileExtension)};base64,${btoa(file.asBinary())}`;
+				} else {
+					const request = IO.loadImage(IO.ASSET_URL + md5 + '/get/').on('load', callback);
+					IO.projectRequest.add(request);
+				}
+				break;
+			}
+			default: {
+				console.warn(`Unknown file type '${fileExtension}'`);
+				callback();
+			}
 		}
-	} else if (fileExtension === 'wav') {
-		const request = new Request.Request();
-		onloadCallback = ab => {
-			IO.decodeAudio(ab, buffer => {
-				callback(buffer);
-				request.load(buffer);
-			});
-		};
-		IO.projectRequest.add(request);
-		if (IO.zip) {
-			const ab = file.asArrayBuffer();
-			onloadCallback(ab);
-		} else {
-			IO.projectRequest.add(IO.load(IO.ASSET_URL + md5 + '/get/', onloadCallback, 'arraybuffer'));
-		}
-	} else if (IO.zip) {
-		const request = new Request.Request();
-		const image = new Image();
-		image.onload = () => {
-			if (callback) callback(image);
-			request.load();
-		};
-		image.src = `data:image/${(fileExtension === 'jpg' ? 'jpeg' : fileExtension)};base64,${btoa(file.asBinary())}`;
-		IO.projectRequest.add(request);
-	} else {
-		IO.projectRequest.add(
-			IO.loadImage(IO.ASSET_URL + md5 + '/get/', result => {
-				callback(result);
-			}));
-	}
+	});
 };
 
 module.exports = IO;

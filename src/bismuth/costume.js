@@ -16,11 +16,6 @@ class Costume {
 		this.context = this.image.getContext('2d');
 
 		this.render();
-
-		this.baseLayer.addEventListener('load', this.render);
-		if (this.textLayer) {
-			this.textLayer.addEventListener('load', this.render);
-		}
 	}
 
 	render () {

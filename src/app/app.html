@@ -116,7 +116,7 @@
 					progressBar.style.width = (10 + e.loaded / e.total * 90) + '%';
 				});
 
-				P.IO.loadScratchr2ProjectTitle(projectId, function(title) {
+				P.IO.loadScratchr2ProjectTitle(projectId).then(function(title) {
 					document.title = projectTitle = title;
 				});
 

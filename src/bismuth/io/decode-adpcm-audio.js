@@ -7,11 +7,11 @@ const ADPCM_STEPS = [
 ];
 const ADPCM_INDEX = [-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8];
 
-const decodeADPCMAudio = (ab, callback) => {
+const decodeADPCMAudio = ab => {
 	const dv = new DataView(ab);
 	// WAV magic number
 	if (dv.getUint32(0) !== 0x52494646 || dv.getUint32(8) !== 0x57415645) {
-		return callback(new Error('Unrecognized audio format'));
+		return Promise.reject(new Error('Unrecognized audio format'));
 	}
 
 	const blocks = {};
@@ -81,9 +81,9 @@ const decodeADPCMAudio = (ab, callback) => {
 				channel[j++] = sample / 32768;
 			}
 		}
-		return callback(null, buffer);
+		return Promise.resolve(buffer);
 	}
-	callback(new Error(`Unrecognized WAV format ${format}`));
+	return Promise.reject(new Error(`Unrecognized WAV format ${format}`));
 };
 
 module.exports = decodeADPCMAudio;

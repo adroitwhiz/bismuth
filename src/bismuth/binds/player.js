@@ -188,7 +188,7 @@ var player = (function (P) {
 
 		if (id) {
 			showProgress(P.IO.loadScratchr2Project(id), cb);
-			P.IO.loadScratchr2ProjectTitle(id, function (title) {
+			P.IO.loadScratchr2ProjectTitle(id).then(function (title) {
 				if (titleCallback) titleCallback(P.player.projectTitle = title);
 			});
 		} else {
