@@ -190,7 +190,8 @@ var player = (function (P) {
 			showProgress(P.IO.loadScratchr2Project(id), cb);
 			P.IO.loadScratchr2ProjectTitle(id).then(function (title) {
 				if (titleCallback) titleCallback(P.player.projectTitle = title);
-			});
+			})
+				.catch(() => {});
 		} else {
 			if (titleCallback) setTimeout(function () {
 				titleCallback('');

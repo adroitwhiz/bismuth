@@ -1,8 +1,7 @@
 const e = require('estree-builder');
 
-window.e = e;
-
-window.astring = require('astring');
+// window.e = e;
+// window.astring = require('astring');
 
 const VisibilityState = require('./block-data/visibility-state');
 

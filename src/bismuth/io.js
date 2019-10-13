@@ -14,163 +14,396 @@ const IO = {};
 IO.PROJECT_URL = 'https://projects.scratch.mit.edu/';
 IO.PROJECT_API_URL = 'https://cors-anywhere.herokuapp.com/https://api.scratch.mit.edu/projects/';
 IO.ASSET_URL = 'https://assets.scratch.mit.edu/internalapi/asset/';
-IO.SOUNDBANK_URL = 'https://cdn.rawgit.com/LLK/scratch-flash/v429/src/soundbank/';
+IO.SOUNDBANK_URL = 'https://raw.githubusercontent.com/LLK/scratch-flash/v429/src/soundbank/';
 
-IO.init = request => {
-	IO.projectRequest = request;
-	IO.zip = null;
-};
-
-IO.load = (url, callback, type) => {
-	const request = new Request.Request();
-	const xhr = new XMLHttpRequest();
-	xhr.open('GET', url, true);
-	xhr.onprogress = e => {
-		request.progress(e.loaded, e.total, e.lengthComputable);
-	};
-	xhr.onload = () => {
-		if (xhr.status === 200) {
-			request.load(xhr.response);
-		} else {
-			request.error(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
-		}
-	};
-	xhr.onerror = () => {
-		request.error(new Error('XHR Error'));
-	};
-	xhr.responseType = type || '';
-	xhr.send();
-
-	if (callback) request.on('load', callback);
-	return request;
-};
-
-IO.loadImage = url => {
-	const request = new Request.Request();
-	const image = new Image();
-	image.crossOrigin = 'anonymous';
-	image.src = url;
-
-	if (image.complete) {
-		request.load(image);
-	} else {
-		image.onload = () => {
-			request.load(image);
-		};
+class WebAssetLoader {
+	constructor (projectID) {
+		this.projectID = projectID;
 	}
 
-	image.onerror = () => {
-		request.error(new Error(`Failed to load image: ${url}`));
-	};
-	return request;
+	fetchAsset (md5, id, type) {
+		const assetURL = IO.ASSET_URL + md5 + '/get/';
+		switch (type) {
+			case 'arraybuffer':
+			case 'text': {
+				return IO.loadPromise(assetURL, type);
+			}
+			case 'image': {
+				const image = document.createElement('img');
+				image.crossOrigin = 'anonymous';
+				image.src = assetURL;
+
+				if (image.complete) {
+					return Promise.resolve(image);
+				} else {
+					return new Promise((resolve, reject) => {
+						image.onload = () => {
+							resolve(image);
+						};
+						image.onerror = () => {
+							reject(new Error(`Failed to load image: ${assetURL}`));
+						};
+					});
+				}
+			}
+			default: {
+				return Promise.reject(new Error(`Unknown file data type '${type}'`));
+			}
+		}
+	}
+
+	loadProjectManifest () {
+		return IO.loadPromise(IO.PROJECT_URL + this.projectID, 'text').then(parseJSONish);
+	}
+
+	loadProjectSB2 () {
+		return IO.loadPromise(IO.PROJECT_URL + this.projectID, 'arraybuffer');
+	}
+}
+
+class ZipAssetLoader {
+	constructor (zip) {
+		this.zip = zip;
+	}
+
+	fetchAsset (md5, id, type) {
+		const fileExtension = md5.split('.').pop();
+		const file = this.zip.file(`${id}.${fileExtension}`);
+		let loadedFile;
+		switch (type) {
+			case 'arraybuffer': {
+				loadedFile = file.asArrayBuffer();
+				break;
+			}
+			case 'text': {
+				loadedFile = file.asText();
+				break;
+			}
+			case 'image': {
+				const image = document.createElement('img');
+				image.src = `data:image/${(fileExtension === 'jpg' ? 'jpeg' : fileExtension)};base64,${btoa(file.asBinary())}`;
+				return new Promise((resolve, reject) => {
+					image.addEventListener('load', () => { resolve(image); });
+					image.addEventListener('error', reject);
+				});
+			}
+			default: {
+				return Promise.reject(new Error(`Unknown file data type '${type}'`));
+			}
+		}
+		return Promise.resolve(loadedFile);
+	}
+
+	loadProjectManifest () {
+		return Promise.resolve(this.zip.file('project.json').asText()).then(parseJSONish);
+	}
+}
+
+class ProjectV2Request {
+	constructor () {
+		this.totalAssets = 0;
+		this.loadedAssets = 0;
+
+		this._loader = null;
+
+		this.project = null;
+
+		this.listeners = {
+			load: [],
+			progress: [],
+			error: []
+		};
+
+		return this;
+	}
+
+	get loaded () {
+		return this.loadedAssets;
+	}
+
+	set loaded (numLoaded) {
+		this.loadedAssets = numLoaded;
+		this.dispatchEvent('progress', {
+			loaded: numLoaded,
+			total: this.totalAssets,
+			lengthComputable: true
+		});
+	}
+
+	get total () {
+		return this.totalAssets;
+	}
+
+	on (event, callback) {
+		if (this.listeners.hasOwnProperty(event)) {
+			const listeners = this.listeners[event];
+
+			listeners.push(callback);
+		} else {
+			console.warn(`Unknown event '${event}'`);
+		}
+
+		return this;
+	}
+
+	dispatchEvent (event, result) {
+		if (this.listeners.hasOwnProperty(event)) {
+			for (const listener of this.listeners[event]) {
+				listener(result);
+			}
+		} else {
+			console.warn(`Unknown event '${event}'`);
+		}
+
+		return this;
+	}
+
+	/**
+	 * Load a project from a .sb2 file.
+	 * @param {ArrayBuffer} ab The SB2 file, in ArrayBuffer form.
+	 */
+	loadSB2 (ab) {
+		this._loader = new ZipAssetLoader(new JSZip(ab));
+
+		return this.loadProject();
+	}
+
+	loadFromID (id) {
+		this._loader = new WebAssetLoader(id);
+
+		// If loading the project fails, it may be because it's a compressed SB2 instead of a manifest file.
+		// If that's the case, attempt to load it as one.
+		return this.loadProject().catch(() => {
+			return this._loader.loadProjectSB2().then(this.loadSB2.bind(this));
+		});
+	}
+
+	loadProject () {
+		const stagePromise = this._loader.loadProjectManifest().then(this.loadStage.bind(this));
+		const instrumentsPromise = IO.loadInstruments();
+
+		return Promise.all([stagePromise, instrumentsPromise]).then(() => { return stagePromise; });
+	}
+
+	loadStage (obj) {
+		// Copy over Stage-specific properties
+		const loadedStage = {
+			tempoBPM: obj.tempoBPM
+		};
+
+		return Promise.all([
+			this.loadObject(obj, loadedStage),
+			Promise.all(obj.children.map(this.loadSprite.bind(this)))
+		]).then(results => {
+			loadedStage.children = results[1];
+
+			return loadedStage;
+		});
+	}
+
+	loadSprite (obj) {
+		// Copy over Sprite-specific properties
+		const loadedSprite = {
+			scratchX: obj.scratchX,
+			scratchY: obj.scratchY,
+			scale: obj.scale,
+			direction: obj.direction,
+			rotationStyle: obj.rotationStyle,
+			isDraggable: obj.isDraggable,
+			visible: obj.visible
+		};
+
+		return this.loadObject(obj, loadedSprite);
+	}
+
+	/**
+	 * Loads the base of an object into the specified object.
+	 * @param {Object} srcObject
+	 * @param {Object} dstObject
+	 * @returns
+	 */
+	loadObject (srcObject, dstObject) {
+		// TODO: handle watchers better
+		if (srcObject.cmd !== undefined || srcObject.listName !== undefined) {
+			return Promise.resolve(srcObject);
+		}
+
+		const costumePromises = srcObject.costumes ?
+			Promise.all(srcObject.costumes.map(this.loadCostume.bind(this))) :
+			Promise.reject(`${srcObject.objName} has no costumes`);
+
+		const soundPromises = srcObject.sounds ?
+			Promise.all(srcObject.sounds.map(this.loadSound.bind(this))) :
+			Promise.resolve([]);
+
+		return Promise.all([costumePromises, soundPromises]).then(results => {
+			dstObject.scripts = srcObject.scripts || [];
+			dstObject.variables = srcObject.variables || [];
+			dstObject.lists = srcObject.lists || [];
+			dstObject.costumes = results[0];
+			dstObject.sounds = results[1];
+			dstObject.objName = srcObject.objName;
+
+			return dstObject;
+		});
+	}
+
+	// TODO: change to return Costume object
+	loadCostume (costumeData) {
+		this.totalAssets++;
+		const loadedCostume = {
+			costumeName: costumeData.costumeName,
+			baseLayer: null,
+			bitmapResolution: costumeData.bitmapResolution || 1,
+			rotationCenterX: costumeData.rotationCenterX,
+			rotationCenterY: costumeData.rotationCenterY,
+			$image: null
+		};
+
+		// If the costume is an SVG, load the SVG as text and do fancy stuff with it.
+		// Otherwise, load the costume as an <image>.
+		let costumePromise;
+		if (costumeData.baseLayerMD5.split('.').pop() === 'svg') {
+			costumePromise = this._loader.fetchAsset(
+				costumeData.baseLayerMD5,
+				costumeData.baseLayerID,
+				'text'
+			).then(loadSVG);
+		} else {
+			costumePromise = this._loader.fetchAsset(
+				costumeData.baseLayerMD5,
+				costumeData.baseLayerID,
+				'image'
+			);
+		}
+
+		// After loading the costume and doing whatever needs to be done to it, add it to the costume.
+		costumePromise = costumePromise
+			// In case of failed costume load, create empty image to avoid crashing
+			.catch(() => { return document.createElement('img'); })
+			.then(asset => {
+				loadedCostume.$image = asset;
+			});
+
+		if (costumeData.textLayerMD5) {
+			// Combine text layer and base layer
+			let textLayer;
+			const textLayerPromise = this._loader.fetchAsset(
+				costumeData.textLayerMD5,
+				costumeData.textLayerID,
+				'image'
+			).then(asset => {
+				textLayer = asset;
+			});
+
+			costumePromise = Promise.all([costumePromise, textLayerPromise]).then(() => {
+				const combinedCanvas = document.createElement('canvas');
+				combinedCanvas.width = costumeData.$image.naturalWidth;
+				combinedCanvas.height = costumeData.$image.naturalHeight;
+
+				const ctx = combinedCanvas.getContext('2d');
+				ctx.drawImage(costumeData.$image, 0, 0);
+				ctx.drawImage(textLayer, 0, 0);
+
+				loadedCostume.$image = combinedCanvas;
+			});
+		}
+
+		return costumePromise.then(() => { this.loaded++; return loadedCostume; });
+	}
+
+	// TODO: change to return Sound object
+	loadSound (soundData) {
+		this.totalAssets++;
+		const loadedSound = {
+			soundName: soundData.soundName,
+			$buffer: null
+		};
+
+		return this._loader.fetchAsset(soundData.md5, soundData.soundID, 'arraybuffer')
+			.then(IO.decodeAudio)
+			.then(buffer => {
+				this.loaded++;
+				loadedSound.$buffer = buffer;
+				return loadedSound;
+			});
+	}
+}
+
+IO.loadPromise = (url, type) => {
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest();
+		xhr.open('GET', url, true);
+		xhr.onload = () => {
+			if (xhr.status === 200) {
+				resolve(xhr.response);
+			} else {
+				reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+			}
+		};
+		xhr.onerror = () => {
+			reject(new Error('XHR Error'));
+		};
+		xhr.responseType = type || '';
+		xhr.send();
+	});
 };
 
 IO.loadScratchr2Project = id => {
-	const projectRequest = new Request.CompositeRequest();
-	IO.init(projectRequest);
-	projectRequest.defer = true;
+	const rq = new ProjectV2Request();
 
-	const projectURL = IO.PROJECT_URL + id;
-	projectRequest.add(IO.load(projectURL).on('load', contents => {
-		try {
-			const json = parseJSONish(contents);
+	rq.loadFromID(id).then(project => {
+		const loaded = new Stage().fromJSON(project);
+		rq.dispatchEvent('load', loaded);
+	});
 
-			IO.loadProject(json).then((json) => {
-				projectRequest.load(new Stage().fromJSON(json));
-			});
-		} catch (err) {
-			// Some projects from the offline editor come in compressed .sb2 format.
-			projectRequest.add(IO.load(projectURL, null, 'arraybuffer').on('load', ab => {
-				projectRequest.add(IO.loadSB2Project(ab, stage => {
-					projectRequest.load(stage);
-				}));
-			}));
-			return;
-		}
-	}));
-
-	return projectRequest;
+	return rq;
 };
 
 IO.loadScratchr2ProjectTitle = projectID => {
-	return new Promise((resolve, reject) => {
-		P.IO.load(IO.PROJECT_API_URL + projectID).on('load', data => {
-			const title = JSON.parse(data).title;
-			if (title) {
-				resolve(title);
-			} else {
-				reject(new Error('No title'));
-			}
-		});
+	return IO.loadPromise(IO.PROJECT_API_URL + projectID).then(data => {
+		const title = JSON.parse(data).title;
+		if (title) {
+			return title;
+		} else {
+			throw new Error('No title');
+		}
 	});
 };
 
 IO.loadSB2Project = (ab, callback) => {
-	const request = new Request.CompositeRequest();
-	IO.init(request);
-	request.defer = true;
-
-	try {
-		IO.zip = ab instanceof ArrayBuffer ? new JSZip(ab) : ab;
-		const json = parseJSONish(IO.zip.file('project.json').asText());
-		if (callback) request.on('load', callback);
-
-		IO.loadProject(json).then(json => {
-			request.load(new Stage().fromJSON(json));
-		});
-	} catch (e) {
-		request.error(e);
-	}
-
-	return request;
+	const rq = new ProjectV2Request();
+	rq.loadSB2(ab).then(project => {
+		const loaded = new Stage().fromJSON(project);
+		rq.dispatchEvent('load', loaded);
+		if (callback) callback(loaded);
+	});
+	return rq;
 };
 
 IO.loadSB2File = (file, callback) => {
-	const cr = new Request.CompositeRequest();
-	cr.defer = true;
-	const request = new Request.Request();
-	cr.add(request);
+	const request = new Request();
 	const reader = new FileReader();
 	reader.onloadend = () => {
-		cr.defer = true;
-		cr.add(IO.loadSB2Project(reader.result, result => {
-			cr.defer = false;
-			cr.getResult = () => result;
-			cr.update();
-		}));
-		request.load();
+		const sb2Request = IO.loadSB2Project(reader.result);
+
+		sb2Request.on('load', request.load.bind(request));
 	};
 	reader.onprogress = e => {
 		request.progress(e.loaded, e.total, e.lengthComputable);
 	};
 	reader.readAsArrayBuffer(file);
-	if (callback) cr.on('load', callback);
-	return cr;
-};
-
-IO.loadProject = data => {
-	return Promise.all([
-		IO.loadInstruments(),
-		...data.children.map(IO.loadObject),
-		IO.loadBase(data)
-	]).then(() => { return data; });
+	if (callback) request.on('load', callback);
+	return request;
 };
 
 IO.instrumentBuffers = Object.create(null);
 IO.loadInstruments = () => {
 	if (!P.audioContext) return;
-
 	const instrumentPromises = [];
-
 	for (const name in instruments) {
 		if (!IO.instrumentBuffers[name]) {
-			const instrumentRequest = IO.loadInstrumentBuffer(name);
-			IO.instrumentBuffers[name] = instrumentRequest;
-			IO.projectRequest.add(instrumentRequest);
-
-			instrumentPromises.push(new Promise(resolve => {
-				instrumentRequest.on('load', resolve);
-			}));
+			instrumentPromises.push(IO.loadInstrumentBuffer(name));
 		}
 	}
 
@@ -178,11 +411,11 @@ IO.loadInstruments = () => {
 };
 
 IO.loadInstrumentBuffer = name => {
-	return IO.load(IO.SOUNDBANK_URL + instruments[name], ab => {
-		IO.decodeAudio(ab).then(buffer => {
+	return IO.loadPromise(IO.SOUNDBANK_URL + instruments[name], 'arraybuffer')
+		.then(IO.decodeAudio)
+		.then(buffer => {
 			IO.instrumentBuffers[name] = buffer;
 		});
-	}, 'arraybuffer');
 };
 
 IO.decodeAudio = ab => {
@@ -198,55 +431,6 @@ IO.decodeAudio = ab => {
 	} else {
 		return Promise.reject('No audio context');
 	}
-};
-
-IO.loadBase = data => {
-	const costumePromises = Promise.all(data.costumes.map(IO.loadCostume));
-	const soundPromises = Promise.all(data.sounds.map(IO.loadSound));
-
-	return Promise.all([costumePromises, soundPromises]).then(() => {
-		data.scripts = data.scripts || [];
-		data.variables = data.variables || [];
-		data.lists = data.lists || [];
-	});
-};
-
-IO.loadArray = (data, process) => {
-	if (!data) return [];
-	for (let i = 0; i < data.length; i++) {
-		process(data[i]);
-	}
-	return data;
-};
-
-IO.loadObject = data => {
-	if (!data.cmd && !data.listName) {
-		return IO.loadBase(data);
-	}
-
-	return Promise.resolve(null);
-};
-
-IO.loadCostume = data => {
-	const baseLayerPromise = IO.loadMD5(data.baseLayerMD5, data.baseLayerID).then(asset => {
-		data.$image = asset;
-	});
-
-	if (data.textLayerMD5) {
-		const textLayerPromise = IO.loadMD5(data.textLayerMD5, data.textLayerID).then(asset => {
-			data.$text = asset;
-		});
-
-		return Promise.all([baseLayerPromise, textLayerPromise]);
-	}
-
-	return baseLayerPromise;
-};
-
-IO.loadSound = data => {
-	return IO.loadMD5(data.md5, data.soundID).then(asset => {
-		data.$buffer = asset;
-	});
 };
 
 const loadSVG = source => {
@@ -296,70 +480,6 @@ const loadSVG = source => {
 				}
 			}
 		});
-	});
-};
-
-IO.loadMD5 = (md5, id) => {
-	let file;
-	const fileExtension = md5.split('.').pop();
-	if (IO.zip) {
-		file = IO.zip.file(`${id}.${fileExtension}`);
-		md5 = file.name;
-	}
-
-	return new Promise(callback => {
-		switch (fileExtension) {
-			case 'svg': {
-				const onloadCallback = source => {
-					loadSVG(source).then(callback);
-				};
-	
-				if (IO.zip) {
-					onloadCallback(file.asText());
-				} else {
-					const request = IO.load(IO.ASSET_URL + md5 + '/get/').on('load', onloadCallback);
-					IO.projectRequest.add(request);
-				}
-	
-				break;
-			}
-			// TODO: MP3
-			case 'wav': {
-				const onloadCallback = ab => {
-					IO.decodeAudio(ab).then(buffer => {
-						callback(buffer);
-					});
-				};
-				if (IO.zip) {
-					const ab = file.asArrayBuffer();
-					onloadCallback(ab);
-				} else {
-					const request = IO.load(IO.ASSET_URL + md5 + '/get/', null, 'arraybuffer').on('load', onloadCallback);
-					IO.projectRequest.add(request);
-				}
-	
-				break;
-			}
-			case 'png':
-			case 'jpg':
-			case 'jpeg': {
-				if (IO.zip) {
-					const image = new Image();
-					image.onload = () => {
-						callback(image);
-					};
-					image.src = `data:image/${(fileExtension === 'jpg' ? 'jpeg' : fileExtension)};base64,${btoa(file.asBinary())}`;
-				} else {
-					const request = IO.loadImage(IO.ASSET_URL + md5 + '/get/').on('load', callback);
-					IO.projectRequest.add(request);
-				}
-				break;
-			}
-			default: {
-				console.warn(`Unknown file type '${fileExtension}'`);
-				callback();
-			}
-		}
 	});
 };
 

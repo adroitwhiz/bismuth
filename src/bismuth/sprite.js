@@ -6,7 +6,7 @@ const SCALE = window.devicePixelRatio || 1;
 class Sprite extends Base {
 	constructor (stage) {
 		super();
-		
+
 		this.stage = stage;
 
 		this.direction = 90;
@@ -17,7 +17,6 @@ class Sprite extends Base {
 		this.scale = 1;
 		this.scratchX = 0;
 		this.scratchY = 0;
-		this.spriteInfo = {};
 		this.visible = true;
 
 		this.penState = {
@@ -51,7 +50,6 @@ class Sprite extends Base {
 		this.scale = data.scale;
 		this.scratchX = data.scratchX;
 		this.scratchY = data.scratchY;
-		this.spriteInfo = data.spriteInfo;
 		this.visible = data.visible;
 
 		return this;
@@ -69,7 +67,7 @@ class Sprite extends Base {
 
 		{
 			const keys = Object.keys(this.vars);
-			for (let i = keys.length; i--;) {
+			for (let i = 0; i < keys.length; i++) {
 				const k = keys[i];
 				c.vars[k] = this.vars[k];
 			}
@@ -77,7 +75,7 @@ class Sprite extends Base {
 
 		{
 			const keys = Object.keys(this.lists);
-			for (let i = keys.length; i--;) {
+			for (let i = 0; i < keys.length; i++) {
 				const k = keys[i];
 				c.lists[k] = this.lists[k].slice(0);
 			}
