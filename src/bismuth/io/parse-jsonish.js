@@ -11,7 +11,6 @@ const parseJSONish = json => {
 		}
 		return (1, eval)('(' + json + ')');
 	}
-	
 };
 
 module.exports = parseJSONish;

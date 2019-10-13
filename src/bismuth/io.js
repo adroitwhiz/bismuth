@@ -99,63 +99,21 @@ class ZipAssetLoader {
 	}
 }
 
-class ProjectV2Request {
+class ProjectV2Request extends Request {
 	constructor () {
-		this.totalAssets = 0;
-		this.loadedAssets = 0;
-
+		super();
+		this._totalAssets = 0;
 		this._loader = null;
 
-		this.project = null;
-
-		this.listeners = {
-			load: [],
-			progress: [],
-			error: []
-		};
-
 		return this;
 	}
 
-	get loaded () {
-		return this.loadedAssets;
-	}
-
-	set loaded (numLoaded) {
-		this.loadedAssets = numLoaded;
+	progress () {
 		this.dispatchEvent('progress', {
-			loaded: numLoaded,
-			total: this.totalAssets,
+			loaded: this.loaded,
+			total: this._totalAssets,
 			lengthComputable: true
 		});
-	}
-
-	get total () {
-		return this.totalAssets;
-	}
-
-	on (event, callback) {
-		if (this.listeners.hasOwnProperty(event)) {
-			const listeners = this.listeners[event];
-
-			listeners.push(callback);
-		} else {
-			console.warn(`Unknown event '${event}'`);
-		}
-
-		return this;
-	}
-
-	dispatchEvent (event, result) {
-		if (this.listeners.hasOwnProperty(event)) {
-			for (const listener of this.listeners[event]) {
-				listener(result);
-			}
-		} else {
-			console.warn(`Unknown event '${event}'`);
-		}
-
-		return this;
 	}
 
 	/**
@@ -252,7 +210,7 @@ class ProjectV2Request {
 
 	// TODO: change to return Costume object
 	loadCostume (costumeData) {
-		this.totalAssets++;
+		this._totalAssets++;
 		const loadedCostume = {
 			costumeName: costumeData.costumeName,
 			baseLayer: null,
@@ -311,12 +269,16 @@ class ProjectV2Request {
 			});
 		}
 
-		return costumePromise.then(() => { this.loaded++; return loadedCostume; });
+		return costumePromise.then(() => {
+			this.loaded++;
+			this.progress();
+			return loadedCostume;
+		});
 	}
 
 	// TODO: change to return Sound object
 	loadSound (soundData) {
-		this.totalAssets++;
+		this._totalAssets++;
 		const loadedSound = {
 			soundName: soundData.soundName,
 			$buffer: null
@@ -326,6 +288,7 @@ class ProjectV2Request {
 			.then(IO.decodeAudio)
 			.then(buffer => {
 				this.loaded++;
+				this.progress();
 				loadedSound.$buffer = buffer;
 				return loadedSound;
 			});
