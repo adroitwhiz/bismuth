@@ -14,7 +14,7 @@ class Sprite extends Base {
 		this.isDraggable = false;
 		this.isDragging = false;
 		this.rotationStyle = 'normal';
-		this.scale = 1;
+		this.size = 100;
 		this.scratchX = 0;
 		this.scratchY = 0;
 		this.visible = true;
@@ -86,7 +86,7 @@ class Sprite extends Base {
 		c.indexInLibrary = this.indexInLibrary;
 		c.isDraggable = this.isDraggable;
 		c.rotationStyle = this.rotationStyle;
-		c.scale = this.scale;
+		c.size = this.size;
 		c.volume = this.volume;
 		c.scratchX = this.scratchX;
 		c.scratchY = this.scratchY;
@@ -230,7 +230,7 @@ class Sprite extends Base {
 			} else if (this.rotationStyle === 'leftRight' && this.direction < 0) {
 				context.scale(-1, 1);
 			}
-			context.scale(this.scale, this.scale);
+			context.scale(this.size * 0.01, this.size * 0.01);
 			context.scale(costume.scale, costume.scale);
 			context.translate(-costume.rotationCenterX, -costume.rotationCenterY);
 
@@ -260,8 +260,8 @@ class Sprite extends Base {
 			if (x < bounds.left || y < bounds.bottom || x > bounds.right || y > bounds.top) {
 				return false;
 			}
-			let cx = (x - this.scratchX) / this.scale;
-			let cy = (this.scratchY - y) / this.scale;
+			let cx = (x - this.scratchX) / (this.size * 0.01);
+			let cy = (this.scratchY - y) / (this.size * 0.01);
 			if (this.rotationStyle === 'normal' && this.direction !== 90) {
 				const directionRadians = (90 - this.direction) * Math.PI / 180;
 				const ox = cx;
@@ -395,7 +395,7 @@ class Sprite extends Base {
 	rotatedBounds () {
 		const costume = this.costumes[this.currentCostumeIndex];
 
-		const s = costume.scale * this.scale;
+		const s = costume.scale * this.size * 0.01;
 		let left = -costume.rotationCenterX * s;
 		const top = costume.rotationCenterY * s;
 		let right = left + (costume.image.width * s);
@@ -404,7 +404,7 @@ class Sprite extends Base {
 		if (this.rotationStyle !== 'normal') {
 			if (this.rotationStyle === 'leftRight' && this.direction < 0) {
 				right = -left;
-				left = right - (costume.image.width * costume.scale * this.scale);
+				left = right - (costume.image.width * costume.scale * this.size * 0.01);
 			}
 			return {
 				left: this.scratchX + left,

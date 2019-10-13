@@ -65,7 +65,7 @@ class Watcher {
 				value = this.target.direction;
 				break;
 			case 'scale':
-				value = this.target.scale * 100;
+				value = this.target.size;
 				break;
 			case 'sceneName':
 				value = this.stage.getCostumeName();

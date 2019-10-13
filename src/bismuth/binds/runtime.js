@@ -286,7 +286,7 @@ const runtime = (function (P) {
 				case 'costume name':
 					return o.costumes[o.currentCostumeIndex].costumeName;
 				case 'size':
-					return o.scale * 100;
+					return o.size;
 				case 'volume':
 					return 0; // TODO
 			}

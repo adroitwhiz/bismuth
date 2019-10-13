@@ -320,7 +320,7 @@ class Stage extends Base {
 		this.backdropCanvas.height = this.zoom * SCALE * 360;
 		const costume = this.costumes[this.currentCostumeIndex];
 		this.backdropContext.save();
-		const s = this.zoom * SCALE * costume.scale;
+		const s = this.zoom * SCALE * costume.size * 0.01;
 		this.backdropContext.scale(s, s);
 		this.backdropContext.drawImage(costume.image, 0, 0);
 		this.backdropContext.restore();

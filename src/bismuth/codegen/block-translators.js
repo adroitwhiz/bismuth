@@ -368,34 +368,26 @@ const BlockTranslators = gen => { return {
 	},
 
 	'looks_changesizeby': block => {
-		// S.scale = Math.max(0, S.scale + CHANGE * 0.01)
-		// TODO: change this when sprite size is changed to be a percentage
+		// S.size = Math.max(0, S.size + CHANGE)
 		return e['='](
-			Builders.spriteProperty('scale'),
+			Builders.spriteProperty('size'),
 			Builders.callMathFunction('max', [
 				e['num'](0),
 				e['+'](
-					Builders.spriteProperty('scale'),
-					e['*'](
-						gen.getInput(block.args['CHANGE']),
-						e['num'](0.01)
-					)
+					Builders.spriteProperty('size'),
+					gen.getInput(block.args['CHANGE'])
 				)
 			])
 		);
 	},
 
 	'looks_setsizeto': block => {
-		// S.scale = Math.max(0, SIZE * 0.01)
-		// TODO: change this when sprite size is changed to be a percentage
+		// S.size = Math.max(0, SIZE)
 		return e['='](
-			Builders.spriteProperty('scale'),
+			Builders.spriteProperty('size'),
 			Builders.callMathFunction('max', [
 				e['num'](0),
-				e['*'](
-					gen.getInput(block.args['SIZE']),
-					e['num'](0.01)
-				)
+				gen.getInput(block.args['SIZE'])
 			])
 		);
 	},
@@ -434,8 +426,7 @@ const BlockTranslators = gen => { return {
 	},
 
 	'looks_size': () => {
-		// TODO: change this when sprite size is changed to be a percentage
-		return e['*'](Builders.spriteProperty('scale'), e['num'](100));
+		return Builders.spriteProperty('size');
 	},
 
 	// Sound

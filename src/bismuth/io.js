@@ -216,7 +216,7 @@ class ProjectV2Request extends Request {
 
 		loadedSprite.scratchX = obj.scratchX;
 		loadedSprite.scratchY = obj.scratchY;
-		loadedSprite.scale = obj.scale;
+		loadedSprite.size = obj.scale * 100;
 		loadedSprite.direction = obj.direction;
 		loadedSprite.rotationStyle = obj.rotationStyle;
 		loadedSprite.isDraggable = obj.isDraggable;
