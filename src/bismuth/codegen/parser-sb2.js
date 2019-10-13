@@ -142,10 +142,11 @@ class SB2Parser {
 			}
 		}
 
-		// 'insert at list' and 'replace item of list' can have non-numeric indices.
+		// 'item of list, 'insert at list', and 'replace item of list' can have non-numeric indices.
 		// If the 'INDEX' parameter cannot be directly coerced into a number, change its type to 'text'.
 		if ((parsedOpcode === 'data_insertatlist' ||
-			parsedOpcode === 'data_replaceitemoflist') &&
+			parsedOpcode === 'data_replaceitemoflist' ||
+			parsedOpcode === 'data_itemoflist') &&
 			Number.isNaN(Number(parsedArgs['INDEX'].value.value))) {
 
 			parsedArgs['INDEX'].type = 'text';
