@@ -1,6 +1,3 @@
-const Costume = require('./costume');
-const Sound = require('./sound');
-
 class Base {
 	constructor () {
 		this.isClone = false;
