@@ -1,8 +1,12 @@
 const canvg = require('canvg');
 const JSZip = require('jszip');
 
+const Costume = require('./costume');
 const Request = require('./request');
+const Sound = require('./sound');
+const Sprite = require('./sprite');
 const Stage = require('./stage');
+const Watcher = require('./watcher');
 
 const decodeADPCMAudio = require('./io/decode-adpcm-audio.js');
 const fixSVG = require('./io/fix-svg.js');
@@ -26,7 +30,7 @@ class WebAssetLoader {
 		switch (type) {
 			case 'arraybuffer':
 			case 'text': {
-				return IO.loadPromise(assetURL, type);
+				return loadPromise(assetURL, type);
 			}
 			case 'image': {
 				const image = document.createElement('img');
@@ -53,11 +57,11 @@ class WebAssetLoader {
 	}
 
 	loadProjectManifest () {
-		return IO.loadPromise(IO.PROJECT_URL + this.projectID, 'text').then(parseJSONish);
+		return loadPromise(IO.PROJECT_URL + this.projectID, 'text').then(parseJSONish);
 	}
 
 	loadProjectSB2 () {
-		return IO.loadPromise(IO.PROJECT_URL + this.projectID, 'arraybuffer');
+		return loadPromise(IO.PROJECT_URL + this.projectID, 'arraybuffer');
 	}
 }
 
@@ -133,7 +137,8 @@ class ProjectV2Request extends Request {
 
 		// If loading the project fails, it may be because it's a compressed SB2 instead of a manifest file.
 		// If that's the case, attempt to load it as one.
-		return this.loadProject().catch(() => {
+		return this.loadProject().catch((err) => {
+			console.log(err);
 			return this._loader.loadProjectSB2().then(this.loadSB2.bind(this));
 		});
 	}
@@ -145,33 +150,75 @@ class ProjectV2Request extends Request {
 		return Promise.all([stagePromise, instrumentsPromise]).then(() => { return stagePromise; });
 	}
 
-	loadStage (obj) {
+	loadStage (stageData) {
 		// Copy over Stage-specific properties
-		const loadedStage = {
-			tempoBPM: obj.tempoBPM
-		};
+		const loadedStage = new Stage();
+		loadedStage.tempoBPM = stageData.tempoBPM;
 
 		return Promise.all([
-			this.loadObject(obj, loadedStage),
-			Promise.all(obj.children.map(this.loadSprite.bind(this)))
+			this.loadObject(stageData, loadedStage),
+			Promise.all(stageData.children.map(
+				obj => {
+					if (obj.listName) return null;
+					if (obj.cmd) return this.loadWatcher(obj, loadedStage);
+					return this.loadSprite(obj, loadedStage);
+				}
+			))
 		]).then(results => {
-			loadedStage.children = results[1];
+			const loadedChildren = results[1];
+
+			for (const child of loadedChildren) {
+				if (child instanceof Watcher) {
+					loadedStage.allWatchers.push(child);
+				} else if (child instanceof Sprite) {
+					loadedStage.children.push(child);
+				}
+			}
+
+			for (const watcher of loadedStage.allWatchers) {
+				watcher.resolve();
+			}
+
+			loadedStage.updateBackdrop();
 
 			return loadedStage;
 		});
 	}
 
-	loadSprite (obj) {
+	loadWatcher (watcherData, parentStage) {
+		const loadedWatcher = new Watcher(parentStage);
+
+		loadedWatcher.cmd = watcherData.cmd || 'getVar:';
+		if (watcherData.color) {
+			const c = (watcherData.color < 0 ? watcherData.color + 0x1000000 : watcherData.color).toString(16);
+			this.color = '#000000'.slice(0, -c.length) + c;
+		}
+		loadedWatcher.isDiscrete = watcherData.isDiscrete === undefined ? true : watcherData.isDiscrete;
+		loadedWatcher.label = watcherData.label || '';
+		loadedWatcher.mode = watcherData.mode || 1;
+		loadedWatcher.param = watcherData.param;
+		loadedWatcher.sliderMax = watcherData.sliderMax === undefined ? 100 : watcherData.sliderMax;
+		loadedWatcher.sliderMin = watcherData.sliderMin || 0;
+		loadedWatcher.targetName = watcherData.target;
+		loadedWatcher.visible = watcherData.visible === undefined ? true : watcherData.visible;
+		loadedWatcher.x = watcherData.x || 0;
+		loadedWatcher.y = watcherData.y || 0;
+
+		return Promise.resolve(loadedWatcher);
+	}
+
+	// TODO: return Sprite object
+	loadSprite (obj, parentStage) {
 		// Copy over Sprite-specific properties
-		const loadedSprite = {
-			scratchX: obj.scratchX,
-			scratchY: obj.scratchY,
-			scale: obj.scale,
-			direction: obj.direction,
-			rotationStyle: obj.rotationStyle,
-			isDraggable: obj.isDraggable,
-			visible: obj.visible
-		};
+		const loadedSprite = new Sprite(parentStage);
+
+		loadedSprite.scratchX = obj.scratchX;
+		loadedSprite.scratchY = obj.scratchY;
+		loadedSprite.scale = obj.scale;
+		loadedSprite.direction = obj.direction;
+		loadedSprite.rotationStyle = obj.rotationStyle;
+		loadedSprite.isDraggable = obj.isDraggable;
+		loadedSprite.visible = obj.visible;
 
 		return this.loadObject(obj, loadedSprite);
 	}
@@ -183,13 +230,10 @@ class ProjectV2Request extends Request {
 	 * @returns
 	 */
 	loadObject (srcObject, dstObject) {
-		// TODO: handle watchers better
-		if (srcObject.cmd !== undefined || srcObject.listName !== undefined) {
-			return Promise.resolve(srcObject);
-		}
-
 		const costumePromises = srcObject.costumes ?
-			Promise.all(srcObject.costumes.map(this.loadCostume.bind(this))) :
+			Promise.all(srcObject.costumes.map(
+				(costumeData, index) => this.loadCostume(costumeData, index, dstObject))
+			) :
 			Promise.reject(`${srcObject.objName} has no costumes`);
 
 		const soundPromises = srcObject.sounds ?
@@ -198,27 +242,26 @@ class ProjectV2Request extends Request {
 
 		return Promise.all([costumePromises, soundPromises]).then(results => {
 			dstObject.scripts = srcObject.scripts || [];
-			dstObject.variables = srcObject.variables || [];
-			dstObject.lists = srcObject.lists || [];
+			if (srcObject.variables) dstObject.addVariables(srcObject.variables);
+			dstObject.addLists(srcObject.lists || []);
 			dstObject.costumes = results[0];
-			dstObject.sounds = results[1];
+			dstObject.addSounds(results[1]);
 			dstObject.objName = srcObject.objName;
+			dstObject.currentCostumeIndex = srcObject.currentCostumeIndex;
 
 			return dstObject;
 		});
 	}
 
-	// TODO: change to return Costume object
-	loadCostume (costumeData) {
+	loadCostume (costumeData, index, parentSprite) {
 		this._totalAssets++;
-		const loadedCostume = {
-			costumeName: costumeData.costumeName,
-			baseLayer: null,
-			bitmapResolution: costumeData.bitmapResolution || 1,
-			rotationCenterX: costumeData.rotationCenterX,
-			rotationCenterY: costumeData.rotationCenterY,
-			$image: null
-		};
+		const loadedCostume = new Costume(index, parentSprite);
+
+		loadedCostume.bitmapResolution = costumeData.bitmapResolution;
+		loadedCostume.scale = 1 / costumeData.bitmapResolution;
+		loadedCostume.costumeName = costumeData.costumeName;
+		loadedCostume.rotationCenterX = costumeData.rotationCenterX;
+		loadedCostume.rotationCenterY = costumeData.rotationCenterY;
 
 		// If the costume is an SVG, load the SVG as text and do fancy stuff with it.
 		// Otherwise, load the costume as an <image>.
@@ -242,7 +285,7 @@ class ProjectV2Request extends Request {
 			// In case of failed costume load, create empty image to avoid crashing
 			.catch(() => { return document.createElement('img'); })
 			.then(asset => {
-				loadedCostume.$image = asset;
+				loadedCostume.baseLayer = asset;
 			});
 
 		if (costumeData.textLayerMD5) {
@@ -265,37 +308,31 @@ class ProjectV2Request extends Request {
 				ctx.drawImage(costumeData.$image, 0, 0);
 				ctx.drawImage(textLayer, 0, 0);
 
-				loadedCostume.$image = combinedCanvas;
+				loadedCostume.baseLayer = combinedCanvas;
 			});
 		}
 
 		return costumePromise.then(() => {
 			this.loaded++;
 			this.progress();
+			loadedCostume.render();
 			return loadedCostume;
 		});
 	}
 
-	// TODO: change to return Sound object
 	loadSound (soundData) {
 		this._totalAssets++;
-		const loadedSound = {
-			soundName: soundData.soundName,
-			$buffer: null
-		};
-
 		return this._loader.fetchAsset(soundData.md5, soundData.soundID, 'arraybuffer')
 			.then(IO.decodeAudio)
 			.then(buffer => {
 				this.loaded++;
 				this.progress();
-				loadedSound.$buffer = buffer;
-				return loadedSound;
+				return new Sound(soundData.soundName, buffer);
 			});
 	}
 }
 
-IO.loadPromise = (url, type) => {
+const loadPromise = (url, type) => {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest();
 		xhr.open('GET', url, true);
@@ -318,15 +355,15 @@ IO.loadScratchr2Project = id => {
 	const rq = new ProjectV2Request();
 
 	rq.loadFromID(id).then(project => {
-		const loaded = new Stage().fromJSON(project);
-		rq.dispatchEvent('load', loaded);
+		P.compile(project);
+		rq.dispatchEvent('load', project);
 	});
 
 	return rq;
 };
 
 IO.loadScratchr2ProjectTitle = projectID => {
-	return IO.loadPromise(IO.PROJECT_API_URL + projectID).then(data => {
+	return loadPromise(IO.PROJECT_API_URL + projectID).then(data => {
 		const title = JSON.parse(data).title;
 		if (title) {
 			return title;
@@ -339,9 +376,9 @@ IO.loadScratchr2ProjectTitle = projectID => {
 IO.loadSB2Project = (ab, callback) => {
 	const rq = new ProjectV2Request();
 	rq.loadSB2(ab).then(project => {
-		const loaded = new Stage().fromJSON(project);
-		rq.dispatchEvent('load', loaded);
-		if (callback) callback(loaded);
+		P.compile(project);
+		rq.dispatchEvent('load', project);
+		if (callback) callback(project);
 	});
 	return rq;
 };
@@ -376,7 +413,7 @@ IO.loadInstruments = () => {
 };
 
 IO.loadInstrumentBuffer = name => {
-	return IO.loadPromise(IO.SOUNDBANK_URL + instruments[name], 'arraybuffer')
+	return loadPromise(IO.SOUNDBANK_URL + instruments[name], 'arraybuffer')
 		.then(IO.decodeAudio)
 		.then(buffer => {
 			IO.instrumentBuffers[name] = buffer;

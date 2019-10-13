@@ -40,21 +40,6 @@ class Sprite extends Base {
 		this.sayId = 0;
 	}
 
-	fromJSON (data) {
-		super.fromJSON.call(this, data);
-
-		this.direction = data.direction;
-		this.indexInLibrary = data.indexInLibrary;
-		this.isDraggable = data.isDraggable;
-		this.rotationStyle = data.rotationStyle;
-		this.scale = data.scale;
-		this.scratchX = data.scratchX;
-		this.scratchY = data.scratchY;
-		this.visible = data.visible;
-
-		return this;
-	}
-
 	clone () {
 		const c = new Sprite(this.stage);
 

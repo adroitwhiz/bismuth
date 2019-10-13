@@ -4,7 +4,6 @@
 - Switch to scratch-render (or a patched version)
 - Use scratch-svg-renderer
 - Refactor deserialization to allow for loading 3.0 projects
-	- Create Costume, Sound, Sprite, Stage objects as deserialization step; remove fromJSON methods
 	- Parse scripts as deserialization step instead of in codegen
 - Switch to scratch-audio?
 - Redo frontend/HTML

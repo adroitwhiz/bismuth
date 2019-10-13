@@ -295,24 +295,6 @@ class Stage extends Base {
 		if (this.onMouseUp) document.removeEventListener('mouseup', this.onMouseUp);
 	}
 
-	fromJSON (data) {
-		super.fromJSON.call(this, data);
-
-		data.children.forEach(function (d) {
-			if (d.listName) return;
-			if (d.cmd) this.allWatchers.push(new Watcher(this).fromJSON(d));
-			else this.children.push(new Sprite(this).fromJSON(d));
-		}, this);
-
-		this.allWatchers.forEach(child => {
-			child.resolve();
-		}, this);
-
-		P.compile(this);
-
-		return this;
-	}
-
 	focus () {
 		if (this.promptId < this.nextPromptId) {
 			this.prompt.focus();

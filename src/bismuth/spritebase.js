@@ -37,23 +37,9 @@ class Base {
 		this.resetFilters();
 	}
 
-	fromJSON (data) {
-		this.objName = data.objName;
-		this.scripts = data.scripts;
-		this.currentCostumeIndex = data.currentCostumeIndex || 0;
-		this.costumes = data.costumes.map(function (d, i) {
-			return new Costume(d, i, this);
-		}, this);
-		this.addSounds(data.sounds);
-		this.addLists(data.lists);
-		this.addVariables(data.variables);
-
-		return this;
-	}
-
 	addSounds (sounds) {
 		for (let i = 0; i < sounds.length; i++) {
-			const s = new Sound(sounds[i]);
+			const s = sounds[i];
 			this.sounds.push(s);
 			this.soundRefs[s.name] = s;
 		}

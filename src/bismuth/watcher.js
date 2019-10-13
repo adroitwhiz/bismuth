@@ -22,26 +22,6 @@ class Watcher {
 		this.button = null;
 	}
 
-	fromJSON (data) {
-		this.cmd = data.cmd || 'getVar:';
-		if (data.color) {
-			const c = (data.color < 0 ? data.color + 0x1000000 : data.color).toString(16);
-			this.color = '#000000'.slice(0, -c.length) + c;
-		}
-		this.isDiscrete = data.isDiscrete == null ? true : data.isDiscrete;
-		this.label = data.label || '';
-		this.mode = data.mode || 1;
-		this.param = data.param;
-		this.sliderMax = data.sliderMax == null ? 100 : data.sliderMax;
-		this.sliderMin = data.sliderMin || 0;
-		this.targetName = data.target;
-		this.visible = data.visible == null ? true : data.visible;
-		this.x = data.x || 0;
-		this.y = data.y || 0;
-
-		return this;
-	}
-
 	resolve () {
 		this.target = this.stage.getObject(this.targetName);
 		if (this.target && this.cmd === 'getVar:') {
