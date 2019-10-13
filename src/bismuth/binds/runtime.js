@@ -425,7 +425,7 @@ const runtime = (function (P) {
 				stack: STACK = [],
 				warp: procedure.warp
 			};
-			
+
 			if (C.warp || WARP) {
 				WARP++;
 				IMMEDIATE = procedure.fn;
@@ -652,7 +652,6 @@ const runtime = (function (P) {
 							const fn = IMMEDIATE;
 							IMMEDIATE = null;
 							fn();
-							
 						}
 						STACK.push(STACK_FRAME);
 						CALLS.push(C);

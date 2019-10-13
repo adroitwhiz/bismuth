@@ -33,7 +33,7 @@ const GeneratorCommon = gen => { return {
 
 				Builders.forceQueue(timerID) // forceQueue this whole thing all over again
 			),
-			
+
 			// if we escaped the forceQueue, that must mean the timer's over
 			// so, continue with the rest of the script
 			Builders.restore(),
@@ -64,7 +64,7 @@ const GeneratorCommon = gen => { return {
 			e['statement']( // initialize stack frame duration to "duration" argument
 				e['='](Builders.RProperty('duration'), duration)
 			),
-			
+
 			// initial forceQueue of the timer check
 			Builders.forceQueue(timerID)
 		]));

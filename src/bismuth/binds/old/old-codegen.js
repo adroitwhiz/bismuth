@@ -6,38 +6,38 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 	var nextLabel = function () {
 		return object.fns.length + fns.length;
 	};
-	
+
 	var label = function () {
 		var id = nextLabel();
 		fns.push(source.length + startingPosition);
 		visual = 0;
 		return id;
 	};
-	
+
 	var delay = function () {
 		source += 'return;\n';
 		label();
 	};
-	
+
 	var queue = function (id) {
 		source += 'queue(' + id + ');\n';
 		source += 'console.log("Returning");\n';
 		source += 'return;\n';
 	};
-	
+
 	var forceQueue = function (id) {
 		source += 'forceQueue(' + id + ');\n';
 		source += 'console.log("Returning");\n';
 		source += 'return;\n';
 	};
-	
+
 	var seq = function (script) {
 		if (!script) return;
 		for (var i = 0; i < script.length; i++) {
 			source += compile(object, script[i], fns, source.length + startingPosition);
 		}
 	};
-	
+
 	var varRef = function (name) {
 		if (typeof name !== 'string') {
 			return 'getVar(' + val(name) + ')';
@@ -45,7 +45,7 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 		var o = object.stage.vars[name] === undefined ? 'S' : 'self';
 		return o + '.vars[' + val(name) + ']';
 	};
-	
+
 	var listRef = function (name) {
 		if (typeof name !== 'string') {
 			return 'getList(' + val(name) + ')';
@@ -56,24 +56,24 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 		}
 		return o + '.lists[' + val(name) + ']';
 	};
-	
+
 	var param = function (name, usenum, usebool) {
 		if (typeof name !== 'string') {
 			throw new Error('Dynamic parameters are not supported');
 		}
-	
+
 		if (!inputs) return '0';
-	
+
 		var i = inputs.indexOf(name);
 		if (i === -1) {
 			return '0';
 		}
-	
+
 		var t = types[i];
 		var kind =
 			t === '%n' || t === '%d' || t === '%c' ? 'num' :
 				t === '%b' ? 'bool' : '';
-	
+
 		if (kind === 'num' && usenum) {
 			used[i] = true;
 			return 'C.numargs[' + i + ']';
@@ -82,7 +82,7 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 			used[i] = true;
 			return 'C.boolargs[' + i + ']';
 		}
-	
+
 		var v = 'C.args[' + i + ']';
 		if (usenum) return '(+' + v + ' || 0)';
 		if (usebool) return 'bool(' + v + ')';
@@ -102,20 +102,20 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 		'getUserId': e => '0',
 		'getUserName': e => '""'
 	};
-	
+
 	var val2 = function (e) {
 		return val2Table[e[0]](e);
 	};
-	
+
 	var val = function (e, usenum, usebool) {
 		var v;
-	
+
 		if (typeof e === 'number' || typeof e === 'boolean') {
-	
+
 			return '' + e;
-	
+
 		} else if (typeof e === 'string') {
-	
+
 			return '"' + e
 				.replace(/\\/g, '\\\\')
 				.replace(/\n/g, '\\n')
@@ -123,110 +123,110 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 				.replace(/"/g, '\\"')
 				.replace(/\{/g, '\\x7b')
 				.replace(/\}/g, '\\x7d') + '"';
-	
+
 		} else if (e[0] === 'getParam') {
-	
+
 			return param(e[1], usenum, usebool);
-	
+
 		} else if ((v = numval(e)) != null || (v = boolval(e)) != null) {
-	
+
 			return v;
-	
+
 		} else {
-	
+
 			v = val2(e);
 			if (usenum) return '(+' + v + ' || 0)';
 			if (usebool) return 'bool(' + v + ')';
 			return v;
-	
+
 		}
 	};
-	
+
 	var numval = function (e) {
-	
+
 		if (e[0] === 'xpos') {
 			/* Motion */
-	
+
 			return 'S.scratchX';
-	
+
 		} else if (e[0] === 'ypos') {
-	
+
 			return 'S.scratchY';
-	
+
 		} else if (e[0] === 'heading') {
-	
+
 			return 'S.direction';
-	
+
 		} else if (e[0] === 'costumeIndex') {
 			/* Looks */
-	
+
 			return '(S.currentCostumeIndex + 1)';
-	
+
 		} else if (e[0] === 'backgroundIndex') {
-	
+
 			return '(self.currentCostumeIndex + 1)';
-	
+
 		} else if (e[0] === 'scale') {
-	
+
 			return '(S.scale * 100)';
-	
+
 		} else if (e[0] === 'volume') {
 			/* Sound */
-	
+
 			return '(S.volume * 100)';
-	
+
 		} else if (e[0] === 'tempo') {
-	
+
 			return 'self.tempoBPM';
-	
+
 		} else if (e[0] === 'lineCountOfList:') {
 			/* Data */
-	
+
 			return listRef(e[1]) + '.length';
-	
+
 		} else if (e[0] === '+') {
 			/* Operators */
-	
+
 			return '(' + num(e[1]) + ' + ' + num(e[2]) + ' || 0)';
-	
+
 		} else if (e[0] === '-') {
-	
+
 			return '(' + num(e[1]) + ' - ' + num(e[2]) + ' || 0)';
-	
+
 		} else if (e[0] === '*') {
-	
+
 			return '(' + num(e[1]) + ' * ' + num(e[2]) + ' || 0)';
-	
+
 		} else if (e[0] === '/') {
-	
+
 			return '(' + num(e[1]) + ' / ' + num(e[2]) + ' || 0)';
-	
+
 		} else if (e[0] === 'randomFrom:to:') {
-	
+
 			return 'random(' + num(e[1]) + ', ' + num(e[2]) + ')';
-	
+
 		} else if (e[0] === 'abs') {
-	
+
 			return 'Math.abs(' + num(e[1]) + ')';
-	
+
 		} else if (e[0] === 'sqrt') {
-	
+
 			return 'Math.sqrt(' + num(e[1]) + ')';
-	
+
 		} else if (e[0] === 'stringLength:') {
-	
+
 			return '("" + ' + val(e[1]) + ').length';
-	
+
 		} else if (e[0] === '%' || e[0] === '\\\\') {
-	
+
 			return 'mod(' + num(e[1]) + ', ' + num(e[2]) + ')';
-	
+
 		} else if (e[0] === 'rounded') {
-	
+
 			return 'Math.round(' + num(e[1]) + ')';
-	
+
 		} else if (e[0] === 'computeFunction:of:') {
-	
+
 			if (typeof e[1] !== 'object') {
 				switch ('' + e[1]) {
 					case 'abs':
@@ -261,50 +261,50 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 				return '0';
 			}
 			return 'mathFunc(' + val(e[1]) + ', ' + num(e[2]) + ')';
-	
+
 		} else if (e[0] === 'mouseX') {
 			/* Sensing */
-	
+
 			return 'self.mouseX';
-	
+
 		} else if (e[0] === 'mouseY') {
-	
+
 			return 'self.mouseY';
-	
+
 		} else if (e[0] === 'timer') {
-	
+
 			return '((self.now - self.timerStart) / 1000)';
-	
+
 		} else if (e[0] === 'distanceTo:') {
-	
+
 			return 'S.distanceTo(' + val(e[1]) + ')';
-	
+
 			// } else if (e[0] === 'soundLevel') {
-	
+
 		} else if (e[0] === 'timestamp') {
-	
+
 			return '((Date.now() - epoch) / 86400000)';
-	
+
 		} else if (e[0] === 'timeAndDate') {
-	
+
 			return 'timeAndDate(' + val(e[1]) + ')';
-	
+
 			// } else if (e[0] === 'sensor:') {
-	
+
 		}
 	};
-	
+
 	var DIGIT = /\d/;
 	var boolval = function (e) {
-	
+
 		if (e[0] === 'list:contains:') {
 			/* Data */
-	
+
 			return 'listContains(' + listRef(e[1]) + ', ' + val(e[2]) + ')';
-	
+
 		} else if (e[0] === '<' || e[0] === '>') {
 			/* Operators */
-	
+
 			if (typeof e[1] === 'string' && DIGIT.test(e[1]) || typeof e[1] === 'number') {
 				var less = e[0] === '<';
 				var x = e[1];
@@ -319,9 +319,9 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 				return '(compare(' + val(e[1]) + ', ' + val(e[2]) + ') === ' + (e[0] === '<' ? -1 : 1) + ')';
 			}
 			return (less ? 'numLess' : 'numGreater') + '(' + nx + ', ' + val(y) + ')';
-	
+
 		} else if (e[0] === '=') {
-	
+
 			if (typeof e[1] === 'string' && DIGIT.test(e[1]) || typeof e[1] === 'number') {
 				var x = e[1];
 				var y = e[2];
@@ -334,47 +334,47 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 				return '(equal(' + val(e[1]) + ', ' + val(e[2]) + '))';
 			}
 			return '(numEqual(' + nx + ', ' + val(y) + '))';
-	
+
 		} else if (e[0] === '&') {
-	
+
 			return '(' + bool(e[1]) + ' && ' + bool(e[2]) + ')';
-	
+
 		} else if (e[0] === '|') {
-	
+
 			return '(' + bool(e[1]) + ' || ' + bool(e[2]) + ')';
-	
+
 		} else if (e[0] === 'not') {
-	
+
 			return '!' + bool(e[1]) + '';
-	
+
 		} else if (e[0] === 'mousePressed') {
 			/* Sensing */
-	
+
 			return 'self.mousePressed';
-	
+
 		} else if (e[0] === 'touching:') {
-	
+
 			return 'S.touching(' + val(e[1]) + ')';
-	
+
 		} else if (e[0] === 'touchingColor:') {
-	
+
 			return 'S.touchingColor(' + val(e[1]) + ')';
-	
+
 			// } else if (e[0] === 'color:sees:') {
-	
+
 		} else if (e[0] === 'keyPressed:') {
-	
+
 			var v = typeof e[1] === 'object' ?
 				'P.getKeyCode(' + val(e[1]) + ')' : val(P.getKeyCode(e[1]));
 			return '!!self.keys[' + v + ']';
-	
+
 			// } else if (e[0] === 'isLoud') {
-	
+
 			// } else if (e[0] === 'sensorPressed:') {
-	
+
 		}
 	};
-	
+
 	var bool = function (e) {
 		if (typeof e === 'boolean') {
 			return e;
@@ -385,7 +385,7 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 		var v = boolval(e);
 		return v == null ? val(e, false, true) : v;
 	};
-	
+
 	var num = function (e) {
 		if (typeof e === 'number') {
 			return e || 0;
@@ -396,40 +396,40 @@ var compile = function (object, block, fns, startingPosition, inputs, types, use
 		var v = numval(e);
 		return v == null ? val(e, true) : v;
 	};
-	
+
 	var beatHead = function (dur) {
 		source += 'save();\n';
 		source += 'R.start = self.now;\n';
 		source += 'R.duration = ' + num(dur) + ' * 60000 / self.tempoBPM;\n';
 		source += 'var first = true;\n';
 	};
-	
+
 	var beatTail = function (dur) {
 		var id = label();
 		source += 'if (self.now - R.start < R.duration || first) {\n';
 		source += '  var first;\n';
 		forceQueue(id);
 		source += '}\n';
-	
+
 		source += 'restore();\n';
 	};
-	
+
 	var wait = function (dur) {
 		source += 'save();\n';
 		source += 'R.start = self.now;\n';
 		source += 'R.duration = ' + dur + ' * 1000;\n';
 		source += 'var first = true;\n';
-	
+
 		var id = label();
 		source += 'if (self.now - R.start < R.duration || first) {\n';
 		source += '  var first;\n';
 		forceQueue(id);
 		source += '}\n';
-	
+
 		source += 'restore();\n';
 		source += `console.log("when does this happen?, ${id}")\n`;
 	};
-	
+
 	var noRGB = '';
 	noRGB += 'if (S.penCSS) {\n';
 	noRGB += '  var hsl = rgb2hsl(S.penColor & 0xffffff);\n';

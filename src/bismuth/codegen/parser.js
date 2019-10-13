@@ -143,7 +143,7 @@ class Parser {
 		if ((parsedOpcode === 'data_insertatlist' ||
 			parsedOpcode === 'data_replaceitemoflist') &&
 			Number.isNaN(Number(parsedArgs['INDEX'].value.value))) {
-			
+
 			parsedArgs['INDEX'].type = 'text';
 			parsedArgs['INDEX'].value.type = 'text';
 		}

@@ -163,7 +163,7 @@ const Builders = {
 						e['.'](Builders.spriteProperty('penState'), e['id']('penDown'))
 					) :
 					Builders.spriteProperty('visible'),
-				
+
 				setVisualTrue
 			);
 		}

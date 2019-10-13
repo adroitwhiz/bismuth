@@ -239,7 +239,7 @@ const BlockTranslators = gen => { return {
 	'looks_say': block => {
 		return gen.commonGenerators.sayOrThink(block, false);
 	},
-	
+
 	'looks_thinkforsecs': (block, index, script) => {
 		return gen.commonGenerators.sayOrThinkForSecs(block, index, script, true);
 	},
@@ -462,7 +462,7 @@ const BlockTranslators = gen => { return {
 				e['.'](e['id']('sound'), e['id']('duration')),
 				e['num'](1000)
 			),
-			
+
 			Builders.forceQueue(continuationID),
 			e['block']([
 				e['let'](
@@ -485,7 +485,7 @@ const BlockTranslators = gen => { return {
 	'sound_volume': () => {
 		return e['*'](Builders.spriteProperty('volume'), e['num'](100));
 	},
-	
+
 	// Events
 	'event_broadcast': block => {
 		// TODO: figure out what BASE is then determine what this does
@@ -655,7 +655,7 @@ const BlockTranslators = gen => { return {
 		const returnAddress = gen.getBackpatchID();
 		// Create a continuation for the rest of the blocks
 		const continuationID = gen.continue(script.splice(index + 1));
-		
+
 		gen.setBackpatchDestination(returnAddress, continuationID);
 
 		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
@@ -1028,7 +1028,7 @@ const BlockTranslators = gen => { return {
 			)]
 		);
 	},
-	
+
 	'operator_length': block => {
 		// STRING.length
 		// Indexed in terms of UTF-16 code units.
@@ -1399,7 +1399,6 @@ const BlockTranslators = gen => { return {
 					e['id']('duration')
 				])
 			])
-			
 		);
 	},
 

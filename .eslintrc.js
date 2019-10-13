@@ -50,7 +50,7 @@ module.exports = {
 			maxEOF: 0
 		}],
 		'no-negated-condition': ['error'],
-		'no-trailing-spaces': ['error', {skipBlankLines: true}],
+		'no-trailing-spaces': ['error'],
 		'no-unneeded-ternary': ['error'],
 		'object-curly-spacing': ['error'],
 		'object-property-newline': ['error', {

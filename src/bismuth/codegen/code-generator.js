@@ -50,7 +50,7 @@ class CodeGenerator {
 				outputType === 'math_whole_number' ||
 				outputType === 'music_menu_DRUM' ||
 				outputType === 'music_menu_INSTRUMENT') {
-				
+
 				// ROUND number types
 				// call Math.round
 				castedValue = e['call'](e['.'](e['id']('Math'), e['id']('round')), [castedValue]);
@@ -72,7 +72,7 @@ class CodeGenerator {
 			if (value.__typeTag !== 'boolean') {
 				castedValue = Builders.callUtilMethod('bool', [value]);
 			}
-			
+
 			castedValue.__typeTag = 'boolean';
 			return castedValue;
 		}
@@ -104,7 +104,7 @@ class CodeGenerator {
 			} else {
 				inputNode = Builders.literal(input.value.value);
 			}
-			
+
 		} else if (input.value instanceof ScriptPrims.Script) {
 			inputNode = e['block'](this.compileSubstack(input.value));
 		} else if (input.value instanceof ScriptPrims.Block) {
