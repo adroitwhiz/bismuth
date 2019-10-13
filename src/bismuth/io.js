@@ -69,33 +69,33 @@ class ZipAssetLoader {
 	fetchAsset (md5, id, type) {
 		const fileExtension = md5.split('.').pop();
 		const file = this.zip.file(`${id}.${fileExtension}`);
-		let loadedFile;
 		switch (type) {
 			case 'arraybuffer': {
-				loadedFile = file.asArrayBuffer();
-				break;
+				return file.async('arraybuffer');
 			}
 			case 'text': {
-				loadedFile = file.asText();
-				break;
+				return file.async('string');
 			}
 			case 'image': {
-				const image = document.createElement('img');
-				image.src = `data:image/${(fileExtension === 'jpg' ? 'jpeg' : fileExtension)};base64,${btoa(file.asBinary())}`;
-				return new Promise((resolve, reject) => {
-					image.addEventListener('load', () => { resolve(image); });
-					image.addEventListener('error', reject);
+				return file.async('base64').then(base64 => {
+					const image = document.createElement('img');
+					image.src = `data:image/${(fileExtension === 'jpg' ? 'jpeg' : fileExtension)};base64,${base64}`;
+					return new Promise((resolve, reject) => {
+						image.addEventListener('load', () => { resolve(image); });
+						image.addEventListener('error', reject);
+					});
 				});
 			}
 			default: {
 				return Promise.reject(new Error(`Unknown file data type '${type}'`));
 			}
 		}
-		return Promise.resolve(loadedFile);
 	}
 
 	loadProjectManifest () {
-		return Promise.resolve(this.zip.file('project.json').asText()).then(parseJSONish);
+		return this.zip.file('project.json')
+			.async('string')
+			.then(parseJSONish);
 	}
 }
 
@@ -163,9 +163,11 @@ class ProjectV2Request {
 	 * @param {ArrayBuffer} ab The SB2 file, in ArrayBuffer form.
 	 */
 	loadSB2 (ab) {
-		this._loader = new ZipAssetLoader(new JSZip(ab));
+		return JSZip.loadAsync(ab).then(zip => {
+			this._loader = new ZipAssetLoader(zip);
 
-		return this.loadProject();
+			return this.loadProject();
+		});
 	}
 
 	loadFromID (id) {
