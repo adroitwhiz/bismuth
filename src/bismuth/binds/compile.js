@@ -81,7 +81,7 @@ const compile = (P => {
 				const eventName = (
 					script.listenerBlock.args.BROADCAST_OPTION ||
 					script.listenerBlock.args.BACKDROP).value.value.toLowerCase();
-				
+
 				const listenerName = EVENT_SELECTOR_MAP[script.listenerBlock.opcode];
 
 				(object.listeners[listenerName][eventName] ||

@@ -271,7 +271,9 @@ class Stage extends Base {
 		const w = d.watcher;
 		const sw = w.slider.offsetWidth;
 		const bw = w.button.offsetWidth;
-		const value = w.sliderMin + (Math.max(0, Math.min(1, (t.clientX + d.offset) / (sw - bw))) * (w.sliderMax - w.sliderMin));
+		const value = w.sliderMin + (
+			Math.max(0, Math.min(1, (t.clientX + d.offset) / (sw - bw))) * (w.sliderMax - w.sliderMin)
+		);
 		w.target.vars[w.param] = w.isDiscrete ? Math.round(value) : Math.round(value * 100) / 100;
 		w.update();
 		e.preventDefault();

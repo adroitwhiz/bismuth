@@ -287,7 +287,11 @@ class Sprite extends Base {
 			} else if (this.rotationStyle === 'leftRight' && this.direction < 0) {
 				cx = -cx;
 			}
-			const costumeImageData = costume.context.getImageData((cx * costume.bitmapResolution) + costume.rotationCenterX, (cy * costume.bitmapResolution) + costume.rotationCenterY, 1, 1).data;
+			const costumeImageData = costume.context.getImageData(
+				(cx * costume.bitmapResolution) + costume.rotationCenterX,
+				(cy * costume.bitmapResolution) + costume.rotationCenterY,
+				1, 1
+			).data;
 			return costumeImageData[3] !== 0;
 		} else if (thing === '_edge_') {
 			const bounds = this.rotatedBounds();
@@ -363,6 +367,7 @@ class Sprite extends Base {
 		return false;
 	}
 
+	/* eslint-disable-next-line no-unused-vars */
 	colorIsTouchingColor (color, mask) {
 		// TODO
 		return false;
@@ -392,6 +397,7 @@ class Sprite extends Base {
 		this.direction = (Math.atan2(dy, dx) * 180 / Math.PI) + 90;
 		if (this.saying) this.updateBubble();
 
+		// TODO: figure out what this is supposed to do
 		b = this.rotatedBounds();
 		let x = this.scratchX;
 		let y = this.scratchY;

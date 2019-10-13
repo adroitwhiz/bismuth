@@ -39,7 +39,9 @@ module.exports = {
 		'max-len': [1, {
 			code: 120,
 			tabWidth: 4,
-			ignoreUrls: true
+			ignoreUrls: true,
+			ignoreStrings: true,
+			ignoreTemplateLiterals: true
 		}],
 		'new-parens': ['error'],
 		'newline-per-chained-call': ['error'],

@@ -1,10 +1,15 @@
 # To do
 - **Refactor the code**
 	- Annotate/comment the code
-		- Switch to a proper request library
-- Finish new codegen
-- Switch to scratch-render
+- Switch to scratch-render (or a patched version)
+- Use scratch-svg-renderer
 - Refactor deserialization to allow for loading 3.0 projects
+	- Create Costume, Sound, Sprite, Stage objects as deserialization step; remove fromJSON methods
+	- Parse scripts as deserialization step instead of in codegen
 - Switch to scratch-audio?
 - Redo frontend/HTML
-	- Redo monitors in Vue
+	- Redo watchers in Vue
+	- Redo prompters in Vue
+	- Redo like everything in Vue
+- Add actual tests
+- Set up Travis-CI

@@ -65,7 +65,7 @@ class Watcher {
 		return WATCHER_LABELS[this.cmd] || '';
 	}
 
-	update (context) {
+	update () {
 		let value = 0;
 		if (!this.target) return;
 		switch (this.cmd) {
