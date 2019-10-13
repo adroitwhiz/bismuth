@@ -3,8 +3,7 @@
 	- Annotate/comment the code
 - Switch to scratch-render (or a patched version)
 - Use scratch-svg-renderer
-- Refactor deserialization to allow for loading 3.0 projects
-	- Parse scripts as deserialization step instead of in codegen
+- Implement SB3 deserializer
 - Switch to scratch-audio?
 - Redo frontend/HTML
 	- Redo watchers in Vue

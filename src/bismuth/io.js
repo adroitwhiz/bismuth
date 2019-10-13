@@ -2,11 +2,13 @@ const canvg = require('canvg');
 const JSZip = require('jszip');
 
 const Costume = require('./costume');
-const Request = require('./request');
 const Sound = require('./sound');
 const Sprite = require('./sprite');
 const Stage = require('./stage');
 const Watcher = require('./watcher');
+
+const Request = require('./request');
+const SB2Parser = require('./codegen/parser-sb2');
 
 const decodeADPCMAudio = require('./io/decode-adpcm-audio.js');
 const fixSVG = require('./io/fix-svg.js');
@@ -238,14 +240,25 @@ class ProjectV2Request extends Request {
 
 		const soundPromises = srcObject.sounds ?
 			Promise.all(srcObject.sounds.map(this.loadSound.bind(this))) :
-			Promise.resolve([]);
+			Promise.resolve(null);
 
 		return Promise.all([costumePromises, soundPromises]).then(results => {
-			dstObject.scripts = srcObject.scripts || [];
+			const costumes = results[0];
+			const sounds = results[1];
+
+			// Parse scripts into common format
+			if (srcObject.scripts) {
+				const parser = new SB2Parser();
+				for (const script of srcObject.scripts) {
+					dstObject.scripts.push(parser.parseScript(script));
+				}
+			}
+
 			if (srcObject.variables) dstObject.addVariables(srcObject.variables);
-			dstObject.addLists(srcObject.lists || []);
-			dstObject.costumes = results[0];
-			dstObject.addSounds(results[1]);
+			if (srcObject.lists) dstObject.addLists(srcObject.lists);
+			if (sounds !== null) dstObject.addSounds(sounds);
+
+			dstObject.costumes = costumes;
 			dstObject.objName = srcObject.objName;
 			dstObject.currentCostumeIndex = srcObject.currentCostumeIndex;
 

@@ -1,5 +1,4 @@
 const CodeGenerator = require('../codegen/code-generator');
-const Parser = require('../codegen/parser');
 const generateJavascriptCode = require('../codegen/emit-javascript');
 const getKeyCode = require('../util/get-key-code');
 
@@ -14,25 +13,15 @@ const compile = (P => {
 	};
 
 	const compileScripts = object => {
-		// Part 1: Parse all scripts
-		const parser = new Parser();
-		const generator = new CodeGenerator(object);
-
-		const parsedScripts = [];
-		for (let i = 0; i < object.scripts.length; i++) {
-			parsedScripts.push(parser.parseScript(object.scripts[i][2]));
-		}
-
-		// console.log(parsedScripts);
-
-		// Part 2: Compile the scripts into their JS AST representations,
+		// Part 1: Compile the scripts into their JS AST representations,
 		// adding to the object's array of continuation functions (in AST form)
+		const generator = new CodeGenerator(object);
 		const compiledScripts = [];
-		for (let i = 0; i < parsedScripts.length; i++) {
-			compiledScripts.push(generator.compileScript(parsedScripts[i]));
+		for (let i = 0; i < object.scripts.length; i++) {
+			compiledScripts.push(generator.compileScript(object.scripts[i]));
 		}
 
-		// Part 3: For every continuation function AST in the object,
+		// Part 2: For every continuation function AST in the object,
 		// stringify it into JS code, then eval() it, compiling it into *actual* JS.
 		for (let i = 0; i < object.continuations.length; i++) {
 			object.fns.push(P.runtime.scopedEval(generateJavascriptCode(generator, object.continuations[i])));
@@ -43,7 +32,7 @@ const compile = (P => {
 		// console.log(compiledScripts);
 		// console.log(object);
 
-		//Part 4: For every compiled script, add a listener
+		//Part 3: For every compiled script, add a listener
 		for (let i = 0; i < compiledScripts.length; i++) {
 			addListener(object, compiledScripts[i]);
 		}

@@ -6,13 +6,17 @@ const Literal = ScriptPrims.Literal;
 
 const specMap = require('./block-data/specmap');
 
-class Parser {
+class SB2Parser {
 	constructor () {
 
 	}
 
-	// Parses a 2.0 script
 	parseScript (script) {
+		return this.parseStack(script[2]);
+	}
+
+	// Parses a 2.0 script
+	parseStack (script) {
 		const generatedScript = new Script();
 		for (let i = 0; i < script.length; i++) {
 			generatedScript.addBlock(this.parseBlock(script[i]));
@@ -212,7 +216,7 @@ class Parser {
 			if (arg === null) {
 				parsedArgument = new Script();
 			} else {
-				parsedArgument = this.parseScript(arg);
+				parsedArgument = this.parseStack(arg);
 			}
 		} else if (Array.isArray(arg)) {
 			parsedArgument = this.parseBlock(arg);
@@ -228,4 +232,4 @@ class Parser {
 	}
 }
 
-module.exports = Parser;
+module.exports = SB2Parser;
