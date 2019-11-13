@@ -1,16 +1,18 @@
+const timeAndDate = require('./util/time-and-date');
+
 class Watcher {
 	constructor (stage) {
 		this.stage = stage;
 
-		this.cmd = 'getVar:';
-		this.color = '#ee7d16';
+		this.opcode = 'data_variable';
 		this.isDiscrete = true;
 		this.label = 'watcher';
-		this.mode = 1;
-		this.param = 'var';
+		this.mode = 'default';
+		this.params = {};
 		this.sliderMax = 100;
 		this.sliderMin = 0;
 		this.target = undefined;
+		this.targetName = null;
 		this.visible = true;
 		this.x = 0;
 		this.y = 0;
@@ -23,75 +25,83 @@ class Watcher {
 	}
 
 	resolve () {
-		this.target = this.stage.getObject(this.targetName);
-		if (this.target && this.cmd === 'getVar:') {
-			this.target.watchers[this.param] = this;
+		this.color = getWatcherColor(this.opcode);
+		// Scratch 3.0 uses null targetName for things that belong to the stage
+		this.target = this.targetName === null ? this.stage : this.stage.getObject(this.targetName);
+		if (this.target && this.opcode === 'data_variable') {
+			this.target.watchers[this.params.VARIABLE] = this;
 		}
 		if (!this.label) {
 			this.label = this.getLabel();
-			if (this.target.isSprite) this.label = `${this.target.objName}: ${this.label}`;
+			if (this.target && this.target.isSprite) this.label = `${this.target.objName}: ${this.label}`;
 		}
 		this.layout();
 	}
 
 	getLabel () {
-		switch (this.cmd) {
-			case 'getVar:': return this.param;
-			case 'sensor:': return `${this.param} sensor value`;
-			case 'sensorPressed': return `sensor ${this.param}?`;
-			case 'timeAndDate': return this.param;
-			case 'senseVideoMotion': return `video ${this.param}`;
+		switch (this.opcode) {
+			case 'data_variable': return this.params.VARIABLE;
+			case 'sensing_current': return getDateLabel(this.params.CURRENTMENU);
+			case 'looks_costumenumbername': return 'costume ' + this.params.NUMBER_NAME;
+			case 'looks_backdropnumbername': return 'backdrop ' + this.params.NUMBER_NAME;
 		}
-		return WATCHER_LABELS[this.cmd] || '';
+		return WATCHER_LABELS[this.opcode] || '';
 	}
 
 	update () {
 		let value = 0;
 		if (!this.target) return;
-		switch (this.cmd) {
-			case 'answer':
+		switch (this.opcode) {
+			case 'sensing_answer':
 				value = this.stage.answer;
 				break;
-			case 'backgroundIndex':
-				value = this.stage.currentCostumeIndex + 1;
+			case 'looks_backdropnumbername':
+				if (this.params.NUMBER_NAME === 'number') {
+					value = this.stage.currentCostumeIndex + 1;
+				} else {
+					value = this.stage.costumes[this.stage.currentCostumeIndex].costumeName;
+				}
 				break;
-			case 'costumeIndex':
-				value = this.target.currentCostumeIndex + 1;
+			case 'looks_costumenumbername':
+				if (this.params.NUMBER_NAME === 'number') {
+					value = this.target.currentCostumeIndex + 1;
+				} else {
+					value = this.target.costumes[this.stage.currentCostumeIndex].costumeName;
+				}
 				break;
-			case 'getVar:':
-				value = this.target.vars[this.param];
+			case 'data_variable':
+				value = this.target.vars[this.params.VARIABLE];
 				break;
-			case 'heading':
+			case 'motion_direction':
 				value = this.target.direction;
 				break;
-			case 'scale':
+			case 'looks_size':
 				value = this.target.size;
 				break;
-			case 'sceneName':
-				value = this.stage.getCostumeName();
-				break;
-			case 'senseVideoMotion':
+			case 'sensing_loudness':
+			case 'sensing_loud':
 				// TODO
 				break;
-			case 'soundLevel':
-				// TODO
+			case 'sensing_username':
+				// Match the runtime's behavior (empty string)
+				value = '';
 				break;
-			case 'tempo':
+			case 'music_getTempo':
 				value = this.stage.tempoBPM;
 				break;
-			case 'timeAndDate':
-				value = this.timeAndDate(this.param);
+			case 'sensing_current':
+				value = timeAndDate(this.params.CURRENTMENU.toLowerCase());
 				break;
-			case 'timer':
+			case 'sensing_timer':
 				value = Math.round((this.stage.rightNow() - this.stage.timerStart) / 100) / 10;
 				break;
-			case 'volume':
-				value = this.target.volume * 100;
+			case 'sound_volume':
+				value = this.target.volume;
 				break;
-			case 'xpos':
+			case 'motion_xposition':
 				value = this.target.scratchX;
 				break;
-			case 'ypos':
+			case 'motion_yposition':
 				value = this.target.scratchY;
 				break;
 		}
@@ -120,7 +130,7 @@ class Watcher {
 		this.el.style.cursor = 'default';
 		this.el.style.pointerEvents = 'auto';
 
-		if (this.mode === 2) {
+		if (this.mode === 'large') {
 			this.el.appendChild(this.readout = document.createElement('div'));
 			this.readout.style.minWidth = `${38 / 15}em`;
 			this.readout.style.font = `bold 1.5em/${19 / 15} sans-serif`;
@@ -153,14 +163,14 @@ class Watcher {
 			this.readout.style.marginLeft = `${6 / 10}em`;
 		}
 		this.readout.style.color = '#fff';
-		const f = 1 / (this.mode === 2 ? 15 : 10);
+		const f = 1 / (this.mode === 'large' ? 15 : 10);
 		this.readout.style.border = `${f}em solid #fff`;
 		this.readout.style.boxShadow = `inset ${f}em ${f}em ${f}em rgba(0,0,0,.5), inset -${f}em -${f}em ${f}em rgba(255,255,255,.5)`;
 		this.readout.style.textAlign = 'center';
 		this.readout.style.background = this.color;
 		this.readout.style.display = 'inline-block';
 
-		if (this.mode === 3) {
+		if (this.mode === 'slider') {
 			this.el.appendChild(this.slider = document.createElement('div'));
 			this.slider.appendChild(this.buttonWrap = document.createElement('div'));
 			this.buttonWrap.appendChild(this.button = document.createElement('div'));
@@ -187,44 +197,38 @@ class Watcher {
 
 		this.stage.ui.appendChild(this.el);
 	}
-
-	timeAndDate (format) {
-		switch (format) {
-			case 'year':
-				return new Date().getFullYear();
-			case 'month':
-				return new Date().getMonth() + 1;
-			case 'date':
-				return new Date().getDate();
-			case 'day of week':
-				return new Date().getDay() + 1;
-			case 'hour':
-				return new Date().getHours();
-			case 'minute':
-				return new Date().getMinutes();
-			case 'second':
-				return new Date().getSeconds();
-		}
-		return 0;
-	}
 }
 
+const getDateLabel = dateParam => {
+	if (dateParam === 'DAYOFWEEK') return 'day of week';
+	return dateParam.toLowerCase();
+};
+
+const getWatcherColor = opcode => {
+	if (opcode.startsWith('motion_')) return '#4a6cd4';
+	if (opcode.startsWith('looks_')) return '#8a55d7';
+	if (opcode.startsWith('sound_') || opcode.startsWith('music_')) return '#bb42c3';
+	if (opcode.startsWith('events_')) return '#c88330';
+	if (opcode.startsWith('control_')) return '#e1a91a';
+	if (opcode.startsWith('sensing_')) return '#2ca5e2';
+	if (opcode.startsWith('operator_')) return '#5cb712';
+	if (opcode.startsWith('data_')) return '#ee7d16';
+};
+
 const WATCHER_LABELS = {
-	'costumeIndex': 'costume #',
-	'xpos': 'x position',
-	'ypos': 'y position',
-	'heading': 'direction',
-	'scale': 'size',
-	'backgroundIndex': 'background #',
-	'sceneName': 'background name',
-	'tempo': 'tempo',
-	'volume': 'volume',
-	'answer': 'answer',
-	'timer': 'timer',
-	'soundLevel': 'loudness',
-	'isLoud': 'loud?',
-	'xScroll': 'x scroll',
-	'yScroll': 'y scroll'
+	'motion_xposition': 'x position',
+	'motion_yposition': 'y position',
+	'motion_direction': 'direction',
+	'looks_size': 'size',
+	'music_getTempo': 'tempo',
+	'sound_volume': 'volume',
+	'sensing_answer': 'answer',
+	'sensing_timer': 'timer',
+	'sensing_loudness': 'loudness',
+	'sensing_loud': 'loud?',
+	'sensing_username': 'username',
+	'motion_xscroll': 'x scroll',
+	'motion_yscroll': 'y scroll'
 };
 
 module.exports = Watcher;

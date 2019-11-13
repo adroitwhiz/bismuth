@@ -274,8 +274,8 @@
 						location.hash = '#zip';
 						show('zip');
 						var ext = f.name.split('.').pop();
-						if (ext === 'sb2' || ext === 'zip') {
-							var request = P.IO.loadSB2File(f);
+						if (ext === 'sb2' || ext === 'sb3' || ext === 'zip') {
+							var request = P.IO.loadProjectFile(f);
 						}
 						if (request) {
 							P.player.showProgress(request, function(stage) {
@@ -292,8 +292,8 @@
 						location.hash = '#zip';
 						show('zip');
 						var ext = f.name.split('.').pop();
-						if (ext === 'sb2' || ext === 'zip') {
-							var request = P.IO.loadSB2File(f);
+						if (ext === 'sb2' || ext === 'sb3' || ext === 'zip') {
+							var request = P.IO.loadProjectFile(f);
 						}
 						if (request) {
 							P.player.showProgress(request, function(stage) {

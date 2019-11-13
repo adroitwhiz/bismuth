@@ -1,0 +1,7 @@
+{
+  "name": "bismuth-tools",
+  "devDependencies": {
+    "node-fetch": "^2.6.0",
+    "xml2js": "^0.4.22"
+  }
+}

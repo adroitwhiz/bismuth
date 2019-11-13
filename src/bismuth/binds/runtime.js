@@ -152,7 +152,7 @@ const runtime = (function (P) {
 
 	const epoch = Date.UTC(2000, 0, 1);
 
-	const timeAndDate = P.Watcher.prototype.timeAndDate;
+	const timeAndDate = require('../util/time-and-date');
 
 	const getVar = function (name) {
 		return self.vars[name] === undefined ? SPRITE.vars[name] : self.vars[name];
@@ -288,7 +288,7 @@ const runtime = (function (P) {
 				case 'size':
 					return o.size;
 				case 'volume':
-					return 0; // TODO
+					return o.volume;
 			}
 		} else {
 			switch (attr) {
@@ -298,7 +298,7 @@ const runtime = (function (P) {
 				case 'backdrop name':
 					return o.costumes[o.currentCostumeIndex].costumeName;
 				case 'volume':
-					return 0; // TODO
+					return o.volume;
 			}
 		}
 		const value = o.vars[attr];
@@ -330,7 +330,7 @@ const runtime = (function (P) {
 		var playSpan = function (span, id, duration) {
 			if (!SPRITE.node) {
 				SPRITE.node = audioContext.createGain();
-				SPRITE.node.gain.value = SPRITE.volume;
+				SPRITE.node.gain.value = SPRITE.volume * 0.01;
 				SPRITE.node.connect(volumeNode);
 			}
 
@@ -377,14 +377,15 @@ const runtime = (function (P) {
 		};
 
 		var playSound = function (sound) {
+			const volume = SPRITE.volume * 0.01;
 			if (!sound.buffer) return;
 			if (!sound.node) {
 				sound.node = audioContext.createGain();
-				sound.node.gain.value = SPRITE.volume;
+				sound.node.gain.value = volume;
 				sound.node.connect(volumeNode);
 			}
 			sound.target = SPRITE;
-			sound.node.gain.setValueAtTime(SPRITE.volume, audioContext.currentTime);
+			sound.node.gain.setValueAtTime(volume, audioContext.currentTime);
 
 			if (sound.source) {
 				sound.source.disconnect();
@@ -642,12 +643,13 @@ const runtime = (function (P) {
 						WARP = 0;
 						while (IMMEDIATE) {
 							if (immedCounter++ > MAX_IMMEDIATE_CALLS) {
+								const errorString = `Immediate call overflow on ${SPRITE.objName}`;
 								console.error(
-									`Immediate call overflow on ${SPRITE.objName}`,
+									errorString,
 									SPRITE,
 									IMMEDIATE.toString()
 								);
-								break;
+								throw new Error(errorString);
 							}
 							const fn = IMMEDIATE;
 							IMMEDIATE = null;

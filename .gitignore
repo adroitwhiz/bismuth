@@ -1,9 +1,10 @@
 # NPM
 /node_modules
 npm-*
+/tools/node_modules
 
 # Build
 /dist
 
 # Test
-/.nyc-output
+/.nyc_output

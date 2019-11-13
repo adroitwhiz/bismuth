@@ -1,9 +1,11 @@
 # To do
-- **Refactor the code**
-	- Annotate/comment the code
+- Annotate/comment the code
+	- JSDoc?
 - Switch to scratch-render (or a patched version)
 - Use scratch-svg-renderer
 - Implement SB3 deserializer
+- Remove Argument script primitive; make all primitives (numbers, text, etc) blocks
+- Move type data from specmaps to compiler
 - Switch to scratch-audio?
 - Redo frontend/HTML
 	- Redo watchers in Vue

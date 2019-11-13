@@ -316,11 +316,12 @@ class Stage extends Base {
 	}
 
 	updateBackdrop () {
+		// TODO: backdrop rotation center
 		this.backdropCanvas.width = this.zoom * SCALE * 480;
 		this.backdropCanvas.height = this.zoom * SCALE * 360;
 		const costume = this.costumes[this.currentCostumeIndex];
 		this.backdropContext.save();
-		const s = this.zoom * SCALE * costume.size * 0.01;
+		const s = this.zoom * SCALE * costume.scale;
 		this.backdropContext.scale(s, s);
 		this.backdropContext.drawImage(costume.image, 0, 0);
 		this.backdropContext.restore();

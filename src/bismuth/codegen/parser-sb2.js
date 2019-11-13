@@ -4,7 +4,7 @@ const Script = ScriptPrims.Script;
 const Argument = ScriptPrims.Argument;
 const Literal = ScriptPrims.Literal;
 
-const specMap = require('./block-data/specmap');
+const specMap = require('./block-data/specmap-sb2');
 
 class SB2Parser {
 	constructor () {
@@ -154,7 +154,7 @@ class SB2Parser {
 		}
 
 		// Handle blocks that have been given menus in 3.0
-		// Adapted from https://github.com/LLK/scratch-vm/blob/develop/src/serialization/sb2.js#L1179
+		// Adapted from https://github.com/LLK/scratch-vm/blob/0a5673d5/src/serialization/sb2.js#L1179
 		switch (blockOpcode) {
 			case 'comeToFront':
 				parsedArgs.FRONT_BACK = {

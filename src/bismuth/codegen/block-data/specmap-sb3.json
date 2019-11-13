@@ -1,0 +1,307 @@
+{
+	"motion_movesteps": {
+		"STEPS": "math_number"
+	},
+	"motion_turnright": {
+		"DEGREES": "math_number"
+	},
+	"motion_turnleft": {
+		"DEGREES": "math_number"
+	},
+	"motion_pointindirection": {
+		"DIRECTION": "math_angle"
+	},
+	"motion_pointtowards": {
+		"TOWARDS": "motion_pointtowards_menu"
+	},
+	"motion_gotoxy": {
+		"X": "math_number",
+		"Y": "math_number"
+	},
+	"motion_goto": {
+		"TO": "motion_goto_menu"
+	},
+	"motion_glidesecstoxy": {
+		"SECS": "math_number",
+		"X": "math_number",
+		"Y": "math_number"
+	},
+	"motion_glideto": {
+		"SECS": "math_number",
+		"TO": "motion_glideto_menu"
+	},
+	"motion_changexby": {
+		"DX": "math_number"
+	},
+	"motion_setx": {
+		"X": "math_number"
+	},
+	"motion_changeyby": {
+		"DY": "math_number"
+	},
+	"motion_sety": {
+		"Y": "math_number"
+	},
+	"motion_ifonedgebounce": {},
+	"motion_setrotationstyle": {},
+	"motion_xposition": {},
+	"motion_yposition": {},
+	"motion_direction": {},
+	"looks_show": {},
+	"looks_hide": {},
+	"looks_switchcostumeto": {
+		"COSTUME": "looks_costume"
+	},
+	"looks_nextcostume": {},
+	"looks_nextbackdrop": {},
+	"looks_switchbackdropto": {
+		"BACKDROP": "looks_backdrops"
+	},
+	"looks_switchbackdroptoandwait": {
+		"BACKDROP": "looks_backdrops"
+	},
+	"looks_changeeffectby": {
+		"CHANGE": "math_number"
+	},
+	"looks_seteffectto": {
+		"VALUE": "math_number"
+	},
+	"looks_cleargraphiceffects": {},
+	"looks_changesizeby": {
+		"CHANGE": "math_number"
+	},
+	"looks_setsizeto": {
+		"SIZE": "math_number"
+	},
+	"looks_gotofrontback": {},
+	"looks_goforwardbackwardlayers": {
+		"NUM": "math_integer"
+	},
+	"looks_costumenumbername": {},
+	"looks_backdropnumbername": {},
+	"looks_size": {},
+	"sound_play": {
+		"SOUND_MENU": "sound_sounds_menu"
+	},
+	"sound_playuntildone": {
+		"SOUND_MENU": "sound_sounds_menu"
+	},
+	"sound_stopallsounds": {},
+	"sound_changeeffectby": {
+		"VALUE": "math_number"
+	},
+	"sound_seteffectto": {
+		"VALUE": "math_number"
+	},
+	"sound_cleareffects": {},
+	"sound_changevolumeby": {
+		"VOLUME": "math_number"
+	},
+	"sound_setvolumeto": {
+		"VOLUME": "math_number"
+	},
+	"sound_volume": {},
+	"event_whenflagclicked": {},
+	"event_whenkeypressed": {},
+	"event_whenthisspriteclicked": {},
+	"event_whenbackdropswitchesto": {},
+	"event_whengreaterthan": {
+		"VALUE": "math_number"
+	},
+	"event_whenbroadcastreceived": {},
+	"event_broadcast": {
+		"BROADCAST_INPUT": "event_broadcast_menu"
+	},
+	"event_broadcastandwait": {
+		"BROADCAST_INPUT": "event_broadcast_menu"
+	},
+	"control_wait": {
+		"DURATION": "math_positive_number"
+	},
+	"control_repeat": {
+		"TIMES": "math_whole_number",
+		"SUBSTACK": "substack"
+	},
+	"control_forever": {
+		"SUBSTACK": "substack"
+	},
+	"control_if": {
+		"CONDITION": "boolean",
+		"SUBSTACK": "substack"
+	},
+	"control_if_else": {
+		"CONDITION": "boolean",
+		"SUBSTACK": "substack",
+		"SUBSTACK2": "substack"
+	},
+	"control_wait_until": {
+		"CONDITION": "boolean"
+	},
+	"control_repeat_until": {
+		"CONDITION": "boolean",
+		"SUBSTACK": "substack"
+	},
+	"control_stop": {},
+	"control_start_as_clone": {},
+	"control_create_clone_of": {
+		"CLONE_OPTION": "control_create_clone_of_menu"
+	},
+	"control_delete_this_clone": {},
+	"sensing_touchingobject": {
+		"TOUCHINGOBJECTMENU": "sensing_touchingobjectmenu"
+	},
+	"sensing_touchingcolor": {
+		"COLOR": "colour_picker"
+	},
+	"sensing_coloristouchingcolor": {
+		"COLOR": "colour_picker",
+		"COLOR2": "colour_picker"
+	},
+	"sensing_distanceto": {
+		"DISTANCETOMENU": "sensing_distancetomenu"
+	},
+	"sensing_keypressed": {
+		"KEY_OPTION": "sensing_keyoptions"
+	},
+	"sensing_mousedown": {},
+	"sensing_mousex": {},
+	"sensing_mousey": {},
+	"sensing_setdragmode": {},
+	"sensing_loudness": {},
+	"sensing_timer": {},
+	"sensing_resettimer": {},
+	"sensing_of": {
+		"OBJECT": "sensing_of_object_menu"
+	},
+	"sensing_current": {},
+	"sensing_dayssince2000": {},
+	"operator_add": {
+		"NUM1": "math_number",
+		"NUM2": "math_number"
+	},
+	"operator_subtract": {
+		"NUM1": "math_number",
+		"NUM2": "math_number"
+	},
+	"operator_multiply": {
+		"NUM1": "math_number",
+		"NUM2": "math_number"
+	},
+	"operator_divide": {
+		"NUM1": "math_number",
+		"NUM2": "math_number"
+	},
+	"operator_random": {
+		"FROM": "math_number",
+		"TO": "math_number"
+	},
+	"operator_lt": {
+		"OPERAND1": "text",
+		"OPERAND2": "text"
+	},
+	"operator_equals": {
+		"OPERAND1": "text",
+		"OPERAND2": "text"
+	},
+	"operator_gt": {
+		"OPERAND1": "text",
+		"OPERAND2": "text"
+	},
+	"operator_and": {
+		"OPERAND1": "boolean",
+		"OPERAND2": "boolean"
+	},
+	"operator_or": {
+		"OPERAND1": "boolean",
+		"OPERAND2": "boolean"
+	},
+	"operator_not": {
+		"OPERAND": "boolean"
+	},
+	"operator_join": {
+		"STRING1": "text",
+		"STRING2": "text"
+	},
+	"operator_letter_of": {
+		"LETTER": "math_whole_number",
+		"STRING": "text"
+	},
+	"operator_length": {
+		"STRING": "text"
+	},
+	"operator_contains": {
+		"STRING1": "text",
+		"STRING2": "text"
+	},
+	"operator_mod": {
+		"NUM1": "math_number",
+		"NUM2": "math_number"
+	},
+	"operator_round": {
+		"NUM": "math_number"
+	},
+	"operator_mathop": {
+		"NUM": "math_number"
+	},
+	"data_variable": {},
+	"data_setvariableto": {
+		"VARIABLE": "data_variablemenu",
+		"VALUE": "text"
+	},
+	"data_changevariableby": {
+		"VARIABLE": "data_variablemenu",
+		"VALUE": "math_number"
+	},
+	"data_showvariable": {
+		"VARIABLE": "data_variablemenu"
+	},
+	"data_hidevariable": {
+		"VARIABLE": "data_variablemenu"
+	},
+	"data_listcontents": {},
+	"data_addtolist": {
+		"ITEM": "text"
+	},
+	"data_deleteoflist": {
+		"INDEX": "math_integer"
+	},
+	"data_deletealloflist": {},
+	"data_insertatlist": {
+		"INDEX": "math_integer",
+		"ITEM": "text"
+	},
+	"data_replaceitemoflist": {
+		"INDEX": "math_integer",
+		"ITEM": "text"
+	},
+	"data_itemoflist": {
+		"INDEX": "math_integer"
+	},
+	"data_itemnumoflist": {
+		"ITEM": "text"
+	},
+	"data_lengthoflist": {},
+	"data_listcontainsitem": {
+		"ITEM": "text"
+	},
+	"data_showlist": {},
+	"data_hidelist": {},
+	"extension_pen_down": {},
+	"extension_music_drum": {
+		"NUMBER": "math_number"
+	},
+	"extension_wedo_motor": {},
+	"extension_wedo_hat": {},
+	"extension_wedo_boolean": {},
+	"extension_wedo_tilt_reporter": {
+		"TILT": "extension_wedo_tilt_menu"
+	},
+	"extension_music_reporter": {},
+	"extension_microbit_display": {
+		"MATRIX": "matrix"
+	},
+	"extension_music_play_note": {
+		"NOTE": "note",
+		"BEATS": "math_number"
+	}
+}

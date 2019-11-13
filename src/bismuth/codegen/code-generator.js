@@ -27,10 +27,7 @@ class CodeGenerator {
 		this.backpatchMap = {};
 	}
 
-	// TODO: Do different things depending on input type to avoid costly unnecessary casts.
-	// Probably lots of speedups to be had here. Requires tagging types probably.
-	/* eslint-disable-next-line no-unused-vars */
-	castValue (value, outputType, inputType) {
+	castValue (value, outputType) {
 		let castedValue = value;
 		if (outputType === 'math_number' ||
 			outputType === 'math_integer' ||

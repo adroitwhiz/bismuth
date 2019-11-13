@@ -97,6 +97,12 @@ module.exports = {
 			'rules': {
 				'no-unused-vars': 'off'
 			}
+		},
+		{
+			'files':['tools/**'],
+			'env': {
+				'node': true
+			}
 		}
 	]
 }

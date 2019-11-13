@@ -5,7 +5,7 @@ class Base {
 		this.currentCostumeIndex = 0;
 		this.objName = '';
 		this.instrument = 0;
-		this.volume = 1;
+		this.volume = 100;
 
 		this.soundRefs = Object.create(null);
 		this.sounds = [];
@@ -42,23 +42,12 @@ class Base {
 		}
 	}
 
-	addVariables (variables) {
-		for (let i = 0; i < variables.length; i++) {
-			if (variables[i].isPeristent) {
-				throw new Error('Cloud variables are not supported');
-			}
-			this.vars[variables[i].name] = variables[i].value;
-		}
+	addVariable (name, value) {
+		this.vars[name] = value;
 	}
 
-	addLists (lists) {
-		for (let i = 0; i < lists.length; i++) {
-			if (lists[i].isPeristent) {
-				throw new Error('Cloud lists are not supported');
-			}
-			this.lists[lists[i].listName] = lists[i].contents;
-			// TODO list watchers
-		}
+	addList (name, contents) {
+		this.lists[name] = contents;
 	}
 
 	setVariableVisible (name, visible) {

@@ -18,6 +18,7 @@ class Sprite extends Base {
 		this.scratchX = 0;
 		this.scratchY = 0;
 		this.visible = true;
+		this.layerOrder = -1;
 
 		this.penState = {
 			penDown: false,
@@ -359,7 +360,7 @@ class Sprite extends Base {
 	}
 
 	bounceOffEdge () {
-		let b = this.rotatedBounds();
+		const b = this.rotatedBounds();
 		const dl = 240 + b.left;
 		const dt = 180 - b.top;
 		const dr = 240 - b.right;
@@ -382,14 +383,7 @@ class Sprite extends Base {
 		this.direction = (Math.atan2(dy, dx) * 180 / Math.PI) + 90;
 		if (this.saying) this.updateBubble();
 
-		// TODO: figure out what this is supposed to do
-		b = this.rotatedBounds();
-		let x = this.scratchX;
-		let y = this.scratchY;
-		if (b.left < -240) x += -240 - b.left;
-		if (b.top > 180) y += 180 - b.top;
-		if (b.right > 240) x += 240 - b.left;
-		if (b.bottom < -180) y += -180 - b.top;
+		// TODO: fencing
 	}
 
 	rotatedBounds () {

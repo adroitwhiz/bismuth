@@ -1,6 +1,13 @@
 music_midiSetInstrument
+motion_glideto
 sound_changevolumeby
 sound_setvolumeto
+sound_seteffectto
+sound_changeeffectby
+sound_cleareffects
+sensing_setdragmode
+operator_contains
+data_itemnumoflist
 
 control_while
 control_for_each

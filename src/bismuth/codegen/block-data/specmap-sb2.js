@@ -1594,6 +1594,4 @@ const specMap = {
 	}
 };
 
-window.specMap = specMap;
-
 module.exports = specMap;
