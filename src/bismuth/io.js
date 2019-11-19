@@ -468,7 +468,7 @@ class ProjectV3Loader extends ProjectLoader {
 
 		loadedCostume.bitmapResolution = costumeData.bitmapResolution;
 		loadedCostume.scale = 1 / costumeData.bitmapResolution;
-		loadedCostume.costumeName = costumeData.costumeName;
+		loadedCostume.costumeName = costumeData.name;
 		loadedCostume.rotationCenterX = costumeData.rotationCenterX;
 		loadedCostume.rotationCenterY = costumeData.rotationCenterY;
 

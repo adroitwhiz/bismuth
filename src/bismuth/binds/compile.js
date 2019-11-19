@@ -24,9 +24,10 @@ const compile = (P => {
 		// Part 2: For every continuation function AST in the object,
 		// stringify it into JS code, then eval() it, compiling it into *actual* JS.
 		for (let i = 0; i < object.continuations.length; i++) {
-			object.fns.push(P.runtime.scopedEval(generateJavascriptCode(generator, object.continuations[i])));
+			const generatedCode = generateJavascriptCode(generator, object.continuations[i]);
+			object.fns.push(P.runtime.scopedEval(generatedCode));
 
-			// console.log(i, generateJavascriptCode(generator, object.continuations[i]));
+			// console.log(i, generatedCode);
 		}
 
 		// console.log(compiledScripts);
