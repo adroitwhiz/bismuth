@@ -650,10 +650,10 @@ const BlockTranslators = gen => { return {
 		gen.setBackpatchDestination(returnAddress, continuationID);
 
 		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
-		const bodyTrue = gen.getInput(block.args['SUBSTACK']);
+		const bodyTrue = e['block'](gen.getInput(block.args['SUBSTACK']));
 
 		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
-		const bodyFalse = gen.getInput(block.args['SUBSTACK2']);
+		const bodyFalse = e['block'](gen.getInput(block.args['SUBSTACK2']));
 
 		return e['if'](
 			gen.getInput(block.args['CONDITION']),
