@@ -1,5 +1,5 @@
-const canvg = require('canvg');
 const JSZip = require('jszip');
+const SvgRenderer = require('scratch-svg-renderer').SVGRenderer;
 
 const Costume = require('./costume');
 const Sound = require('./sound');
@@ -12,7 +12,6 @@ const SB2Parser = require('./codegen/parser-sb2');
 const SB3Parser = require('./codegen/parser-sb3');
 
 const decodeADPCMAudio = require('./io/decode-adpcm-audio.js');
-const fixSVG = require('./io/fix-svg.js');
 const instruments = require('./io/instrument-wavs.js');
 const parseJSONish = require('./io/parse-jsonish.js');
 
@@ -300,7 +299,12 @@ class ProjectV2Loader extends ProjectLoader {
 				costumeData.baseLayerMD5,
 				costumeData.baseLayerID,
 				'text'
-			).then(loadSVG);
+			).then(costume => loadSVG(costume, true /* fromVersion2 */))
+				.then(renderer => {
+					loadedCostume.rotationCenterX -= renderer.viewOffset[0];
+					loadedCostume.rotationCenterY -= renderer.viewOffset[1];
+					return renderer.canvas;
+				});
 		} else {
 			costumePromise = this._loader.fetchAsset(
 				costumeData.baseLayerMD5,
@@ -474,14 +478,18 @@ class ProjectV3Loader extends ProjectLoader {
 
 		// If the costume is an SVG, load the SVG as text and do fancy stuff with it.
 		// Otherwise, load the costume as an <img>.
-		// TODO: fix SVG quirks mode for 3.0 SVGs
 		let costumePromise;
 		if (costumeData.dataFormat === 'svg') {
 			costumePromise = this._loader.fetchAsset(
 				costumeData.md5ext,
 				costumeData.assetId,
 				'text'
-			).then(loadSVG);
+			).then(costume => loadSVG(costume, false /* fromVersion2 */))
+				.then(renderer => {
+					loadedCostume.rotationCenterX -= renderer.viewOffset[0];
+					loadedCostume.rotationCenterY -= renderer.viewOffset[1];
+					return renderer.canvas;
+				});
 		} else {
 			costumePromise = this._loader.fetchAsset(
 				costumeData.md5ext,
@@ -602,52 +610,17 @@ const loadPromise = (url, type) => {
 	});
 };
 
-const loadSVG = source => {
-	const parser = new DOMParser();
-	let doc = parser.parseFromString(source, 'image/svg+xml');
-	let svg = doc.documentElement;
-	if (!svg.style) {
-		doc = parser.parseFromString('<body>' + source, 'text/html');
-		svg = doc.querySelector('svg');
-	}
-	svg.style.visibility = 'hidden';
-	svg.style.position = 'absolute';
-	svg.style.left = '-10000px';
-	svg.style.top = '-10000px';
-	document.body.appendChild(svg);
-	const viewBox = svg.viewBox.baseVal;
-	if (viewBox && (viewBox.x || viewBox.y)) {
-		svg.width.baseVal.value = viewBox.width - viewBox.x;
-		svg.height.baseVal.value = viewBox.height - viewBox.y;
-		viewBox.x = 0;
-		viewBox.y = 0;
-		viewBox.width = 0;
-		viewBox.height = 0;
-	}
-	fixSVG(svg, svg);
-	document.body.removeChild(svg);
-	svg.style.visibility = svg.style.position = svg.style.left = svg.style.top = '';
-
-	const canvas = document.createElement('canvas');
-	const image = new Image();
-	// svg.style.cssText = '';
-	// console.log(md5, 'data:image/svg+xml;base64,' + btoa(div.innerHTML.trim()));
-
+const loadSVG = (source, fromVersion2) => {
 	return new Promise(resolve => {
-		canvg(canvas, new XMLSerializer().serializeToString(svg), {
-			ignoreMouse: true,
-			ignoreAnimation: true,
-			ignoreClear: true,
-			renderCallback: () => {
-				image.src = canvas.toDataURL();
-				if (image.complete) {
-					resolve(image);
-				} else {
-					image.addEventListener('load', () => {
-						resolve(image);
-					});
-				}
+		const renderer = new SvgRenderer();
+		renderer.loadSVG(source, fromVersion2, () => {
+			try {
+				renderer.draw();
+			} catch (err) {
+				renderer.canvas.width = 1;
+				renderer.canvas.height = 1;
 			}
+			resolve(renderer);
 		});
 	});
 };

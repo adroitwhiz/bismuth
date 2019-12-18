@@ -2,7 +2,6 @@
 - Annotate/comment the code
 	- JSDoc?
 - Switch to scratch-render (or a patched version)
-- Use scratch-svg-renderer
 - Support new Scratch 3.0 blocks
 - Remove Argument script primitive; make all primitives (numbers, text, etc) blocks
 - Move type data from specmaps to compiler
