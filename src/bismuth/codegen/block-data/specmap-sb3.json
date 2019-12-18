@@ -43,7 +43,9 @@
 		"Y": "math_number"
 	},
 	"motion_ifonedgebounce": {},
-	"motion_setrotationstyle": {},
+	"motion_setrotationstyle": {
+		"STYLE": "field"
+	},
 	"motion_xposition": {},
 	"motion_yposition": {},
 	"motion_direction": {},
@@ -61,10 +63,12 @@
 		"BACKDROP": "looks_backdrops"
 	},
 	"looks_changeeffectby": {
-		"CHANGE": "math_number"
+		"CHANGE": "math_number",
+		"EFFECT": "field"
 	},
 	"looks_seteffectto": {
-		"VALUE": "math_number"
+		"VALUE": "math_number",
+		"EFFECT": "field"
 	},
 	"looks_cleargraphiceffects": {},
 	"looks_changesizeby": {
@@ -73,12 +77,19 @@
 	"looks_setsizeto": {
 		"SIZE": "math_number"
 	},
-	"looks_gotofrontback": {},
-	"looks_goforwardbackwardlayers": {
-		"NUM": "math_integer"
+	"looks_gotofrontback": {
+		"FRONT_BACK": "field"
 	},
-	"looks_costumenumbername": {},
-	"looks_backdropnumbername": {},
+	"looks_goforwardbackwardlayers": {
+		"NUM": "math_integer",
+		"FORWARD_BACKWARD": "field"
+	},
+	"looks_costumenumbername": {
+		"NUMBER_NAME": "field"
+	},
+	"looks_backdropnumbername": {
+		"NUMBER_NAME": "field"
+	},
 	"looks_size": {},
 	"sound_play": {
 		"SOUND_MENU": "sound_sounds_menu"
@@ -88,10 +99,12 @@
 	},
 	"sound_stopallsounds": {},
 	"sound_changeeffectby": {
-		"VALUE": "math_number"
+		"VALUE": "math_number",
+		"EFFECT": "field"
 	},
 	"sound_seteffectto": {
-		"VALUE": "math_number"
+		"VALUE": "math_number",
+		"EFFECT": "field"
 	},
 	"sound_cleareffects": {},
 	"sound_changevolumeby": {
@@ -102,13 +115,20 @@
 	},
 	"sound_volume": {},
 	"event_whenflagclicked": {},
-	"event_whenkeypressed": {},
-	"event_whenthisspriteclicked": {},
-	"event_whenbackdropswitchesto": {},
-	"event_whengreaterthan": {
-		"VALUE": "math_number"
+	"event_whenkeypressed": {
+		"KEY_OPTION": "field"
 	},
-	"event_whenbroadcastreceived": {},
+	"event_whenthisspriteclicked": {},
+	"event_whenbackdropswitchesto": {
+		"BACKDROP": "field"
+	},
+	"event_whengreaterthan": {
+		"VALUE": "math_number",
+		"WHENGREATERTHANMENU": "field"
+	},
+	"event_whenbroadcastreceived": {
+		"BROADCAST_OPTION": "field"
+	},
 	"event_broadcast": {
 		"BROADCAST_INPUT": "event_broadcast_menu"
 	},
@@ -141,7 +161,9 @@
 		"CONDITION": "boolean",
 		"SUBSTACK": "substack"
 	},
-	"control_stop": {},
+	"control_stop": {
+		"STOP_OPTION": "field"
+	},
 	"control_start_as_clone": {},
 	"control_create_clone_of": {
 		"CLONE_OPTION": "control_create_clone_of_menu"
@@ -166,14 +188,19 @@
 	"sensing_mousedown": {},
 	"sensing_mousex": {},
 	"sensing_mousey": {},
-	"sensing_setdragmode": {},
+	"sensing_setdragmode": {
+		"DRAG_MODE": "field"
+	},
 	"sensing_loudness": {},
 	"sensing_timer": {},
 	"sensing_resettimer": {},
 	"sensing_of": {
-		"OBJECT": "sensing_of_object_menu"
+		"OBJECT": "sensing_of_object_menu",
+		"PROPERTY": "field"
 	},
-	"sensing_current": {},
+	"sensing_current": {
+		"CURRENTMENU": "field"
+	},
 	"sensing_dayssince2000": {},
 	"operator_add": {
 		"NUM1": "math_number",
@@ -241,67 +268,108 @@
 		"NUM": "math_number"
 	},
 	"operator_mathop": {
-		"NUM": "math_number"
+		"NUM": "math_number",
+		"OPERATOR": "field"
 	},
+	"null": {},
 	"data_variable": {},
 	"data_setvariableto": {
-		"VARIABLE": "data_variablemenu",
-		"VALUE": "text"
+		"VALUE": "text",
+		"VARIABLE": "field"
 	},
 	"data_changevariableby": {
-		"VARIABLE": "data_variablemenu",
-		"VALUE": "math_number"
+		"VALUE": "math_number",
+		"VARIABLE": "field"
 	},
 	"data_showvariable": {
-		"VARIABLE": "data_variablemenu"
+		"VARIABLE": "field"
 	},
 	"data_hidevariable": {
-		"VARIABLE": "data_variablemenu"
+		"VARIABLE": "field"
 	},
 	"data_listcontents": {},
 	"data_addtolist": {
-		"ITEM": "text"
+		"ITEM": "text",
+		"LIST": "field"
 	},
 	"data_deleteoflist": {
-		"INDEX": "math_integer"
+		"INDEX": "math_integer",
+		"LIST": "field"
 	},
-	"data_deletealloflist": {},
+	"data_deletealloflist": {
+		"LIST": "field"
+	},
 	"data_insertatlist": {
 		"INDEX": "math_integer",
-		"ITEM": "text"
+		"ITEM": "text",
+		"LIST": "field"
 	},
 	"data_replaceitemoflist": {
 		"INDEX": "math_integer",
-		"ITEM": "text"
+		"ITEM": "text",
+		"LIST": "field"
 	},
 	"data_itemoflist": {
-		"INDEX": "math_integer"
+		"INDEX": "math_integer",
+		"LIST": "field"
 	},
 	"data_itemnumoflist": {
-		"ITEM": "text"
+		"ITEM": "text",
+		"LIST": "field"
 	},
-	"data_lengthoflist": {},
+	"data_lengthoflist": {
+		"LIST": "field"
+	},
 	"data_listcontainsitem": {
-		"ITEM": "text"
+		"ITEM": "text",
+		"LIST": "field"
 	},
-	"data_showlist": {},
-	"data_hidelist": {},
-	"extension_pen_down": {},
-	"extension_music_drum": {
-		"NUMBER": "math_number"
+	"data_showlist": {
+		"LIST": "field"
 	},
-	"extension_wedo_motor": {},
-	"extension_wedo_hat": {},
-	"extension_wedo_boolean": {},
-	"extension_wedo_tilt_reporter": {
-		"TILT": "extension_wedo_tilt_menu"
+	"data_hidelist": {
+		"LIST": "field"
 	},
-	"extension_music_reporter": {},
-	"extension_microbit_display": {
-		"MATRIX": "matrix"
+	"pen_clear": {},
+	"pen_stamp": {},
+	"pen_penDown": {},
+	"pen_penUp": {},
+	"pen_setPenColorToColor": {
+		"COLOR": "colour_picker"
 	},
-	"extension_music_play_note": {
+	"pen_changePenColorParamBy": {
+		"COLOR_PARAM": "pen_menu_colorParam",
+		"VALUE": "math_number"
+	},
+	"pen_setPenColorParamTo": {
+		"COLOR_PARAM": "pen_menu_colorParam",
+		"VALUE": "math_number"
+	},
+	"pen_changePenSizeBy": {
+		"SIZE": "math_number"
+	},
+	"pen_setPenSizeTo": {
+		"SIZE": "math_number"
+	},
+	"music_playDrumForBeats": {
+		"DRUM": "music_menu_DRUM",
+		"BEATS": "math_number"
+	},
+	"music_restForBeats": {
+		"BEATS": "math_number"
+	},
+	"music_playNoteForBeats": {
 		"NOTE": "note",
 		"BEATS": "math_number"
-	}
+	},
+	"music_setInstrument": {
+		"INSTRUMENT": "music_menu_INSTRUMENT"
+	},
+	"music_setTempo": {
+		"TEMPO": "math_number"
+	},
+	"music_changeTempo": {
+		"TEMPO": "math_number"
+	},
+	"music_getTempo": {}
 }

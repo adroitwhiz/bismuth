@@ -3,10 +3,10 @@
 	- JSDoc?
 - Switch to scratch-render (or a patched version)
 - Use scratch-svg-renderer
-- Implement SB3 deserializer
+- Support new Scratch 3.0 blocks
 - Remove Argument script primitive; make all primitives (numbers, text, etc) blocks
 - Move type data from specmaps to compiler
-- Switch to scratch-audio?
+- Redo audio engine
 - Redo frontend/HTML
 	- Redo watchers in Vue
 	- Redo prompters in Vue

@@ -272,7 +272,8 @@ class Stage extends Base {
 		const value = w.sliderMin + (
 			Math.max(0, Math.min(1, (t.clientX + d.offset) / (sw - bw))) * (w.sliderMax - w.sliderMin)
 		);
-		w.target.vars[w.param] = w.isDiscrete ? Math.round(value) : Math.round(value * 100) / 100;
+		// TODO: can non-variable watchers ever have sliders?
+		w.target.vars[w.params.VARIABLE] = w.isDiscrete ? Math.round(value) : Math.round(value * 100) / 100;
 		w.update();
 		e.preventDefault();
 	}
