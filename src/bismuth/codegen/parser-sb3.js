@@ -182,7 +182,14 @@ class SB3Parser {
 				// Instead, use `argumentids`.
 				const argIDs = JSON.parse(block.mutation.argumentids);
 				for (const argName of argIDs) {
-					args[argName] = this.parseInput(block, argName);
+					const parsedInput = this.parseInput(block, argName);
+					if (parsedInput === null) {
+						// Non-plugged boolean inputs are serialized as null.
+						// TODO: use argumentdefaults
+						args[argName] = new Argument(argName, 'boolean', new Literal('boolean', false));
+					} else {
+						args[argName] = parsedInput;
+					}
 				}
 
 				break;
@@ -198,7 +205,7 @@ class SB3Parser {
 				// fill them in with the default boolean value (false).
 				if (specMap.hasOwnProperty(block.opcode)) {
 					for (const argName of Object.keys(specMap[block.opcode])) {
-						if (!parsedArgs.hasOwnProperty(argName)) {
+						if (!parsedArgs.hasOwnProperty(argName) || parsedArgs[argName] === null) {
 							parsedArgs[argName] = new Argument(argName, 'boolean', new Literal('boolean', false));
 						}
 					}
@@ -210,6 +217,18 @@ class SB3Parser {
 
 				break;
 			}
+		}
+
+		// 'item of list, 'insert at list', 'delete of list', and 'replace item of list' can have non-numeric indices.
+		// If the 'INDEX' parameter cannot be directly coerced into a number, change its type to 'text'.
+		if ((block.opcode === 'data_insertatlist' ||
+		block.opcode === 'data_replaceitemoflist' ||
+		block.opcode === 'data_deleteoflist' ||
+		block.opcode === 'data_itemoflist') &&
+			Number.isNaN(Number(parsedArgs['INDEX'].value.value))) {
+
+			parsedArgs['INDEX'].type = 'text';
+			parsedArgs['INDEX'].value.type = 'text';
 		}
 
 		return new Block(block.opcode, parsedArgs);
@@ -264,7 +283,7 @@ class SB3Parser {
 			if (specMap.hasOwnProperty(block.opcode)) argType = specMap[block.opcode][argName];
 
 			return new Argument(argName, argType, argValue);
-		} else {
+		} else if (typeof input[1] === 'string') {
 			// Input is a UID of a regular block.
 			const blockUID = input[1];
 
@@ -290,6 +309,8 @@ class SB3Parser {
 				blockSpec ? blockSpec[argName] : 'auto',
 				parsedInput
 			);
+		} else {
+			return null;
 		}
 	}
 

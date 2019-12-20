@@ -27,7 +27,7 @@ const compile = (P => {
 			const generatedCode = generateJavascriptCode(generator, object.continuations[i]);
 			object.fns.push(P.runtime.scopedEval(generatedCode));
 
-			// console.log(i, generatedCode);
+			// if (object.objName === '') console.log(i, generatedCode);
 		}
 
 		// console.log(compiledScripts);

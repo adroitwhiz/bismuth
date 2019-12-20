@@ -127,25 +127,11 @@ class SB2Parser {
 			parsedOpcode = 'argument_reporter_boolean';
 		}
 
-		// 'data_deleteoflist' will expect an integer index, and the compiler will cast the index to an int.
-		// Indexes of 'all' or 'last' will not be properly cast, so replace 'all' with the new 'delete all' opcode,
-		// and replace 'last' with 'length of list'.
-		if (parsedOpcode === 'data_deleteoflist') {
-			switch (parsedArgs['INDEX'].value.value) {
-				case 'all': {
-					return new Block('data_deletealloflist', {'LIST': parsedArgs.LIST});
-				}
-				case 'last': {
-					parsedArgs['INDEX'].value = new Block('data_lengthoflist', {'LIST': parsedArgs.LIST});
-					break;
-				}
-			}
-		}
-
-		// 'item of list, 'insert at list', and 'replace item of list' can have non-numeric indices.
+		// 'item of list, 'insert at list', 'delete of list', and 'replace item of list' can have non-numeric indices.
 		// If the 'INDEX' parameter cannot be directly coerced into a number, change its type to 'text'.
 		if ((parsedOpcode === 'data_insertatlist' ||
 			parsedOpcode === 'data_replaceitemoflist' ||
+			parsedOpcode === 'data_deleteoflist' ||
 			parsedOpcode === 'data_itemoflist') &&
 			Number.isNaN(Number(parsedArgs['INDEX'].value.value))) {
 

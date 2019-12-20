@@ -26,6 +26,7 @@ const runtime = (function (P) {
 	// Warp-mode counter. Incremented when entering warp-mode and decremented when leaving it.
 	let WARP;
 
+	// The "top slice" of the thread currently being executed.
 	let BASE;
 
 	// The thread currently being executed. Corresponds to a "script".
