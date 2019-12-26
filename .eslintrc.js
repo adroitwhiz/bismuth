@@ -103,6 +103,13 @@ module.exports = {
 			'env': {
 				'node': true
 			}
+		},
+		{
+			'files':['src/bismuth/codegen/block-translators-new.js'],
+			'parser': './tools/eslint-jsjs.js',
+			'parserOptions': {
+				'ranges': true
+			}
 		}
 	]
 }
