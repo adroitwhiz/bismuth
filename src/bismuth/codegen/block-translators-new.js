@@ -1,3 +1,4 @@
 var x = {{{
-	let c = 5;
+	const c = ${gen.getInput(5)};
+	const a = 2;
 }}};

@@ -6,6 +6,17 @@ const plugin = h => {
 	const tt_jsjsOpen = new acorn.TokenType('{{', {beforeExpr: true, startsExpr: true});
 	const tt_jsjsClose = new acorn.TokenType('}}', {beforeExpr: true, startsExpr: true});
 
+	// This token context isn't currently used for anything
+	/* const tc_jsjsExpr = new acorn.TokContext('{{...}}', false);
+
+	tt_jsjsOpen.updateContext = function () {
+		this.context.push(tc_jsjsExpr);
+	};
+
+	tt_jsjsClose.updateContext = function () {
+		this.context.pop();
+	}; */
+
 	return class extends h {
 		readToken (code) {
 			if (
@@ -23,6 +34,13 @@ const plugin = h => {
 			) {
 				this.pos += 2;
 				return this.finishToken(tt_jsjsClose);
+			} else if (
+				this.curContext() !== acorn.tokContexts.b_tmpl &&
+				code === 36 &&
+				this.input.charCodeAt(this.pos + 1) === 123
+			) {
+				this.pos += 2;
+				return this.finishToken(acorn.tokTypes.dollarBraceL);
 			}
 
 			return super.readToken(code);
@@ -36,9 +54,16 @@ const plugin = h => {
 				const expr = this.jsjs_parseJSJSExpression();
 				node.expression = expr;
 				return this.finishNode(node, 'JSJSExpression');
-			} else {
-				return super.parseExprAtom(refDestructuringErrors);
+			} else if (this.type === acorn.tokTypes.dollarBraceL) {
+				const node = this.startNode();
+				this.expect(acorn.tokTypes.dollarBraceL);
+				const expr = this.parseExpression();
+				this.expect(acorn.tokTypes.braceR);
+				node.expression = expr;
+				return this.finishNode(node, 'JSJSTemplateElement');
 			}
+
+			return super.parseExprAtom(refDestructuringErrors);
 		}
 
 		jsjs_parseJSJSExpression () {

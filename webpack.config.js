@@ -17,6 +17,19 @@ module.exports = {
 		])
 	],
 
+	module: {
+		rules: [
+			{
+				include: path.resolve(__dirname, 'src/bismuth/codegen/block-translators-new.js'),
+				use: [
+					{
+						loader: path.resolve(__dirname, 'tools/jsjs-loader.js')
+					}
+				]
+			}
+		]
+	},
+
 	devtool: 'cheap-module-source-map',
 	devServer: {
 		contentBase: path.resolve(__dirname, 'dist'),
