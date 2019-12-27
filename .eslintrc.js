@@ -105,6 +105,12 @@ module.exports = {
 			}
 		},
 		{
+			'files':['tools/jsjs-parser.js'],
+			'rules':{
+				'camelcase': 'off'
+			}
+		},
+		{
 			'files':['src/bismuth/codegen/block-translators-new.js'],
 			'parser': './tools/eslint-jsjs.js',
 			'parserOptions': {
