@@ -111,10 +111,14 @@ module.exports = {
 			}
 		},
 		{
-			'files':['src/bismuth/codegen/block-translators-new.js'],
+			'files':['**.jsjs'],
 			'parser': './tools/eslint-jsjs.js',
 			'parserOptions': {
 				'ranges': true
+			},
+			'rules':{
+				'no-undef': 'off',
+				'semi': 'off'
 			}
 		}
 	]

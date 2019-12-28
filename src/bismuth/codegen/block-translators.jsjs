@@ -1,0 +1,1000 @@
+const Builders = require('./es-builders.jsjs');
+
+const BlockTranslators = gen => { return {
+	// Motion
+	'motion_movesteps': block => {
+		return {{
+			SPRITE.forward(${gen.getInput(block.args['STEPS'])});
+		}};
+	},
+
+	'motion_turnright': block => {
+		return {{
+			SPRITE.setDirection(SPRITE.direction + ${gen.getInput(block.args['DEGREES'])});
+		}};
+	},
+
+	'motion_turnleft': block => {
+		return {{
+			SPRITE.setDirection(SPRITE.direction - ${gen.getInput(block.args['DEGREES'])});
+		}};
+	},
+
+	'motion_pointindirection': block => {
+		return {{
+			SPRITE.setDirection(${gen.getInput(block.args['DIRECTION'])});
+		}};
+	},
+
+	'motion_pointtowards': block => {
+		return {{
+			SPRITE.pointTowards(${gen.getInput(block.args['TOWARDS'])});
+		}};
+	},
+
+	'motion_gotoxy': block => {
+		return {{
+			SPRITE.moveTo(${gen.getInput(block.args['X'])}, ${gen.getInput(block.args['Y'])});
+		}};
+	},
+
+	'motion_goto': block => {
+		return {{
+			SPRITE.gotoObject(${gen.getInput(block.args['TO'])});
+		}};
+	},
+
+	'motion_glidesecstoxy': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const glideStepID = gen.getNextContinuationID();
+
+		const glideStep = {{{
+			const t = Math.min((self.now - STACK_FRAME.start) * STACK_FRAME.rate, 1);
+			SPRITE.moveTo(
+				STACK_FRAME.initialX + (STACK_FRAME.deltaX * t),
+				STACK_FRAME.initialY + (STACK_FRAME.deltaY * t)
+			);
+			if (t < 1) {
+				${Builders.forceQueue(glideStepID)};
+			} else {
+				${Builders.restore()}
+				${Builders.immediateCall(continuationID)};
+			}
+		}}};
+
+		gen.pushContinuation(glideStep);
+
+		return {{{
+			${Builders.save()}
+			STACK_FRAME.start = self.now;
+			STACK_FRAME.rate = 0.001 / ${gen.getInput(block.args['SECS'])};
+			STACK_FRAME.initialX = SPRITE.scratchX;
+			STACK_FRAME.initialY = SPRITE.scratchY;
+			STACK_FRAME.deltaX = ${gen.getInput(block.args['X'])} - SPRITE.scratchX;
+			STACK_FRAME.deltaY = ${gen.getInput(block.args['Y'])} - SPRITE.scratchY;
+			${Builders.immediateCall(glideStepID)};
+		}}};
+	},
+
+	'motion_changexby': block => {
+		return {{
+			SPRITE.moveTo(SPRITE.scratchX + ${gen.getInput(block.args['DX'])}, SPRITE.scratchY);
+		}};
+	},
+
+	'motion_setx': block => {
+		return {{
+			SPRITE.moveTo(${gen.getInput(block.args['X'])}, SPRITE.scratchY);
+		}};
+	},
+
+	'motion_changeyby': block => {
+		return {{
+			SPRITE.moveTo(SPRITE.scratchX, SPRITE.scratchY + ${gen.getInput(block.args['DY'])});
+		}};
+	},
+
+	'motion_sety': block => {
+		return {{
+			SPRITE.moveTo(SPRITE.scratchX, ${gen.getInput(block.args['Y'])});
+		}};
+	},
+
+	'motion_ifonedgebounce': () => {
+		return {{
+			SPRITE.bounceOffEdge();
+		}};
+	},
+
+	'motion_setrotationstyle': block => {
+		// TODO: change the sprite to just use these names
+		let rotationStyle;
+		switch (gen.getField(block.args['STYLE'])) {
+			case 'left-right':
+				rotationStyle = 'leftRight';
+				break;
+			case 'don\'t rotate':
+				rotationStyle = 'none';
+				break;
+			case 'all around':
+				rotationStyle = 'normal';
+				break;
+		}
+
+		return {{
+			SPRITE.rotationStyle = ${
+				{type: 'Literal', value: rotationStyle}
+			};
+		}};
+	},
+
+	'motion_xposition': () => {
+		return ::{SPRITE.scratchX};
+	},
+
+	'motion_yposition': () => {
+		return ::{SPRITE.scratchY};
+	},
+
+	'motion_direction': () => {
+		return ::{SPRITE.direction};
+	},
+
+	// Looks
+	'looks_sayforsecs': (block, index, script) => {
+		return gen.commonGenerators.sayOrThinkForSecs(block, index, script, false);
+	},
+
+	'looks_say': block => {
+		return {{
+			SPRITE.say(${gen.getInput(block.args['MESSAGE'])}, false);
+		}};
+	},
+
+	'looks_thinkforsecs': (block, index, script) => {
+		return gen.commonGenerators.sayOrThinkForSecs(block, index, script, true);
+	},
+
+	'looks_think': block => {
+		return {{
+			SPRITE.say(${gen.getInput(block.args['MESSAGE'])}, true);
+		}};
+	},
+
+	'looks_show': () => {
+		return gen.commonGenerators.setVisible(true);
+	},
+
+	'looks_hide': () => {
+		return gen.commonGenerators.setVisible(false);
+	},
+
+	'looks_switchcostumeto': block => {
+		return {{
+			SPRITE.setCostume(${gen.getInput(block.args['COSTUME'])});
+		}};
+	},
+
+	'looks_nextcostume': () => {
+		return {{
+			SPRITE.showNextCostume();
+		}}
+	},
+
+	'looks_switchbackdropto': block => {
+		// TODO: figure this out
+		return {{{
+			self.setCostume(${gen.getInput(block.args['BACKDROP'])});
+			if (sceneChange().indexOf(BASE) !== -1) return;
+		}}};
+	},
+
+	'looks_switchbackdroptoandwait': (block, index, script) => {
+		// Like regular "switch backdrop", but stored on the stack with a 'wait until' loop in there.
+		// Then create an idle loop that checks each call whether the started threads are done,
+		// and continues with the rest of the script once they are.
+
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitLoop = gen.commonGenerators.waitUntilCondition(
+			::{!running(STACK_FRAME.threads)},
+			{{{
+				${Builders.restore()}
+				${Builders.immediateCall(continuationID)}
+			}}}
+		);
+
+		return {{{
+			${Builders.save()}
+			self.setCostume(${gen.getInput(block.args['BACKDROP'])});
+			STACK_FRAME.threads = sceneChange();
+			if (STACK_FRAME.threads.indexOf(BASE) !== -1) return;
+			${Builders.forceQueue(waitLoop)}
+		}}};
+	},
+
+	'looks_nextbackdrop': () => {
+		// TODO: figure this out
+		return {{{
+			self.showNextCostume();
+			if (sceneChange().indexOf(BASE) !== -1) return;
+		}}};
+	},
+
+	'looks_changeeffectby': block => {
+		return {{
+			SPRITE.changeFilter(${gen.getInput(block.args['EFFECT'])}, ${gen.getInput(block.args['CHANGE'])});
+		}};
+	},
+
+	'looks_seteffectto': block => {
+		return {{
+			SPRITE.setFilter(${gen.getInput(block.args['EFFECT'])}, ${gen.getInput(block.args['VALUE'])});
+		}};
+	},
+
+	'looks_cleargraphiceffects': () => {
+		return {{
+			SPRITE.resetFilters();
+		}};
+	},
+
+	'looks_changesizeby': block => {
+		return {{
+			SPRITE.size = Math.max(0, SPRITE.size + ${gen.getInput(block.args['CHANGE'])});
+		}};
+	},
+
+	'looks_setsizeto': block => {
+		return {{
+			SPRITE.size = Math.max(0, ${gen.getInput(block.args['SIZE'])});
+		}};
+	},
+
+	'looks_gotofrontback': block => {
+		return {{
+			moveToFrontBack(${gen.getInput(block.args['FRONT_BACK'])});
+		}};
+	},
+
+	'looks_goforwardbackwardlayers': block => {
+		let numLayers = gen.getInput(block.args['NUM']);
+		if (gen.getField(block.args['FORWARD_BACKWARD']) !== 'forward') {
+			numLayers = ::{ -${numLayers} };
+		}
+		return {{
+			moveByLayers(${numLayers});
+		}};
+	},
+
+	'looks_costumenumbername': block => {
+		return gen.getField(block.args['NUMBER_NAME']) === 'number' ?
+			::{SPRITE.currentCostumeIndex + 1} :
+			::{SPRITE.getCostumeName()};
+	},
+
+	'looks_backdropnumbername': block => {
+		return gen.getField(block.args['NUMBER_NAME']) === 'number' ?
+			::{self.currentCostumeIndex + 1} :
+			::{self.getCostumeName()};
+	},
+
+	'looks_size': () => {
+		return ::{SPRITE.size};
+	},
+
+	// Sound
+	'sound_play': block => {
+		return {{{
+			const sound = SPRITE.getSound(${gen.getInput(block.args['SOUND_MENU'])});
+			if (sound !== null) playSound(sound);
+		}}};
+	},
+
+	'sound_playuntildone': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		return gen.commonGenerators.createTimer(
+			// TODO: change sound duration to milliseconds
+			::{sound.duration * 1000},
+			Builders.forceQueue(continuationID),
+			{{{
+				const sound = SPRITE.getSound(${gen.getInput(block.args['SOUND_MENU'])});
+				if (sound === null) {
+					${Builders.forceQueue(continuationID)}
+				} else {
+					playSound(sound);
+				}
+			}}}
+		);
+	},
+
+	'sound_stopallsounds': () => {
+		return {{
+			self.stopAllSounds();
+		}};
+	},
+
+	'sound_volume': () => {
+		// TODO: change volume to a percentage
+		return ::{SPRITE.volume * 100};
+	},
+
+	// Events
+	'event_broadcast': block => {
+		// TODO: figure out what BASE is then determine what this does
+		return {{{
+			const threads = broadcast(${gen.getInput(block.args['BROADCAST_INPUT'])});
+			if (threads.indexOf(BASE) !== -1) return;
+		}}};
+	},
+
+	'event_broadcastandwait': (block, index, script) => {
+		// Like regular broadcast, but stored on the stack with a 'wait until' loop in there.
+
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitLoop = gen.commonGenerators.waitUntilCondition(
+			::{!running(STACK_FRAME.threads)},
+			{{{
+				${Builders.restore()}
+				${Builders.immediateCall(continuationID)}
+			}}}
+		);
+
+		return {{{
+			${Builders.save()}
+			STACK_FRAME.threads = broadcast(${gen.getInput(block.args['BROADCAST_INPUT'])});
+			if (STACK_FRAME.threads.indexOf(BASE) !== -1) return;
+			${Builders.forceQueue(waitLoop)}
+		}}};
+	},
+
+	// Control
+	'control_wait': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		return gen.commonGenerators.createTimer(
+			::{${gen.getInput(block.args['DURATION'])} * 1000},
+			Builders.immediateCall(continuationID)
+		);
+	},
+
+	'control_repeat': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const returnAddress = gen.getBackpatchID();
+		gen.returnStack.push(Builders.queue(Builders.backpatchID(returnAddress)));
+
+		// For each iteration of the loop body:
+		// check if the loop counter is > 0.5
+		// If so:
+		//   Decrement the loop counter
+		//   Execute the loop contents
+		// If not, then immediately call the rest of the script
+		const loopBody = {{{
+			if (STACK_FRAME.count >= 0.5) {
+				STACK_FRAME.count -= 1;
+				${gen.getInput(block.args['SUBSTACK'])}
+			} else {
+				${Builders.restore()}
+			}
+
+			${Builders.immediateCall(continuationID)}
+		}}};
+
+		const loopID = gen.pushContinuation(loopBody);
+		gen.setBackpatchDestination(returnAddress, loopID);
+
+		// Initialize the loop counter to its proper value,
+		// then immediately call the first iteration of the loop
+		return {{{
+			${Builders.save()}
+			STACK_FRAME.count = ${gen.getInput(block.args['TIMES'])};
+			${Builders.immediateCall(loopID)}
+		}}};
+	},
+
+	'control_forever': block => {
+		// At the end of every "forever" loop, there's an implicit "go back to the start of the loop body".
+		// This will get lost if we call other blocks that chop up the script, so push it onto the return stack.
+		// We don't know yet where the start of the loop body is, because compiling the loop body
+		// might create more continuations, but the loop body needs to know about the return stack.
+		// To accomplish this, we *backpatch* the proper return address in after compiling the loop body.
+		const returnAddress = gen.getBackpatchID();
+		gen.returnStack.push(Builders.queue(Builders.backpatchID(returnAddress)));
+
+		// For each iteration of the loop body,
+		// run the loop contents, then queue up the loop body again.
+		// Calling getInput on the substack is what triggers compilation and pushes continuations.
+		const loopBody = gen.getInput(block.args['SUBSTACK']);
+		const loopID = gen.pushContinuation(loopBody);
+		gen.setBackpatchDestination(returnAddress, loopID);
+		return Builders.immediateCall(loopID);
+	},
+
+	'control_if': (block, index, script) => {
+		// At tne end of an "if" block, there's an implicit "continue with the rest of the script".
+		const returnAddress = gen.getBackpatchID();
+		// Create a continuation for the rest of the blocks.
+		const continuationID = gen.continue(script.splice(index + 1));
+		// Backpatch the return address to the rest of the script.
+		gen.setBackpatchDestination(returnAddress, continuationID);
+		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
+
+		return {{
+			if (${gen.getInput(block.args['CONDITION'])}) {
+				${gen.getInput(block.args['SUBSTACK'])}
+			} else {
+				${Builders.immediateCall(continuationID)}
+			}
+		}};
+	},
+
+	'control_if_else': (block, index, script) => {
+		const returnAddress = gen.getBackpatchID();
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		gen.setBackpatchDestination(returnAddress, continuationID);
+
+		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
+		const bodyTrue = gen.getInput(block.args['SUBSTACK']);
+
+		gen.returnStack.push(Builders.immediateCall(Builders.backpatchID(returnAddress)));
+		const bodyFalse = gen.getInput(block.args['SUBSTACK2']);
+
+		return {{
+			if (${gen.getInput(block.args['CONDITION'])}) {
+				${bodyTrue}
+			} else {
+				${bodyFalse}
+			}
+		}};
+	},
+
+	'control_wait_until': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitID = gen.commonGenerators.waitUntilCondition(
+			gen.getInput(block.args['CONDITION']),
+			Builders.immediateCall(continuationID)
+		);
+
+		return Builders.queue(waitID);
+	},
+
+	'control_repeat_until': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const returnAddress = gen.getBackpatchID();
+		gen.returnStack.push(Builders.queue(Builders.backpatchID(returnAddress)));
+
+		const loopBody = {{{
+			if (${gen.getInput(block.args['CONDITION'])}) {
+				${Builders.immediateCall(continuationID)}
+			}
+
+			${gen.getInput(block.args['SUBSTACK'])}
+		}}};
+
+		const loopID = gen.pushContinuation(loopBody);
+		gen.setBackpatchDestination(returnAddress, loopID);
+
+		return Builders.immediateCall(loopID);
+	},
+
+	'control_stop': block => {
+		switch (gen.getField(block.args['STOP_OPTION'])) {
+			case 'all': {
+				return {{{
+					self.stopAll();
+					return;
+				}}};
+			}
+			case 'this script': {
+				return {{{
+					endCall();
+					return;
+				}}};
+			}
+			case 'other scripts in sprite':
+			case 'other scripts in stage': {
+				return {{
+					stopOtherScripts();
+				}}
+			}
+		}
+	},
+
+	'control_create_clone_of': block => {
+		return {{
+			clone(${gen.getInput(block.args['CLONE_OPTION'])});
+		}};
+	},
+
+	'control_delete_this_clone': () => {
+		return {{
+			if (SPRITE.isClone) {
+				SPRITE.remove();
+				for (let i = 0; i < self.queue.length; i++) {
+					if (self.queue[i] && self.queue[i].sprite === SPRITE) {
+						self.queue[i] = undefined;
+					}
+				}
+			}
+		}};
+	},
+
+	// Sensing
+	'sensing_touchingobject': block => {
+		return ::{SPRITE.touching(${gen.getInput(block.args['TOUCHINGOBJECTMENU'])})};
+	},
+
+	'sensing_touchingcolor': block => {
+		return ::{SPRITE.touchingColor(${gen.getInput(block.args['COLOR'])})};
+	},
+
+	'sensing_coloristouchingcolor': block => {
+		return ::{SPRITE.touchingColor(
+			${gen.getInput(block.args['COLOR'])},
+			${gen.getInput(block.args['COLOR2'])}
+		)};
+	},
+
+	'sensing_distanceto': block => {
+		return ::{SPRITE.distanceTo(${gen.getInput(block.args['DISTANCETOMENU'])})};
+	},
+
+	'sensing_askandwait': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		const waitForAnswerLoop = gen.commonGenerators.waitUntilCondition(
+			::{STACK_FRAME.id !== self.promptId},
+			Builders.immediateCall(continuationID)
+		);
+
+		const waitForPromptLoop = gen.commonGenerators.waitUntilCondition(
+			::{self.promptId >= STACK_FRAME.id},
+			{{{
+				SPRITE.ask(${gen.getInput(block.args['QUESTION'])});
+				${Builders.immediateCall(waitForAnswerLoop)}
+			}}}
+		);
+
+		// If another script starts an "ask and wait" before this one, we need to wait our turn.
+		// We do this by idle-looping until the active prompt ID is >= the prompt ID we got.
+		return {{{
+			STACK_FRAME.id = self.nextPromptId++;
+			${Builders.immediateCall(waitForPromptLoop)};
+		}}};
+	},
+
+	'sensing_answer': () => {
+		return ::{self.answer};
+	},
+
+	'sensing_keypressed': block => {
+		return ::{!!stage.keys[getKeyCode(${gen.getInput(block.args['KEY_OPTION'])})]};
+	},
+
+	'sensing_mousedown': () => {
+		return ::{self.mousePressed};
+	},
+	'sensing_mousex': () => {
+		return ::{self.mouseX};
+	},
+
+	'sensing_mousey': () => {
+		return ::{self.mouseY};
+	},
+
+	'sensing_loudness': () => {
+		// Mic loudness is currently unimplemented, but all reporters must return values or compilation will fail.
+		return ::{0};
+	},
+
+	'sensing_loud': () => {
+		return ::{false};
+	},
+
+	'sensing_timer': () => {
+		// Using the cached "stage.now" will freeze warp mode loops that stop after the timer reaches a certain value.
+		// Despite causing two demo projects to freeze the browser, this bug was in the *original* codegen.
+		return ::{(stage.rightNow() - self.timerStart) / 1000};
+	},
+
+	'sensing_resettimer': () => {
+		return {{
+			self.timerStart = self.now;
+		}};
+	},
+
+	'sensing_of': block => {
+		// TODO: if left-hand side is static, emit specific code here
+		return ::{attribute(${gen.getInput(block.args['PROPERTY'])}, ${gen.getInput(block.args['OBJECT'])})};
+	},
+
+	'sensing_current': block => {
+		return ::{timeAndDate(${gen.getInput(block.args['CURRENTMENU'])})};
+	},
+
+	'sensing_dayssince2000': () => {
+		return ::{(Date.now() - epoch) / 86400000};
+	},
+
+	'sensing_username': () => {
+		// Username block returns empty string for non-logged-in users
+		return ::{''};
+	},
+
+	// Operators
+	'operator_add': block => {
+		// NUM1 + NUM2
+		return ::{ ${gen.getInput(block.args['NUM1'])} + ${gen.getInput(block.args['NUM2'])} };
+	},
+
+	'operator_subtract': block => {
+		// NUM1 - NUM2
+		return ::{ ${gen.getInput(block.args['NUM1'])} - ${gen.getInput(block.args['NUM2'])} };
+	},
+
+	'operator_multiply': block => {
+		// NUM1 * NUM2
+		return ::{ ${gen.getInput(block.args['NUM1'])} * ${gen.getInput(block.args['NUM2'])} };
+	},
+
+	'operator_divide': block => {
+		// NUM1 / NUM2
+		return ::{ ${gen.getInput(block.args['NUM1'])} / ${gen.getInput(block.args['NUM2'])} };
+	},
+
+	'operator_random': block => {
+		// TODO: decimal arguments generate float outputs
+		return ::{random(${gen.getInput(block.args['FROM'])}, ${gen.getInput(block.args['TO'])})};
+	},
+
+	'operator_lt': block => {
+		// TODO: can make this do different things depending on input types
+		return ::{compare(${gen.getInput(block.args['OPERAND1'])}, ${gen.getInput(block.args['OPERAND2'])}) === -1};
+	},
+
+	'operator_equals': block => {
+		// TODO: can make this do different things depending on input types
+		return ::{equal(${gen.getInput(block.args['OPERAND1'])}, ${gen.getInput(block.args['OPERAND2'])})};
+	},
+
+	'operator_gt': block => {
+		// TODO: can make this do different things depending on input types
+		return ::{compare(${gen.getInput(block.args['OPERAND1'])}, ${gen.getInput(block.args['OPERAND2'])}) === 1};
+	},
+
+	'operator_and': block => {
+		return ::{ ${gen.getInput(block.args['OPERAND1'])} && ${gen.getInput(block.args['OPERAND2'])} };
+	},
+
+	'operator_or': block => {
+		return ::{ ${gen.getInput(block.args['OPERAND1'])} || ${gen.getInput(block.args['OPERAND2'])} };
+	},
+
+	'operator_not': block => {
+		return ::{ !${gen.getInput(block.args['OPERAND'])} };
+	},
+
+	'operator_join': block => {
+		return ::{ ${gen.getInput(block.args['STRING1'], true)} + ${gen.getInput(block.args['STRING2'], true)} };
+	},
+
+	'operator_letter_of': block => {
+		// charAt is zero-indexed, operator_letter_of is one-indexed.
+		// Indexed in terms of UTF-16 code units, just like Scratch.
+		return ::{${gen.getInput(block.args['STRING'], true)}.charAt(${gen.getInput(block.args['LETTER'])} - 1)};
+	},
+
+	'operator_length': block => {
+		// STRING.length
+		// Indexed in terms of UTF-16 code units, just like Scratch.
+		return ::{${gen.getInput(block.args['STRING'], true)}.length};
+	},
+
+	'operator_mod': block => {
+		// Unfortunately we can't use the JS modulo operator.
+		// Scratch modulo preserves the sign of the divisor, JS modulo preserves the sign of the dividend.
+		// TODO: replace runtime mod() with a very small ternary conditional
+		return ::{mod(${gen.getInput(block.args['NUM1'])}, ${gen.getInput(block.args['NUM2'])})};
+	},
+
+	'operator_round': block => {
+		return ::{Math.round(${gen.getInput(block.args['NUM'])})};
+	},
+
+	'operator_mathop': block => {
+		const ANGLE_CONVERSION_FACTOR = Builders.literal(Math.PI / 180);
+		const ANGLE_CONVERSION_FACTOR_INVERSE = Builders.literal(180 / Math.PI);
+		// Miscellaneous math operator.
+		// Does different things depending on the field value.
+		// TODO: support dynamic math op or remove it from the runtime since it's broken in 3.0 anyway
+		switch (gen.getField(block.args['OPERATOR'])) {
+			case 'abs': return ::{Math.abs(${gen.getInput(block.args['NUM'])})};
+			case 'floor': return ::{Math.floor(${gen.getInput(block.args['NUM'])})};
+			case 'ceiling': return ::{Math.ceil(${gen.getInput(block.args['NUM'])})};
+			case 'sqrt': return ::{Math.sqrt(${gen.getInput(block.args['NUM'])})};
+			case 'sin': return ::{Math.sin(${gen.getInput(block.args['NUM'])} * ${ANGLE_CONVERSION_FACTOR})};
+			case 'cos': return ::{Math.cos(${gen.getInput(block.args['NUM'])} * ${ANGLE_CONVERSION_FACTOR})};
+			case 'tan': return ::{Math.tan(${gen.getInput(block.args['NUM'])} * ${ANGLE_CONVERSION_FACTOR})};
+			case 'asin': return ::{ Math.asin(${gen.getInput(block.args['NUM'])}) * ${ANGLE_CONVERSION_FACTOR_INVERSE} };
+			case 'acos': return ::{ Math.acos(${gen.getInput(block.args['NUM'])}) * ${ANGLE_CONVERSION_FACTOR_INVERSE} };
+			case 'atan': return ::{ Math.atan(${gen.getInput(block.args['NUM'])}) * ${ANGLE_CONVERSION_FACTOR_INVERSE} };
+			case 'ln': return ::{Math.log(${gen.getInput(block.args['NUM'])})};
+			case 'log': return ::{Math.log10(${gen.getInput(block.args['NUM'])})}; // TODO: Scratch doesn't use log10
+			case 'e ^': return ::{Math.exp(${gen.getInput(block.args['NUM'])})};
+			case '10 ^': return ::{Math.pow(10, ${gen.getInput(block.args['NUM'])})};
+			default:
+				console.warn(`Unrecognized math op ${gen.getField(block.args['OPERATOR'])}`);
+				return ::{0};
+		}
+	},
+
+	// Data
+	'data_variable': block => {
+		return gen.commonGenerators.variableReference(block);
+	},
+
+	'data_setvariableto': block => {
+		return {{
+			${gen.commonGenerators.variableReference(block)} = ${gen.getInput(block.args['VALUE'])};
+		}};
+	},
+
+	'data_changevariableby': block => {
+		const varRef = gen.commonGenerators.variableReference(block);
+		return {{
+			${varRef} = ${gen.castValue(varRef, 'math_number')} + ${gen.getInput(block.args['VALUE'])};
+		}};
+	},
+
+	'data_showvariable': block => {
+		return gen.commonGenerators.setVariableVisible(block, true);
+	},
+
+	'data_hidevariable': block => {
+		return gen.commonGenerators.setVariableVisible(block, false);
+	},
+
+	'data_listcontents': block => {
+		return ::{contentsOfList(${gen.commonGenerators.listReference(block)})};
+	},
+
+	'data_addtolist': block => {
+		return {{
+			${gen.commonGenerators.listReference(block)}.push(${gen.getInput(block.args['ITEM'])});
+		}};
+	},
+
+	'data_deleteoflist': block => {
+		return {{
+			deleteLineOfList(${gen.commonGenerators.listReference(block)}, ${gen.getInput(block.args['INDEX'])});
+		}};
+	},
+
+	'data_deletealloflist': block => {
+		// TODO: maybe just replace the list with a new empty array?
+		return {{
+			deleteLineOfList(${gen.commonGenerators.listReference(block)}, 'all');
+		}};
+	},
+
+	'data_insertatlist': block => {
+		return {{
+			insertInList(
+				${gen.commonGenerators.listReference(block)},
+				${gen.getInput(block.args['INDEX'])},
+				${gen.getInput(block.args['ITEM'])}
+			);
+		}};
+	},
+
+	'data_replaceitemoflist': block => {
+		return {{
+			setLineOfList(
+				${gen.commonGenerators.listReference(block)},
+				${gen.getInput(block.args['INDEX'])},
+				${gen.getInput(block.args['ITEM'])}
+			);
+		}};
+	},
+
+	'data_itemoflist': block => {
+		return ::{getLineOfList(${gen.commonGenerators.listReference(block)}, ${gen.getInput(block.args['INDEX'])})};
+	},
+
+	'data_lengthoflist': block => {
+		return ::{${gen.commonGenerators.listReference(block)}.length};
+	},
+
+	'data_listcontainsitem': block => {
+		return ::{listContains(${gen.commonGenerators.listReference(block)}, ${gen.getInput(block.args['ITEM'])})};
+	},
+
+	// Custom procedures wOoOoOoO
+	'procedures_call': (block, index, script) => {
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		if (gen.getField(block.args['PROCEDURE']) === 'bismuth debug') {
+			return {{{
+				/* eslint-disable-next-line no-debugger */
+				debugger;
+				${Builders.immediateCall(continuationID)}
+			}}};
+		}
+
+		return {{{
+			call(
+				SPRITE.procedures[${gen.getInput(block.args['PROCEDURE'])}],
+				${Builders.literal(continuationID)},
+				${gen.getInput(block.args['ARGUMENTS'])}
+			);
+			return;
+		}}};
+	},
+
+	'argument_reporter_string_number': block => {
+		return ::{C.args[C.argMap[${gen.getInput(block.args['VALUE'])}]]};
+	},
+
+	// TODO: something different?
+	'argument_reporter_boolean': block => {
+		return ::{C.args[C.argMap[${gen.getInput(block.args['VALUE'])}]]};
+	},
+
+	// Pen
+	'pen_clear': () => {
+		return {{
+			penClear();
+		}}
+	},
+
+	'pen_stamp': () => {
+		return {{
+			SPRITE.penStamp();
+		}}
+	},
+
+	'pen_penDown': () => {
+		return {{{
+			SPRITE.penState.penDown = true;
+			SPRITE.penDot();
+		}}};
+	},
+
+	'pen_penUp': () => {
+		return {{
+			SPRITE.penState.penDown = false;
+		}};
+	},
+
+	'pen_setPenColorToColor': block => {
+		return {{{
+			SPRITE.penState.colorNumeric = ${gen.getInput(block.args['COLOR'])};
+			SPRITE.updatePenCSS();
+		}}};
+	},
+
+	'pen_changePenHueBy': block => {
+		// The stored pen hue is in Scratch 3.0 form (0-100). 2.0 goes from 0-200, so double it.
+		return {{{
+			${Builders.setPenHSVIfNumeric()}
+			SPRITE.setPenColorLegacy((SPRITE.penState.hue * 2) + ${gen.getInput(block.args['HUE'])});
+			SPRITE.updatePenCSS();
+		}}};
+	},
+
+	'pen_setPenHueToNumber': block => {
+		return {{{
+			${Builders.setPenHSVIfNumeric()}
+			SPRITE.setPenColorLegacy(${gen.getInput(block.args['HUE'])});
+			SPRITE.updatePenCSS();
+		}}};
+	},
+
+	'pen_changePenShadeBy': block => {
+		return {{{
+			${Builders.setPenHSVIfNumeric()}
+			SPRITE.setPenShadeLegacy(SPRITE.penState._shade + ${gen.getInput(block.args['SHADE'])});
+			SPRITE.updatePenCSS();
+		}}};
+	},
+
+	'pen_setPenShadeToNumber': block => {
+		return {{{
+			${Builders.setPenHSVIfNumeric()}
+			SPRITE.setPenShadeLegacy(${gen.getInput(block.args['SHADE'])});
+			SPRITE.updatePenCSS();
+		}}};
+	},
+
+	'pen_changePenSizeBy': block => {
+		return {{
+			SPRITE.penState.diameter = Math.max(SPRITE.penState.diameter + ${gen.getInput(block.args['SIZE'])}, 1);
+		}};
+	},
+
+	'pen_setPenSizeTo': block => {
+		return {{
+			SPRITE.penState.diameter = Math.max(${gen.getInput(block.args['SIZE'])}, 1);
+		}};
+	},
+
+	// Music
+	'music_playDrumForBeats': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		return gen.commonGenerators.createTimer(
+			Builders.musicDuration(gen.getInput(block.args['BEATS'])),
+			Builders.immediateCall(continuationID),
+			{{
+				playSpan(DRUMS[${gen.getInput(block.args['DRUM'])} - 1] || DRUMS[2], 60, 10);
+			}}
+		);
+	},
+
+	'music_restForBeats': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		// timer duration = BEATS * 60000 / stage.tempoBPM
+		return gen.commonGenerators.createTimer(
+			Builders.musicDuration(gen.getInput(block.args['BEATS'])),
+			Builders.immediateCall(continuationID)
+		);
+	},
+
+	'music_playNoteForBeats': (block, index, script) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.continue(script.splice(index + 1));
+
+		return gen.commonGenerators.createTimer(
+			::{duration},
+			Builders.immediateCall(continuationID),
+			{{{
+				const duration = ${Builders.musicDuration(gen.getInput(block.args['BEATS']))};
+				playNote(${gen.getInput(block.args['NOTE'])}, duration);
+			}}}
+		);
+	},
+
+	'music_setInstrument': block => {
+		// Clamp instrument to range of possible instruments with Math.min and Math.max
+		return {{
+			SPRITE.instrument = Math.max(0, Math.min(${gen.getInput(block.args['INSTRUMENT'])} - 1, INSTRUMENTS.length - 1));
+		}};
+	},
+
+	'music_changeTempo': block => {
+		// Clamp tempo between 20 and 500 BPM
+		return {{
+			self.tempoBPM = Math.max(20, Math.min(${gen.getInput(block.args['TEMPO'])} + self.tempoBPM, 500));
+		}};
+	},
+
+	'music_setTempo': block => {
+		// Clamp tempo between 20 and 500 BPM
+		return {{
+			self.tempoBPM = Math.max(20, Math.min(${gen.getInput(block.args['TEMPO'])}, 500));
+		}};
+	},
+
+	'music_getTempo': () => {
+		return ::{self.tempoBPM};
+	}
+}; };
+
+module.exports = BlockTranslators;

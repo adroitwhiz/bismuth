@@ -3,19 +3,33 @@ const {Parser} = require('acorn');
 const plugin = h => {
 	const acorn = h.acorn;
 
-	const tt_jsjsOpen = new acorn.TokenType('{{', {beforeExpr: true, startsExpr: true});
-	const tt_jsjsClose = new acorn.TokenType('}}', {beforeExpr: true, startsExpr: true});
+	const tt_jsjsExprOpen = new acorn.TokenType('::{');
+	const tt_jsjsStatementOpen = new acorn.TokenType('{{');
+	const tt_jsjsClose = new acorn.TokenType('}}');
+
+	const tt_jsjsTmplOpen = new acorn.TokenType('${');
 
 	// This token context isn't currently used for anything
-	/* const tc_jsjsExpr = new acorn.TokContext('{{...}}', false);
+	const tc_jsjsStatement = new acorn.TokContext('{{...}}', false);
+	const tc_jsjsExpression = new acorn.TokContext('::{...}', false);
+	const tc_jsjsTemplate = new acorn.TokContext('JSJS_${', true);
 
-	tt_jsjsOpen.updateContext = function () {
-		this.context.push(tc_jsjsExpr);
+	tt_jsjsStatementOpen.updateContext = function () {
+		this.context.push(tc_jsjsStatement);
 	};
 
 	tt_jsjsClose.updateContext = function () {
 		this.context.pop();
-	}; */
+	};
+
+	tt_jsjsExprOpen.updateContext = function () {
+		this.context.push(tc_jsjsExpression);
+		this.exprAllowed = false;
+	};
+
+	tt_jsjsTmplOpen.updateContext = function () {
+		this.context.push(tc_jsjsTemplate);
+	};
 
 	return class extends h {
 		readToken (code) {
@@ -24,7 +38,14 @@ const plugin = h => {
 				this.input.charCodeAt(this.pos + 1) === 123
 			) {
 				this.pos += 2;
-				return this.finishToken(tt_jsjsOpen);
+				return this.finishToken(tt_jsjsStatementOpen);
+			} else if (
+				code === 58 &&
+				this.input.charCodeAt(this.pos + 1) === 58 &&
+				this.input.charCodeAt(this.pos + 2) === 123
+			) {
+				this.pos += 3;
+				return this.finishToken(tt_jsjsExprOpen);
 			} else if (
 				// Ensure third character in a row isn't also '}' to avoid matching the first two braces of '}}}'
 				// This allows block statements to be JSJS'd as '{{{...}}}'
@@ -40,23 +61,25 @@ const plugin = h => {
 				this.input.charCodeAt(this.pos + 1) === 123
 			) {
 				this.pos += 2;
-				return this.finishToken(acorn.tokTypes.dollarBraceL);
+				return this.finishToken(tt_jsjsTmplOpen);
 			}
 
 			return super.readToken(code);
 		}
 
 		parseExprAtom (refDestructuringErrors) {
-			if (this.type === tt_jsjsOpen) {
-				const startPos = this.start;
-				const startLoc = this.startLoc;
-				const node = this.startNodeAt(startPos, startLoc);
-				const expr = this.jsjs_parseJSJSExpression();
-				node.expression = expr;
+			if (this.type === tt_jsjsStatementOpen ||
+				this.type === tt_jsjsExprOpen) {
+				const node = this.startNodeAt(this.start, this.startLoc);
+				if (this.type === tt_jsjsStatementOpen) {
+					node.expression = this.jsjs_parseJSJSStatement();
+				} else {
+					node.expression = this.jsjs_parseJSJSExpression();
+				}
 				return this.finishNode(node, 'JSJSExpression');
-			} else if (this.type === acorn.tokTypes.dollarBraceL) {
-				const node = this.startNode();
-				this.expect(acorn.tokTypes.dollarBraceL);
+			} else if (this.type === tt_jsjsTmplOpen) {
+				const node = this.startNodeAt(this.start, this.startLoc);
+				this.expect(tt_jsjsTmplOpen);
 				const expr = this.parseExpression();
 				this.expect(acorn.tokTypes.braceR);
 				node.expression = expr;
@@ -66,11 +89,28 @@ const plugin = h => {
 			return super.parseExprAtom(refDestructuringErrors);
 		}
 
-		jsjs_parseJSJSExpression () {
-			this.expect(tt_jsjsOpen);
+		jsjs_parseJSJSStatement () {
+			this.expect(tt_jsjsStatementOpen);
 			const val = this.parseStatement();
 			this.expect(tt_jsjsClose);
 			return val;
+		}
+
+		jsjs_parseJSJSExpression () {
+			this.expect(tt_jsjsExprOpen);
+			const val = this.parseExpression();
+			this.expect(acorn.tokTypes.braceR);
+			return val;
+		}
+
+		toAssignable (node) {
+			if (node.type === 'JSJSTemplateElement') return node;
+			return super.toAssignable.apply(this, arguments);
+		}
+
+		checkLVal (expr) {
+			if (expr.type === 'JSJSTemplateElement') return;
+			super.checkLVal.apply(this, arguments);
 		}
 	};
 };

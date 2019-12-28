@@ -1,0 +1,117 @@
+const VisibilityState = require('./block-data/visibility-state');
+
+// Similar to estree-builder, this is a collection of "AST builder" functions, but for Bismuth-specific stuff.
+const Builders = {
+	// estree-builder does not have this for some reason
+	literal: value => {
+		return {type: 'Literal', value: value};
+	},
+
+	// Prevent unnecessary block scoping that makes the code harder to read by combining block statements.
+	// Returns a new block statement.
+	concatBlockStatements: statements => {
+		const newStatementBody = [];
+		for (const statement of statements) {
+			for (const node of statement.body) {
+				newStatementBody.push(node);
+			}
+		}
+		return {
+			type: 'BlockStatement',
+			body: newStatementBody
+		};
+	},
+
+	backpatchID: backpatchID => {
+		return {type: 'BackpatchedContinuationID', value: backpatchID};
+	},
+
+	continuationIdentifier: continuationID => {
+		return continuationID.type && (continuationID.type === 'BackpatchedContinuationID') ?
+			continuationID :
+			Builders.literal(continuationID);
+	},
+
+	queue: continuationID => {
+		return {{{
+			queue(${Builders.continuationIdentifier(continuationID)});
+			return;
+		}}};
+	},
+
+	forceQueue: continuationID => {
+		return {{{
+			forceQueue(${Builders.continuationIdentifier(continuationID)});
+			return;
+		}}};
+	},
+
+	immediateCall: continuationID => {
+		return {{{
+			IMMEDIATE = SPRITE.fns[${Builders.continuationIdentifier(continuationID)}];
+			return;
+		}}};
+	},
+
+	save: () => {
+		return {{
+			save();
+		}};
+	},
+
+	restore: () => {
+		return {{
+			restore();
+		}};
+	},
+
+	endCall: () => {
+		return {{
+			endCall();
+		}};
+	},
+
+	setVisualForScope: scope => {
+		// If the scope is AFFECTS_VISUAL_ALWAYS, always return
+		// "VISUAL = true". Otherwise, qualify it with an "if"
+		// statement. This statement checks if the sprite is visible,
+		// and if AFFECTS_VISUAL_FOR_VISIBLE_OR_PEN_DOWN,
+		// also checks if the sprite's pen is down.
+		const setVisualTrue = {{
+			VISUAL = true;
+		}};
+
+		if (scope < VisibilityState.VisibilityScope.AFFECTS_VISUAL_ALWAYS) {
+			const visualCheck = scope === VisibilityState.VisibilityScope.AFFECTS_VISUAL_FOR_VISIBLE_OR_PEN_DOWN ?
+				::{SPRITE.visible || SPRITE.penState.penDown} :
+				::{SPRITE.visible};
+
+			return {{
+				if (${visualCheck}) {
+					${setVisualTrue}
+				}
+			}};
+		}
+
+		return setVisualTrue;
+	},
+
+	// Update the current sprite's HSV pen state if a numeric pen color is set.
+	setPenHSVIfNumeric: () => {
+		return {{
+			if (SPRITE.penState.colorNumeric !== null) SPRITE.setPenHSVFromNumeric();
+		}};
+	},
+
+	// Expression for music block duration in milliseconds, given number of beats.
+	musicDuration: beats => {
+		return ::{${beats} * (60000 / self.tempoBPM)};
+	},
+
+	CONSTANTS: {
+		SPRITE_IDENTIFIER: {type: 'Identifier', name: 'SPRITE'},
+		STAGE_IDENTIFIER: {type: 'Identifier', name: 'SELF'}
+	}
+};
+
+module.exports = Builders;
