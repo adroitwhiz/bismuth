@@ -21,6 +21,8 @@ var compile = (function(P) {
 		for (var i = 0; i < object.scripts.length; i++) {
 			compileListener(object, object.scripts[i][2]);
 		}
+
+		console.log(object);
 	};
 
 	var warnings;
