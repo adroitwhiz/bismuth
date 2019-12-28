@@ -20,7 +20,7 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				include: path.resolve(__dirname, 'src/bismuth/codegen/block-translators-new.js'),
+				test: /.jsjs$/,
 				use: [
 					{
 						loader: path.resolve(__dirname, 'tools/jsjs-loader.js')

@@ -1,10 +1,10 @@
 # To do
 - Annotate/comment the code
 	- JSDoc?
-- Switch to scratch-render (or a patched version)
 - Support new Scratch 3.0 blocks
 - Remove Argument script primitive; make all primitives (numbers, text, etc) blocks
 - Move type data from specmaps to compiler
+- Redo rendering engine
 - Redo audio engine
 - Redo frontend/HTML
 	- Redo watchers in Vue

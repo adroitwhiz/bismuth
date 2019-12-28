@@ -2,11 +2,11 @@ const e = require('estree-builder');
 
 const ScriptPrims = require('./script-prims');
 const CompiledScript = require('./compiled-script');
-const BlockTranslators = require('./block-translators');
-const GeneratorCommon = require('./generator-common');
+const BlockTranslators = require('./block-translators.jsjs');
+const GeneratorCommon = require('./generator-common.jsjs');
 const VisibilityState = require('./block-data/visibility-state');
 const BlockReturnTypes = require('./block-data/block-return-types');
-const Builders = require('./es-builders');
+const Builders = require('./es-builders.jsjs');
 
 class CodeGenerator {
 	/**
@@ -65,9 +65,9 @@ class CodeGenerator {
 		}
 
 		if (outputType === 'boolean') {
-			// Runtime boolean cast. Not necessary if input type is boolean, but we don't check that yet.
+			// Runtime boolean cast.
 			if (value.__typeTag !== 'boolean') {
-				castedValue = Builders.callUtilMethod('bool', [value]);
+				castedValue = e['call'](e['id']('bool'), [value]);
 			}
 
 			castedValue.__typeTag = 'boolean';
@@ -75,7 +75,6 @@ class CodeGenerator {
 		}
 
 		if (outputType === 'string' || outputType === 'text') {
-			// casts to string with `value + ""`, may be slower than String(value)
 			castedValue = e['call'](e['id']('String'), [value]);
 			castedValue.__typeTag = 'string';
 			return castedValue;

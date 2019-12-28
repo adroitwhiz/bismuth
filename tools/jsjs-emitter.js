@@ -17,7 +17,12 @@ const stringifyNode = node => {
 			const propVal = node[key];
 
 			let propNode;
-			if (typeof propVal === 'object') {
+			if (Array.isArray(propVal)) {
+				propNode = {
+					type: 'ArrayExpression',
+					elements: propVal.map(elem => stringifyNode(elem))
+				};
+			} else if (propVal !== null && typeof propVal === 'object') {
 				propNode = stringifyNode(propVal);
 			} else {
 				propNode = {type: 'Literal', value: propVal};

@@ -1,0 +1,124 @@
+const Builders = require('./es-builders.jsjs');
+
+// Common functions to be reused across block generation functions.
+const GeneratorCommon = gen => { return {
+	waitUntilCondition: (condition, onConditionTrue) => {
+		const loopId = gen.getNextContinuationID();
+
+		return gen.pushContinuation({{
+			if (${condition}) {
+				${onConditionTrue}
+			} else {
+				${Builders.forceQueue(loopId)}
+			}
+		}});
+	},
+
+	createTimer: (duration, afterTimerComplete, beforeTimerStart) => {
+		const timerID = gen.getNextContinuationID();
+
+		const timer = {{{
+			if (self.now - STACK_FRAME.start < STACK_FRAME.duration) {
+				${Builders.forceQueue(timerID)};
+			}
+
+			${Builders.restore()}
+			${afterTimerComplete}
+		}}};
+
+		gen.pushContinuation(timer);
+
+		let timerStartBlock = [
+			Builders.save()
+		];
+
+		if (beforeTimerStart) {
+			if (beforeTimerStart.type === 'BlockStatement') {
+				timerStartBlock = timerStartBlock.concat(beforeTimerStart.body);
+			} else {
+				timerStartBlock.push(beforeTimerStart);
+			}
+		}
+
+		// Initialize the timer
+		return {
+			type: 'BlockStatement',
+			body: timerStartBlock.concat([
+				{{ STACK_FRAME.start = self.now; }},
+				{{ STACK_FRAME.duration = ${duration}; }},
+				Builders.forceQueue(timerID)
+			])
+		};
+	},
+
+	sayOrThinkForSecs: (block, index, script, isThink) => {
+		// Create a continuation for the rest of the blocks
+		const continuationID = gen.pushContinuation({{{
+			if (STACK_FRAME.id === SPRITE.sayId) {
+				SPRITE.say(null, false);
+			}
+			${Builders.restore()}
+
+			${gen.compileSubstack(script.splice(index + 1))}
+		}}});
+
+		return gen.commonGenerators.createTimer(
+			::{${gen.getInput(block.args['SECS'])} * 1000},
+			Builders.forceQueue(continuationID),
+			{{{
+				STACK_FRAME.id = SPRITE.say(${gen.getInput(block.args['MESSAGE'])}, ${Builders.literal(isThink)});
+				${Builders.save()}
+			}}}
+		);
+	},
+
+	// A reference to either a local or global variable.
+	variableReference: block => {
+		// If the stage has a variable by this name (e.g. it's a global variable), access that variable.
+		// Otherwise, access the sprite's variable by that name whether it exists or not.
+		// This captures the behavior of nonexistent variables always being created in local scope.
+		const variableName = gen.getField(block.args['VARIABLE']);
+		const variableScope = Object.prototype.hasOwnProperty.call(gen.object.stage.vars, variableName) ?
+			Builders.CONSTANTS.STAGE_IDENTIFIER :
+			Builders.CONSTANTS.SPRITE_IDENTIFIER;
+
+		return ::{${variableScope}.vars[${gen.getInput(block.args['VARIABLE'])}]};
+	},
+
+	setVariableVisible: (block, isVisible) => {
+		// If the stage has a variable by this name (e.g. it's a global variable), call stage.setVariableVisible.
+		// Otherwise, call SPRITE.setVariableVisible.
+		const variableName = gen.getField(block.args['VARIABLE']);
+		const variableScope = Object.prototype.hasOwnProperty.call(gen.object.stage.vars, variableName) ?
+			Builders.CONSTANTS.STAGE_IDENTIFIER :
+			Builders.CONSTANTS.SPRITE_IDENTIFIER;
+
+		return {{
+			${variableScope}.setVariableVisible(${gen.getInput(block.args['VARIABLE'])}, ${Builders.literal(isVisible)});
+		}};
+	},
+
+	// A reference to either a local or global list.
+	listReference: block => {
+		// If the stage has a list by this name (e.g. it's a global list), access that list.
+		// Otherwise, access the sprite's list by that name.
+		// If the sprite doesn't have a list by that name, create one here.
+		// This captures the behavior of nonexistent lists always being created in local scope.
+		const listName = gen.getField(block.args['LIST']);
+		const listScope = Object.prototype.hasOwnProperty.call(gen.object.stage.lists, listName) ?
+			Builders.CONSTANTS.STAGE_IDENTIFIER :
+			Builders.CONSTANTS.SPRITE_IDENTIFIER;
+
+		return ::{${listScope}.lists[${gen.getInput(block.args['LIST'])}]};
+	},
+
+	// Update the sprite text bubble on show/hide so it doesn't stick around when it shouldn't.
+	setVisible: visible => {
+		return {{{
+			SPRITE.visible = ${Builders.literal(visible)};
+			if (SPRITE.saying) sprite.updateBubble();
+		}}};
+	}
+}; };
+
+module.exports = GeneratorCommon;
