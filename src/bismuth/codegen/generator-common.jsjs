@@ -5,13 +5,13 @@ const GeneratorCommon = gen => { return {
 	waitUntilCondition: (condition, onConditionTrue) => {
 		const loopId = gen.getNextContinuationID();
 
-		return gen.pushContinuation({{
+		return gen.pushContinuation({{{
 			if (${condition}) {
 				${onConditionTrue}
 			} else {
 				${Builders.forceQueue(loopId)}
 			}
-		}});
+		}}});
 	},
 
 	createTimer: (duration, afterTimerComplete, beforeTimerStart) => {
