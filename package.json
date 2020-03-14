@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/adroitwhiz/bismuth#readme",
   "devDependencies": {
-    "acorn": "^7.1.0",
+    "acorn": "^7.1.1",
     "copy-webpack-plugin": "^5.1.1",
     "eslint": "^6.7.2",
     "espree": "^6.1.2",
