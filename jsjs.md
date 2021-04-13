@@ -43,7 +43,7 @@ Still, this syntax is verbose and unwieldy, and for more complex code, required 
 
 JSJS provides a much more concise way of writing these ASTs:
 
-```js
+```
 function generateVariableDeclaration(value) {
     return {{
         var x = ${value};
@@ -58,7 +58,7 @@ The above example compiles to the first one. It's essentially template strings, 
 Because of lexical ambiguity, there are two different types of JSJS expressions: those which define statements and those which define expressions.
 
 `{{...}}` (double braces) define a statement. For example:
-```js
+```
 const five = {{5}};
 ```
 compiles to:
@@ -73,7 +73,7 @@ const five = {
 ```
 
 `::{...}` ([turbo](https://github.com/jplatte/turbo.fish) braces) define an expression. For example:
-```js
+```
 const five = ::{5};
 ```
 compiles to:
@@ -85,7 +85,7 @@ const five = {
 ```
 
 Inserting your own elements into the generated AST is done in much the same way as in template strings, with `${...}`. Note that whatever's inside the dollar-braces will *not* be modified in any way. It must *already* evaluate to a valid ESTree AST node. For instance, this will *not* compile down to a valid AST:
-```js
+```
 const varXEqualsFive = {{
     var x = ${5};
 }};
@@ -109,7 +109,7 @@ const varXEqualsFive = {
 ```
 Note that `5` is not, by itself, a valid ESTree node. If you want to generate a valid AST, you'll need to ensure your template inputs are *also* ESTree nodes:
 
-```js
+```
 const varXEqualsFive = {{
     var x = ${ {type: 'Literal', value: 5} };
 }};
@@ -119,7 +119,7 @@ const varXEqualsFive = {{
 This is the first time I've touched `acorn`, the JS parsing library used to parse JSJS. As such, there are some things to be aware of:
 
 * Two closing braces in a row (`}}`) will currently always be interpreted as a "close JSJS statement" token. So you can't do this, for example:
-  * ```js
+  * ```
     const myExpression = ::{2 * ${myNumber}};
     --------------------------------------^ uh oh!
     ```
