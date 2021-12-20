@@ -5,7 +5,7 @@ global.window = {};
 
 const MockSprite = require('./mocks/mock-sprite');
 
-const SB2Parser = require('../src/bismuth/codegen/parser-sb2');
+const SB2Parser = require('../src/bismuth/io/parser-sb2');
 const CodeGenerator = require('../src/bismuth/codegen/code-generator');
 const generateJavascriptCode = require('../src/bismuth/codegen/emit-javascript');
 

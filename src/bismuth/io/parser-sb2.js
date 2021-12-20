@@ -1,10 +1,10 @@
-const ScriptPrims = require('./script-prims');
+const ScriptPrims = require('../codegen/script-prims');
 const Block = ScriptPrims.Block;
 const Script = ScriptPrims.Script;
 const Argument = ScriptPrims.Argument;
 const Literal = ScriptPrims.Literal;
 
-const specMap = require('./block-data/specmap-sb2');
+const specMap = require('./specmap-sb2');
 
 class SB2Parser {
 	constructor () {

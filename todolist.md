@@ -4,6 +4,8 @@
 - Support new Scratch 3.0 blocks
 - Remove Argument script primitive; make all primitives (numbers, text, etc) blocks
 - Move type data from specmaps to compiler
+- Constant folding
+- Program flow graph generation + analysis
 - Redo rendering engine
 - Redo audio engine
 - Redo frontend/HTML

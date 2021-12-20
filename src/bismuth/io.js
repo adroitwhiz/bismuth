@@ -7,9 +7,9 @@ const Sprite = require('./sprite');
 const Stage = require('./stage');
 const Watcher = require('./watcher');
 
-const Request = require('./request');
-const SB2Parser = require('./codegen/parser-sb2');
-const SB3Parser = require('./codegen/parser-sb3');
+const Request = require('./io/request');
+const SB2Parser = require('./io/parser-sb2');
+const SB3Parser = require('./io/parser-sb3');
 
 const decodeADPCMAudio = require('./io/decode-adpcm-audio.js');
 const instruments = require('./io/instrument-wavs.js');
