@@ -36,7 +36,7 @@
   "dependencies": {
     "astring": "^1.4.3",
     "estree-builder": "^1.11.0",
-    "jszip": "^3.2.2",
+    "jszip": "^3.7.0",
     "scratch-svg-renderer": "github:adroitwhiz/scratch-svg-renderer#bismuth"
   }
 }
