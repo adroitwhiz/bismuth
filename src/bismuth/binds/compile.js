@@ -12,8 +12,8 @@ const compile = (P => {
 		'event_whenbroadcastreceived': 'whenIReceive'
 	};
 
-	const compileScripts = object => {
-		// Part 1: Compile the scripts into their JS AST representations,
+	const compileScripts = (object, stage, watchersByTarget) => {
+		// Compile the scripts into their JS AST representations,
 		// adding to the object's array of continuation functions (in AST form)
 		const generator = new CodeGenerator(object);
 		const compiledScripts = [];
@@ -21,7 +21,7 @@ const compile = (P => {
 			compiledScripts.push(generator.compileScript(object.scripts[i]));
 		}
 
-		// Part 2: For every continuation function AST in the object,
+		// For every continuation function AST in the object,
 		// stringify it into JS code, then eval() it, compiling it into *actual* JS.
 		for (let i = 0; i < object.continuations.length; i++) {
 			const generatedCode = generateJavascriptCode(generator, object.continuations[i]);
@@ -33,9 +33,20 @@ const compile = (P => {
 		// console.log(compiledScripts);
 		// console.log(object);
 
-		//Part 3: For every compiled script, add a listener
+		// For every compiled script, add a listener
 		for (let i = 0; i < compiledScripts.length; i++) {
 			addListener(object, compiledScripts[i]);
+		}
+
+		// Compile watchers' functions
+		if (watchersByTarget.has(object)) {
+			const watchers = watchersByTarget.get(object);
+			for (let i = 0; i < watchers.length; i++) {
+				const watcher = watchers[i];
+				const compiledBlockAST = generator.compileWatcher(watcher);
+				const generatedCode = generateJavascriptCode(generator, compiledBlockAST);
+				watchers[i].func = P.runtime.scopedEval(generatedCode);
+			}
 		}
 	};
 
@@ -96,10 +107,19 @@ const compile = (P => {
 	};
 
 	return stage => {
-		compileScripts(stage);
+		const watchersByTarget = new Map();
+		for (let i = 0; i < stage.allWatchers.length; i++) {
+			const watcher = stage.allWatchers[i];
+			if (watchersByTarget.has(watcher.target)) {
+				watchersByTarget.get(watcher.target).push(watcher);
+			} else {
+				watchersByTarget.set(watcher.target, [watcher]);
+			}
+		}
+		compileScripts(stage, stage, watchersByTarget);
 
 		for (let i = 0; i < stage.children.length; i++) {
-			compileScripts(stage.children[i]);
+			compileScripts(stage.children[i], stage, watchersByTarget);
 		}
 
 	};

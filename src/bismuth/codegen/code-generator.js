@@ -209,6 +209,10 @@ class CodeGenerator {
 		}
 		return new CompiledScript(script.blocks[0], this.continue(script.shifted));
 	}
+
+	compileWatcher (watcher) {
+		return this.makeFunction([e.return(this.compileBlock(watcher.block))]);
+	}
 }
 
 module.exports = CodeGenerator;

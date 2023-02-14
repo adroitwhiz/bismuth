@@ -274,7 +274,6 @@ class Stage extends Base {
 		);
 		// TODO: can non-variable watchers ever have sliders?
 		w.target.vars[w.params.VARIABLE] = w.isDiscrete ? Math.round(value) : Math.round(value * 100) / 100;
-		w.update();
 		e.preventDefault();
 	}
 
@@ -432,10 +431,7 @@ class Stage extends Base {
 
 		context.scale(this.zoom * SCALE, this.zoom * SCALE);
 		this.drawOn(context);
-		for (let i = this.allWatchers.length; i--;) {
-			const w = this.allWatchers[i];
-			if (w.visible) w.update();
-		}
+		this.updateWatchers();
 
 		if (this.hidePrompt) {
 			this.hidePrompt = false;

@@ -1,5 +1,5 @@
 const timeAndDate = format => {
-	switch (format) {
+	switch (format.toLowerCase()) {
 		case 'year':
 			return new Date().getFullYear();
 		case 'month':

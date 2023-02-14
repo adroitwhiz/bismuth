@@ -322,6 +322,20 @@ class SB3Parser {
 			block.fields[argName][0]
 		);
 	}
+
+	parseMonitor (monitor) {
+		const paramArgs = {};
+		for (const paramName in monitor.params) {
+			if (!Object.prototype.hasOwnProperty.call(monitor.params, paramName)) continue;
+			paramArgs[paramName] = new Argument(
+				paramName,
+				'field',
+				new Literal('field', monitor.params[paramName])
+			);
+		}
+
+		return new Block(monitor.opcode, paramArgs);
+	}
 }
 
 module.exports = SB3Parser;

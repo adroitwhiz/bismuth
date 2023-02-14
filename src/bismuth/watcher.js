@@ -1,14 +1,12 @@
-const timeAndDate = require('./util/time-and-date');
-
 class Watcher {
-	constructor (stage) {
+	constructor (stage, block) {
 		this.stage = stage;
 
-		this.opcode = 'data_variable';
+		this.block = block;
+
 		this.isDiscrete = true;
 		this.label = 'watcher';
 		this.mode = 'default';
-		this.params = {};
 		this.sliderMax = 100;
 		this.sliderMin = 0;
 		this.target = undefined;
@@ -25,11 +23,11 @@ class Watcher {
 	}
 
 	resolve () {
-		this.color = getWatcherColor(this.opcode);
+		this.color = getWatcherColor(this.block.opcode);
 		// Scratch 3.0 uses null targetName for things that belong to the stage
 		this.target = this.targetName === null ? this.stage : this.stage.getObject(this.targetName);
-		if (this.target && this.opcode === 'data_variable') {
-			this.target.watchers[this.params.VARIABLE] = this;
+		if (this.target && this.block.opcode === 'data_variable') {
+			this.target.watchers[this.block.args.VARIABLE.value.value] = this;
 		}
 		if (!this.label) {
 			this.label = this.getLabel();
@@ -39,72 +37,16 @@ class Watcher {
 	}
 
 	getLabel () {
-		switch (this.opcode) {
-			case 'data_variable': return this.params.VARIABLE;
-			case 'sensing_current': return getDateLabel(this.params.CURRENTMENU);
-			case 'looks_costumenumbername': return 'costume ' + this.params.NUMBER_NAME;
-			case 'looks_backdropnumbername': return 'backdrop ' + this.params.NUMBER_NAME;
+		switch (this.block.opcode) {
+			case 'data_variable': return this.block.args.VARIABLE.value.value;
+			case 'sensing_current': return getDateLabel(this.block.args.CURRENTMENU.value.value);
+			case 'looks_costumenumbername': return 'costume ' + this.block.args.NUMBER_NAME.value.value;
+			case 'looks_backdropnumbername': return 'backdrop ' + this.block.args.NUMBER_NAME.value.value;
 		}
-		return WATCHER_LABELS[this.opcode] || '';
+		return WATCHER_LABELS[this.block.opcode] || '';
 	}
 
-	update () {
-		let value = 0;
-		if (!this.target) return;
-		switch (this.opcode) {
-			case 'sensing_answer':
-				value = this.stage.answer;
-				break;
-			case 'looks_backdropnumbername':
-				if (this.params.NUMBER_NAME === 'number') {
-					value = this.stage.currentCostumeIndex + 1;
-				} else {
-					value = this.stage.costumes[this.stage.currentCostumeIndex].costumeName;
-				}
-				break;
-			case 'looks_costumenumbername':
-				if (this.params.NUMBER_NAME === 'number') {
-					value = this.target.currentCostumeIndex + 1;
-				} else {
-					value = this.target.costumes[this.stage.currentCostumeIndex].costumeName;
-				}
-				break;
-			case 'data_variable':
-				value = this.target.vars[this.params.VARIABLE];
-				break;
-			case 'motion_direction':
-				value = this.target.direction;
-				break;
-			case 'looks_size':
-				value = this.target.size;
-				break;
-			case 'sensing_loudness':
-			case 'sensing_loud':
-				// TODO
-				break;
-			case 'sensing_username':
-				// Match the runtime's behavior (empty string)
-				value = '';
-				break;
-			case 'music_getTempo':
-				value = this.stage.tempoBPM;
-				break;
-			case 'sensing_current':
-				value = timeAndDate(this.params.CURRENTMENU.toLowerCase());
-				break;
-			case 'sensing_timer':
-				value = Math.round((this.stage.rightNow() - this.stage.timerStart) / 100) / 10;
-				break;
-			case 'sound_volume':
-				value = this.target.volume;
-				break;
-			case 'motion_xposition':
-				value = this.target.scratchX;
-				break;
-			case 'motion_yposition':
-				value = this.target.scratchY;
-				break;
-		}
+	update (value) {
 		if (typeof value === 'number' && (value < 0.001 || value > 0.001)) {
 			value = Math.round(value * 1000) / 1000;
 		}

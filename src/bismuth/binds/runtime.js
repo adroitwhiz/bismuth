@@ -623,6 +623,18 @@ const runtime = (function (P) {
 			return this.baseNow + Date.now() - this.baseTime;
 		};
 
+		P.Stage.prototype.updateWatchers = function () {
+			for (let i = 0; i < this.allWatchers.length; i++) {
+				const w = this.allWatchers[i];
+				if (w.visible) {
+					SPRITE = w.target;
+					const value = w.func();
+					w.update(value);
+				}
+			}
+			SPRITE = null;
+		};
+
 		P.Stage.prototype.step = function () {
 			self = this;
 			VISUAL = false;
@@ -668,6 +680,7 @@ const runtime = (function (P) {
 				Date.now() - start < this.frametime &&
 				queue.length !== 0
 			);
+
 			this.draw();
 			SPRITE = null;
 		};

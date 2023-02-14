@@ -173,19 +173,13 @@ class ProjectV2Loader extends ProjectLoader {
 		});
 	}
 
-	loadWatcher (watcherData, parentStage) {
-		const loadedWatcher = new Watcher(parentStage);
-
+	loadWatcher (watcherData, stage) {
 		// Convert watcher opcode to new Scratch 3.0 opcode
 		// TODO: figure out whether parser should be instantiated once per ProjectV2Loader
 		const parser = new SB2Parser();
 		const watcherBlock = parser.parseBlock([watcherData.cmd, watcherData.param]);
 
-		loadedWatcher.opcode = watcherBlock.opcode;
-		// Add field values to watcher's parameter map
-		for (const arg of Object.values(watcherBlock.args)) {
-			loadedWatcher.params[arg.name] = arg.value.value;
-		}
+		const loadedWatcher = new Watcher(stage, watcherBlock);
 
 		loadedWatcher.isDiscrete = watcherData.isDiscrete === undefined ? true : watcherData.isDiscrete;
 		loadedWatcher.label = watcherData.label || '';
@@ -391,8 +385,7 @@ class ProjectV3Loader extends ProjectLoader {
 
 				// Add and resolve watchers after all sprites are done loading
 				for (const watcherData of manifest.monitors) {
-					const watcher = this.loadWatcher(watcherData);
-					watcher.stage = stage;
+					const watcher = this.loadWatcher(watcherData, stage);
 					stage.allWatchers.push(watcher);
 					watcher.resolve();
 				}
@@ -525,11 +518,11 @@ class ProjectV3Loader extends ProjectLoader {
 			});
 	}
 
-	loadWatcher (watcherData) {
-		const loadedWatcher = new Watcher();
+	loadWatcher (watcherData, stage) {
+		const parser = new SB3Parser();
+		const watcherBlock = parser.parseMonitor(watcherData);
 
-		loadedWatcher.opcode = watcherData.opcode;
-		loadedWatcher.params = watcherData.params;
+		const loadedWatcher = new Watcher(stage, watcherBlock);
 
 		loadedWatcher.isDiscrete = watcherData.isDiscrete;
 		loadedWatcher.label = '';
